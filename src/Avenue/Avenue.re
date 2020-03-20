@@ -167,18 +167,6 @@ let stretch_card_of_ints = (stretch, color) => (
 let create_paths_deck = () => {
   let rec aux = (deck, available_cards) => {
     let (stretch, color) = (Random.int(6), Random.int(2));
-    // List.length(deck) == grid_columns * grid_rows
-    //   ? deck
-    //   : available_cards[stretch][color] == 0
-    //       ? aux(deck, available_cards)
-    //       : available_cards
-    //         |> Array.mapi((str, colors) =>
-    //              colors
-    //              |> Array.mapi((clr, amount) =>
-    //                   str == stretch && clr == color ? amount - 1 : amount
-    //                 )
-    //            )
-    //         |> aux([stretch_card_of_ints(stretch, color), ...deck]);
     List.length(deck) == grid_columns * grid_rows
       ? deck
       : available_cards[stretch][color] == 0
