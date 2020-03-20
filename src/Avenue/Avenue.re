@@ -17,7 +17,7 @@ type stage =
   | End;
 
 type grape_color =
-  | Red
+  | Purple
   | Green;
 
 type cell_content =
@@ -28,60 +28,60 @@ type cell_content =
 
 let grid_contents = [|
   [|
-    Grapes([Green, Green, Green, Red]),
-    Grapes([Red]),
+    Grapes([Green, Green, Green, Purple]),
+    Grapes([Purple]),
     Farm(A),
     Grapes([Green, Green]),
     Empty,
     Castle(Green),
   |],
   [|
-    Grapes([Red]),
+    Grapes([Purple]),
     Grapes([Green, Green]),
     Grapes([Green]),
-    Grapes([Red]),
-    Grapes([Green, Green, Red]),
+    Grapes([Purple]),
+    Grapes([Green, Green, Purple]),
     Empty,
   |],
   [|
     Grapes([Green]),
     Empty,
-    Grapes([Red, Red, Green]),
+    Grapes([Purple, Purple, Green]),
     Farm(B),
     Grapes([Green]),
     Grapes([Green, Green]),
   |],
   [|
     Farm(C),
-    Grapes([Red, Red]),
+    Grapes([Purple, Purple]),
     Grapes([Green, Green]),
     Empty,
-    Grapes([Red, Red]),
+    Grapes([Purple, Purple]),
     Farm(D),
   |],
   [|
-    Grapes([Red, Red]),
+    Grapes([Purple, Purple]),
     Empty,
     Farm(E),
-    Grapes([Red]),
-    Grapes([Green, Green, Red]),
-    Grapes([Red]),
+    Grapes([Purple]),
+    Grapes([Green, Green, Purple]),
+    Grapes([Purple]),
   |],
   [|
     Empty,
-    Grapes([Red, Red, Green]),
+    Grapes([Purple, Purple, Green]),
     Grapes([Green]),
-    Grapes([Red, Red]),
+    Grapes([Purple, Purple]),
     Grapes([Green]),
     Empty,
   |],
   [|
-    Castle(Red),
+    Castle(Purple),
     Grapes([Green]),
-    Grapes([Red]),
+    Grapes([Purple]),
     Farm(F),
     Empty,
-    Grapes([Red, Red, Red, Green]),
+    Grapes([Purple, Purple, Purple, Green]),
   |],
 |];
 
@@ -226,10 +226,140 @@ type state = {game};
 
 let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
-module GridCell = {
+let string_of_farm =
+  fun
+  | A => "A"
+  | B => "B"
+  | C => "C"
+  | D => "D"
+  | E => "E"
+  | F => "F";
+
+let string_of_grape_color =
+  fun
+  | Purple => "purple"
+  | Green => "green";
+
+let string_of_card_color =
+  fun
+  | Grey => "grey"
+  | Yellow => "yellow";
+
+module Farm = {
   [@react.component]
-  let make = (~cell, ~dispatch) =>
-    <g onClick={_evt => dispatch(DrawPath(cell.row, cell.col))} />;
+  let make = (~farm, ~x, ~y) => {
+    let x0 = x + 5;
+    let y0 = y + 9;
+    let x1 = x0 + 4;
+    let y1 = y0;
+    let x2 = x1;
+    let y2 = y1 - 3;
+    let x3 = x2 - 2;
+    let y3 = y2 - 1;
+    let x4 = x3 - 2;
+    let y4 = y3 + 1;
+    <>
+      <polygon
+        points={j|$x0 $y0 $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4|j}
+        fillOpacity="0"
+      />
+      <text
+        x={(x0 + 1)->string_of_int}
+        y={(y0 - 1)->string_of_int}
+        strokeWidth="0"
+        fillOpacity="0.5"
+        stroke="black"
+        style={ReactDOMRe.Style.make(
+          ~fontSize="2.3",
+          ~fontFamily="Verdana",
+          (),
+        )}>
+        {farm->string_of_farm->str}
+      </text>
+    </>;
+  };
+};
+
+module Grape = {
+  [@react.component]
+  let make = (~color, ~i, ~x, ~y) =>
+    <circle
+      cx={(x + (i + 1) * 2)->string_of_int}
+      cy={(y + (i + 1) * 2)->string_of_int}
+      r="1"
+      fill={color->string_of_grape_color}
+      stroke={color->string_of_grape_color}
+      fillOpacity="0.5"
+    />;
+};
+
+module Castle = {
+  [@react.component]
+  let make = (~color, ~x, ~y) => {
+    let x0 = x + 2;
+    let y0 = y + 8;
+    let x1 = x0 + 6;
+    let y1 = y0;
+    let x2 = x1;
+    let y2 = y1 - 4;
+    let x3 = x2 - 1;
+    let y3 = y2 - 2;
+    let x4 = x3 - 1;
+    let y4 = y3 + 2;
+    let x5 = x4 - 2;
+    let y5 = y4;
+    let x6 = x5 - 1;
+    let y6 = y5 - 2;
+    let x7 = x6 - 1;
+    let y7 = y6 + 2;
+    <polygon
+      points={j|$x0 $y0 $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7|j}
+      fill={color->string_of_grape_color}
+      stroke={color->string_of_grape_color}
+      fillOpacity="0.5"
+    />;
+  };
+};
+
+module CellContent = {
+  [@react.component]
+  let make = (~cell) => {
+    let x = cell.col * 10;
+    let y = cell.row * 10;
+    switch (cell.content) {
+    | Empty => React.null
+    | Grapes(colors) =>
+      colors
+      |> List.mapi((i, color) => <Grape color i x y />)
+      |> Array.of_list
+      |> ReasonReact.array
+    | Castle(color) => <Castle color x y />
+    | Farm(farm) => <Farm farm x y />
+    };
+  };
+};
+
+module Cell = {
+  [@react.component]
+  let make = (~cell, ~dispatch) => {
+    let x = cell.col * 10;
+    let y = cell.row * 10;
+    let edge = 10;
+    <g
+      onClick={_evt => dispatch(DrawPath(cell.row, cell.col))}
+      fillOpacity="0"
+      stroke="green"
+      strokeWidth="0.25">
+      <rect
+        x={x->string_of_int}
+        y={y->string_of_int}
+        width={edge->string_of_int}
+        height={edge->string_of_int}
+        rx="1"
+      />
+      <CellContent cell />
+    </g>;
+  };
 };
 
 [@react.component]
@@ -246,12 +376,14 @@ let make = () => {
               yellow_cards: 0,
             },
           }
-        | DrawPath(row, col) => {
+        | DrawPath(row, col) =>
+          Js.log2(row, col);
+          {
             game: {
               ...state.game,
               yellow_cards: 0,
             },
-          }
+          };
         | PeekPhase => {
             game: {
               ...state.game,
@@ -274,12 +406,11 @@ let make = () => {
       {game: create_game("hervan")},
     );
 
-  <svg width="100vmin" height="100vmin" viewBox="0 0 100 100">
+  <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
     <title> "avenue"->str </title>
     {(game.players |> List.hd).grid
      |> flatten_grid
-     |> Array.map(cell => <GridCell cell dispatch />)
+     |> Array.map(cell => <Cell cell dispatch />)
      |> ReasonReact.array}
-    <line x1="5" y1="5" x2="95" y2="95" stroke="black" strokeWidth="0.1" />
   </svg>;
 };
