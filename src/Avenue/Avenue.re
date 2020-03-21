@@ -218,7 +218,11 @@ let create_game = player_name => {
   deck: create_stretches_deck(),
   phase_deck: create_farms_deck(),
   stage: Begin,
-  current_card: Some(((Top, Bottom), Yellow)),
+  // current_card: Some(((Top, Right), Yellow)),
+  // current_card: Some(((Right, Bottom), Yellow)),
+  // current_card: Some(((Bottom, Left), Yellow)),
+  // current_card: Some(((Left, Top), Yellow)),
+  current_card: None,
   yellow_cards: 0,
   base_grid,
   history: [],
@@ -360,11 +364,37 @@ module Cell = {
   };
 };
 
-// module Stretch = {
-//   [@react.component]
-//   let make = (~stretch, ~x, ~y) => <
+let string_position_of_side =
+  fun
+  | Top => "5 0"
+  | Left => "0 5"
+  | Bottom => "5 10"
+  | Right => "10 5";
 
-// };
+let string_control_point_of_side =
+  fun
+  | Top => "6 4"
+  | Left => "4 4"
+  | Bottom => "4 6"
+  | Right => "6 6";
+
+module Stretch = {
+  [@react.component]
+  let make = (~stretch as (entry, exit)) =>
+    <path
+      stroke="grey"
+      strokeWidth="1"
+      fill="transparent"
+      d={
+        "M "
+        ++ string_position_of_side(entry)
+        ++ " Q "
+        ++ string_control_point_of_side(entry)
+        ++ " 5 5  T "
+        ++ string_position_of_side(exit)
+      }
+    />;
+};
 
 module Deck = {
   [@react.component]
@@ -410,27 +440,34 @@ module Deck = {
              stroke="black"
              strokeWidth="0.1"
            />
-           <rect
-             x={
-               2.5
-               +. 0.15
-               *. (List.length(deck) |> float_of_int)
-               |> Js.Float.toString
-             }
-             y={
-               5.0
-               +. 0.15
-               *. (List.length(deck) |> float_of_int)
-               |> Js.Float.toString
-             }
-             width="10"
-             height="10"
-             rx="1"
-             fill="white"
-             stroke="black"
-             strokeWidth="0.1"
-           />
-           //  <Stretch stretch x y />
+           <g
+             transform={
+               "translate("
+               ++ (
+                 2.5
+                 +. 0.15
+                 *. (List.length(deck) |> float_of_int)
+                 |> Js.Float.toString
+               )
+               ++ " "
+               ++ (
+                 5.0
+                 +. 0.15
+                 *. (List.length(deck) |> float_of_int)
+                 |> Js.Float.toString
+               )
+               ++ ")"
+             }>
+             <rect
+               width="10"
+               height="10"
+               rx="1"
+               fill="white"
+               stroke="black"
+               strokeWidth="0.1"
+             />
+             <Stretch stretch />
+           </g>
          </>
        }}
     </g>;
