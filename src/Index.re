@@ -1,3 +1,7 @@
 [@bs.val] external document: Js.t({..}) = "document";
 
-ReactDOMRe.render(<Avenue />, document##body);
+let container = document##createElement("div");
+
+let () = document##body##appendChild(container);
+
+ReactDOMRe.render(<Avenue />, container);
