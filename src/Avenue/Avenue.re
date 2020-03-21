@@ -189,7 +189,12 @@ let create_stretches_deck = () => {
 let create_base_grid = () =>
   Array.init(grid_rows, row =>
     Array.init(grid_columns, col =>
-      {row, col, content: grid_contents[row][col], stretch: None}
+      {
+        row,
+        col,
+        content: grid_contents[row][col],
+        stretch: Some(stretch_of_int(Random.int(6))),
+      }
     )
   );
 
@@ -209,6 +214,8 @@ type game = {
   stage,
   current_card: option(card),
   yellow_cards: int,
+  phase_points: list(int),
+  castle_points: (int, int),
   base_grid: grid,
   history: list(action),
 };
@@ -218,12 +225,10 @@ let create_game = player_name => {
   deck: create_stretches_deck(),
   phase_deck: create_farms_deck(),
   stage: Begin,
-  // current_card: Some(((Top, Right), Yellow)),
-  // current_card: Some(((Right, Bottom), Yellow)),
-  // current_card: Some(((Bottom, Left), Yellow)),
-  // current_card: Some(((Left, Top), Yellow)),
   current_card: None,
   yellow_cards: 0,
+  phase_points: [],
+  castle_points: (0, 0),
   base_grid,
   history: [],
 };
@@ -254,27 +259,27 @@ let string_of_card_color =
 module Farm = {
   [@react.component]
   let make = (~farm) => {
-    let x0 = 5;
-    let y0 = 9;
-    let x1 = x0 + 4;
+    let x0 = 5.;
+    let y0 = 9.;
+    let x1 = x0 +. 4.;
     let y1 = y0;
     let x2 = x1;
-    let y2 = y1 - 3;
-    let x3 = x2 - 2;
-    let y3 = y2 - 1;
-    let x4 = x3 - 2;
-    let y4 = y3 + 1;
+    let y2 = y1 -. 3.;
+    let x3 = x2 -. 2.;
+    let y3 = y2 -. 1.;
+    let x4 = x3 -. 2.;
+    let y4 = y3 +. 1.;
     <>
       <polygon
         points={j|$x0 $y0 $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4|j}
         fillOpacity="0"
+        stroke="grey"
       />
       <text
-        x={(x0 + 1)->string_of_int}
-        y={(y0 - 1)->string_of_int}
+        x={(x0 +. 1.2)->Js.Float.toString}
+        y={(y0 -. 0.8)->Js.Float.toString}
         strokeWidth="0"
         fillOpacity="0.5"
-        stroke="black"
         style={ReactDOMRe.Style.make(
           ~fontSize="2.3",
           ~fontFamily="Verdana",
@@ -343,27 +348,6 @@ module CellContent = {
   };
 };
 
-module Cell = {
-  [@react.component]
-  let make = (~cell, ~dispatch) => {
-    <g
-      onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
-      fillOpacity="0"
-      stroke="green"
-      strokeWidth="0.25"
-      transform={
-        "translate("
-        ++ (cell.col * 10)->string_of_int
-        ++ " "
-        ++ (cell.row * 10)->string_of_int
-        ++ ")"
-      }>
-      <rect width="10" height="10" rx="1" />
-      <CellContent content={cell.content} />
-    </g>;
-  };
-};
-
 let string_position_of_side =
   fun
   | Top => "5 0"
@@ -382,19 +366,54 @@ module Stretch = {
   [@react.component]
   let make = (~stretch as (entry, exit)) =>
     <path
-      stroke="grey"
-      strokeWidth="1"
+      stroke="lightslategrey"
       fill="transparent"
       d={
         "M "
         ++ string_position_of_side(entry)
         ++ " Q "
         ++ string_control_point_of_side(entry)
-        ++ " 5 5  T "
+        ++ " 5 5 T "
         ++ string_position_of_side(exit)
       }
     />;
 };
+
+module StretchCard = {
+  [@react.component]
+  let make = (~stretch) => <g strokeWidth="1"> <Stretch stretch /> </g>;
+};
+
+module StretchDraw = {
+  [@react.component]
+  let make = (~stretch) => <g strokeWidth="0.5"> <Stretch stretch /> </g>;
+};
+
+module Cell = {
+  [@react.component]
+  let make = (~cell, ~dispatch) => {
+    <g
+      onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
+      fillOpacity="0"
+      strokeWidth="0.25"
+      transform={
+        "translate("
+        ++ (cell.col * 10)->string_of_int
+        ++ " "
+        ++ (cell.row * 10)->string_of_int
+        ++ ")"
+      }>
+      <rect width="10" height="10" stroke="green" strokeWidth="0.1" />
+      <CellContent content={cell.content} />
+      {switch (cell.stretch) {
+       | None => React.null
+       | Some(stretch) => <StretchDraw stretch />
+       }}
+    </g>;
+  };
+};
+
+let card_thickness = 0.05;
 
 module Deck = {
   [@react.component]
@@ -406,14 +425,14 @@ module Deck = {
        |> List.mapi((i, _) =>
             <rect
               key={i |> string_of_int}
-              x={0.15 *. (i |> float_of_int) |> Js.Float.toString}
-              y={0.15 *. (i |> float_of_int) |> Js.Float.toString}
+              x={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
+              y={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
               width="15"
               height="20"
               rx="2"
               fill="lightblue"
               stroke="black"
-              strokeWidth="0.1"
+              strokeWidth="0.025"
             />
           )
        |> Array.of_list
@@ -424,12 +443,12 @@ module Deck = {
          <>
            <rect
              x={
-               0.15
+               card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              }
              y={
-               0.15
+               card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              }
@@ -438,7 +457,7 @@ module Deck = {
              rx="2"
              fill={color->string_of_card_color}
              stroke="black"
-             strokeWidth="0.1"
+             strokeWidth={card_thickness |> Js.Float.toString}
            />
            <g
              transform={
@@ -466,7 +485,7 @@ module Deck = {
                stroke="black"
                strokeWidth="0.1"
              />
-             <Stretch stretch />
+             <StretchCard stretch />
            </g>
          </>
        }}
