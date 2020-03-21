@@ -1,4 +1,5 @@
 open Types;
+open Converters;
 
 let card_thickness = 0.05;
 [@react.component]
@@ -23,7 +24,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
      |> ReasonReact.array}
     {switch (current_card) {
      | None => React.null
-     | Some(stretch) =>
+     | Some((stretch, color)) =>
        <>
          <rect
            x={
@@ -39,7 +40,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            width="15"
            height="20"
            rx="2"
-           fill="lightblue"
+           fill={color->string_of_card_color}
            stroke="black"
            strokeWidth={card_thickness |> Js.Float.toString}
          />
@@ -48,14 +49,14 @@ let make = (~deck, ~current_card, ~dispatch) => {
              "translate("
              ++ (
                2.5
-               +. 0.15
+               +. card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ " "
              ++ (
                5.0
-               +. 0.15
+               +. card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              )

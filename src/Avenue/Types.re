@@ -65,7 +65,7 @@ type game = {
   deck: list(card),
   phase_deck: list(farm),
   stage,
-  current_card: option(stretch),
+  current_card: option(card),
   yellow_cards: int,
   phase_points: list(int),
   castle_points: (int, int),

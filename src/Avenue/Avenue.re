@@ -138,7 +138,6 @@ let reveal_phase = game =>
       ...game,
       phase_deck: rest_phase_deck,
       stage: Phase(farm),
-      current_card: None,
       yellow_cards: 0,
     }
   };
@@ -146,10 +145,10 @@ let reveal_phase = game =>
 let reveal_stretch = game =>
   switch (game.deck) {
   | [] => {...game, stage: End}
-  | [(stretch, color), ...rest_deck] => {
+  | [(_, color) as card, ...rest_deck] => {
       ...game,
       deck: rest_deck,
-      current_card: Some(stretch),
+      current_card: Some(card),
       yellow_cards:
         color == Yellow ? game.yellow_cards + 1 : game.yellow_cards,
     }
@@ -170,7 +169,15 @@ let draw_stretch = (game, row, col) => {
                    ? grid_row
                      |> Array.mapi((j, cell) =>
                           j == col
-                            ? {...cell, stretch: game.current_card} : cell
+                            ? {
+                              ...cell,
+                              stretch:
+                                switch (game.current_card) {
+                                | None => None
+                                | Some((stretch, _)) => Some(stretch)
+                                },
+                            }
+                            : cell
                         )
                    : grid_row
                ),
