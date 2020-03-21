@@ -26,6 +26,7 @@ let make = (~farm) => {
       style={ReactDOMRe.Style.make(
         ~fontSize="2.3",
         ~fontFamily="Verdana",
+        ~userSelect="none",
         (),
       )}>
       {farm->string_of_farm->str}
