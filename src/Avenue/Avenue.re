@@ -118,84 +118,121 @@ let base_grid = create_base_grid();
 let create_game = player_name => {
   players: [create_player(player_name, base_grid)],
   deck: create_stretches_deck(),
+  round: 0,
   phase_deck: create_farms_deck(),
   stage: Begin,
   current_card: None,
   yellow_cards: 0,
   phase_points: [],
   castle_points: (0, 0),
-  base_grid,
   history: [],
 };
 
-let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
-
-let reveal_phase = game =>
-  switch (game.phase_deck) {
-  | []
-  | [_] => {...game, stage: End}
-  | [farm, ...rest_phase_deck] => {
+let reveal_phase =
+    ({players, phase_deck, stage, current_card, yellow_cards} as game) =>
+  switch (players, stage, phase_deck, current_card, yellow_cards) {
+  | (
+      [{lookahead: false}, ..._],
+      Begin | PhaseEnd,
+      [farm, next_farm, ...rest_phase_deck],
+      None,
+      0,
+    ) => {
       ...game,
-      phase_deck: rest_phase_deck,
+      phase_deck: [next_farm, ...rest_phase_deck],
       stage: Phase(farm),
       yellow_cards: 0,
     }
+  | (_, _, _, _, _) => game
   };
 
-let reveal_stretch = game =>
-  switch (game.deck) {
-  | [] => {...game, stage: End}
-  | [(_, color) as card, ...rest_deck] => {
+let peek_phase = ({players, phase_deck, stage} as game) =>
+  switch (players, phase_deck, stage) {
+  | (
+      [{lookahead: false} as me, ...other_players],
+      [next_farm, ...rest_phase_deck],
+      Phase(farm),
+    )
+      when me.round < game.round => {
+      ...game,
+      players: [
+        {...me, round: game.round, lookahead: true},
+        ...other_players,
+      ],
+      phase_deck: [farm, ...rest_phase_deck],
+      stage: Phase(next_farm),
+    }
+  | (
+      [{lookahead: true} as me, ...other_players],
+      [farm, ...rest_phase_deck],
+      Phase(next_farm),
+    )
+      when me.round == game.round => {
+      ...game,
+      players: [
+        {...me, round: game.round, lookahead: false},
+        ...other_players,
+      ],
+      phase_deck: [next_farm, ...rest_phase_deck],
+      stage: Phase(farm),
+    }
+  | (_, _, _) => game
+  };
+
+let reveal_stretch = ({players, deck, stage, yellow_cards} as game) =>
+  switch (players, deck, stage, yellow_cards) {
+  | (
+      [{lookahead: false} as me, ..._],
+      [(_, color) as card, ...rest_deck],
+      Phase(_),
+      0 | 1 | 2 | 3,
+    )
+      when me.round == game.round => {
       ...game,
       deck: rest_deck,
+      round: game.round + 1,
       current_card: Some(card),
-      yellow_cards:
-        color == Yellow ? game.yellow_cards + 1 : game.yellow_cards,
+      yellow_cards: color == Yellow ? yellow_cards + 1 : yellow_cards,
     }
+  | (_, _, _, _) => game
   };
 
-let draw_stretch = (game, row, col) => {
-  ...game,
-  players:
-    switch (game.players) {
-    | [me, ...rest_players] => [
+let draw_stretch = ({players, stage, current_card} as game, row, col) =>
+  switch (players, stage, current_card) {
+  | (
+      [{grid, lookahead: false} as me, ...other_players],
+      Phase(_),
+      Some((stretch, _)),
+    )
+      when me.round < game.round && grid[row][col].stretch == None => {
+      ...game,
+      players: [
         {
           ...me,
-          round: me.round + 1,
+          round: game.round,
           grid:
-            me.grid
+            grid
             |> Array.mapi((i, grid_row) =>
                  i == row
                    ? grid_row
                      |> Array.mapi((j, cell) =>
-                          j == col
-                            ? {
-                              ...cell,
-                              stretch:
-                                switch (game.current_card) {
-                                | None => None
-                                | Some((stretch, _)) => Some(stretch)
-                                },
-                            }
-                            : cell
+                          j == col ? {...cell, stretch: Some(stretch)} : cell
                         )
                    : grid_row
                ),
         },
-        ...rest_players,
-      ]
-    | [] => []
-    },
-};
+        ...other_players,
+      ],
+    }
+  | (_, _, _) => game
+  };
 
 let reducer = (game, action) =>
   switch (action) {
   | RevealPhase => reveal_phase(game)
   | RevealStretchCard => reveal_stretch(game)
   | DrawStretch(row, col) => draw_stretch(game, row, col)
-  | PeekPhase =>
-    Js.log("peek");
-    {...game, yellow_cards: 0};
+  | PeekPhase => peek_phase(game)
   | EndPhase =>
     Js.log("end phase");
     {...game, yellow_cards: 0};
@@ -207,8 +244,9 @@ let reducer = (game, action) =>
 [@react.component]
 let make = () => {
   let _ = Random.self_init();
-
   let (game, dispatch) = React.useReducer(reducer, create_game("me"));
+
+  let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
   <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
     <title> "avenue"->str </title>
