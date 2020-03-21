@@ -14,7 +14,16 @@ type farm =
 type stage =
   | Begin
   | Phase(farm)
+  | EndPhase
   | End;
+
+type action =
+  | RevealPhase
+  | RevealStretchCard
+  | DrawStretch(int, int)
+  | PeekPhase
+  | EndPhase
+  | EndGame;
 
 type grape_color =
   | Purple
@@ -189,30 +198,18 @@ let create_stretches_deck = () => {
 let create_base_grid = () =>
   Array.init(grid_rows, row =>
     Array.init(grid_columns, col =>
-      {
-        row,
-        col,
-        content: grid_contents[row][col],
-        stretch: Some(stretch_of_int(Random.int(6))),
-      }
+      {row, col, content: grid_contents[row][col], stretch: None}
     )
   );
 
 let base_grid = create_base_grid();
-
-type action =
-  | RevealStretchCard
-  | DrawStretch(int, int)
-  | PeekPhase
-  | EndPhase
-  | EndGame;
 
 type game = {
   players: list(board),
   deck: list(card),
   phase_deck: list(farm),
   stage,
-  current_card: option(card),
+  current_card: option(stretch),
   yellow_cards: int,
   phase_points: list(int),
   castle_points: (int, int),
@@ -232,8 +229,6 @@ let create_game = player_name => {
   base_grid,
   history: [],
 };
-
-type state = {game};
 
 let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
@@ -413,9 +408,8 @@ module Cell = {
   };
 };
 
-let card_thickness = 0.05;
-
 module Deck = {
+  let card_thickness = 0.05;
   [@react.component]
   let make = (~deck, ~current_card, ~dispatch) => {
     <g
@@ -439,7 +433,7 @@ module Deck = {
        |> ReasonReact.array}
       {switch (current_card) {
        | None => React.null
-       | Some((stretch, color)) =>
+       | Some(stretch) =>
          <>
            <rect
              x={
@@ -455,7 +449,7 @@ module Deck = {
              width="15"
              height="20"
              rx="2"
-             fill={color->string_of_card_color}
+             fill="lightblue"
              stroke="black"
              strokeWidth={card_thickness |> Js.Float.toString}
            />
@@ -493,56 +487,173 @@ module Deck = {
   };
 };
 
-let reducer = (state, action) =>
+module PhaseDeck = {
+  let card_thickness = 0.5;
+  [@react.component]
+  let make = (~deck, ~current_phase, ~dispatch) => {
+    <g onClick={_evt => dispatch(RevealPhase)} transform="translate(65 25)">
+      {deck
+       |> List.mapi((i, _) =>
+            <rect
+              key={i |> string_of_int}
+              x={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
+              y={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
+              width="15"
+              height="20"
+              rx="2"
+              fill="cornflowerblue"
+              stroke="black"
+              strokeWidth="0.025"
+            />
+          )
+       |> Array.of_list
+       |> ReasonReact.array}
+      {switch (current_phase) {
+       | Phase(farm) =>
+         <>
+           <rect
+             x={
+               card_thickness
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             y={
+               card_thickness
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             width="15"
+             height="20"
+             rx="2"
+             fill="black"
+             stroke="black"
+             strokeWidth={card_thickness |> Js.Float.toString}
+           />
+           <g
+             transform={
+               "translate("
+               ++ (
+                 2.5
+                 +. 0.15
+                 *. (List.length(deck) |> float_of_int)
+                 |> Js.Float.toString
+               )
+               ++ " "
+               ++ (
+                 5.0
+                 +. 0.15
+                 *. (List.length(deck) |> float_of_int)
+                 |> Js.Float.toString
+               )
+               ++ ")"
+             }>
+             <rect
+               width="10"
+               height="10"
+               rx="1"
+               fill="white"
+               stroke="black"
+               strokeWidth="0.1"
+             />
+             <Farm farm />
+           </g>
+         </>
+       | _ => React.null
+       }}
+    </g>;
+  };
+};
+
+let reveal_phase = game =>
+  switch (game.phase_deck) {
+  | []
+  | [_] => {...game, stage: End}
+  | [farm, ...rest_phase_deck] => {
+      ...game,
+      phase_deck: rest_phase_deck,
+      stage: Phase(farm),
+      current_card: None,
+      yellow_cards: 0,
+    }
+  };
+
+let reveal_stretch = game =>
+  switch (game.deck) {
+  | [] => {...game, stage: End}
+  | [(stretch, color), ...rest_deck] => {
+      ...game,
+      deck: rest_deck,
+      current_card: Some(stretch),
+      yellow_cards:
+        color == Yellow ? game.yellow_cards + 1 : game.yellow_cards,
+    }
+  };
+
+let draw_stretch = (game, row, col) => {
+  ...game,
+  players:
+    switch (game.players) {
+    | [me, ...rest_players] => [
+        {
+          ...me,
+          round: me.round + 1,
+          grid:
+            me.grid
+            |> Array.mapi((i, grid_row) =>
+                 i == row
+                   ? grid_row
+                     |> Array.mapi((j, cell) =>
+                          j == col
+                            ? {...cell, stretch: game.current_card} : cell
+                        )
+                   : grid_row
+               ),
+        },
+        ...rest_players,
+      ]
+    | [] => []
+    },
+};
+
+// type board = {
+//   farmer: string,
+//   grid,
+//   lookahead: bool,
+//   round: int,
+// };
+
+// players: list(board),
+// deck: list(card),
+// phase_deck: list(farm),
+// stage,
+// current_card: option(card),
+// yellow_cards: int,
+// phase_points: list(int),
+// castle_points: (int, int),
+// base_grid: grid,
+// history: list(action),
+
+let reducer = (game, action) =>
   switch (action) {
-  | RevealStretchCard =>
-    Js.log("reveal");
-    {
-      game: {
-        ...state.game,
-        yellow_cards: 0,
-      },
-    };
-  | DrawStretch(row, col) =>
-    Js.log2(row, col);
-    {
-      game: {
-        ...state.game,
-        yellow_cards: 0,
-      },
-    };
+  | RevealPhase => reveal_phase(game)
+  | RevealStretchCard => reveal_stretch(game)
+  | DrawStretch(row, col) => draw_stretch(game, row, col)
   | PeekPhase =>
     Js.log("peek");
-    {
-      game: {
-        ...state.game,
-        yellow_cards: 0,
-      },
-    };
+    {...game, yellow_cards: 0};
   | EndPhase =>
     Js.log("end phase");
-    {
-      game: {
-        ...state.game,
-        yellow_cards: 0,
-      },
-    };
+    {...game, yellow_cards: 0};
   | EndGame =>
     Js.log("end game");
-    {
-      game: {
-        ...state.game,
-        yellow_cards: 0,
-      },
-    };
+    {...game, yellow_cards: 0};
   };
 
 [@react.component]
 let make = () => {
   let _ = Random.self_init();
 
-  let ({game}, dispatch) =
-    React.useReducer(reducer, {game: create_game("hervan")});
+  let (game, dispatch) = React.useReducer(reducer, create_game("me"));
 
   <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
     <title> "avenue"->str </title>
@@ -553,5 +664,6 @@ let make = () => {
         )
      |> ReasonReact.array}
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
+    <PhaseDeck deck={game.phase_deck} current_phase={game.stage} dispatch />
   </svg>;
 };
