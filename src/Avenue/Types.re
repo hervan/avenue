@@ -6,10 +6,24 @@ type farm =
   | E
   | F;
 
+type side =
+  | Top
+  | Right
+  | Bottom
+  | Left;
+
+type grape_color =
+  | Purple
+  | Green;
+
+type card_color =
+  | Grey
+  | Yellow;
+
 type stage =
   | Begin
   | Phase(farm)
-  | EndPhase
+  | PhaseEnd
   | End;
 
 type action =
@@ -20,27 +34,13 @@ type action =
   | EndPhase
   | EndGame;
 
-type grape_color =
-  | Purple
-  | Green;
-
 type cell_content =
   | Empty
   | Grapes(list(grape_color))
   | Castle(grape_color)
   | Farm(farm);
 
-type side =
-  | Top
-  | Right
-  | Bottom
-  | Left;
-
 type stretch = (side, side);
-
-type card_color =
-  | Grey
-  | Yellow;
 
 type card = (stretch, card_color);
 
@@ -63,12 +63,12 @@ type board = {
 type game = {
   players: list(board),
   deck: list(card),
+  round: int,
   phase_deck: list(farm),
   stage,
   current_card: option(card),
   yellow_cards: int,
   phase_points: list(int),
   castle_points: (int, int),
-  base_grid: grid,
   history: list(action),
 };
