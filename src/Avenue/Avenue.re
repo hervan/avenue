@@ -164,7 +164,7 @@ let stretch_card_of_ints = (stretch, color) => (
   card_color_of_int(color),
 );
 
-let create_paths_deck = () => {
+let create_stretches_deck = () => {
   let rec aux = (deck, available_cards) => {
     let (stretch, color) = (Random.int(6), Random.int(2));
     List.length(deck) == grid_columns * grid_rows
@@ -196,29 +196,31 @@ let create_base_grid = () =>
 let base_grid = create_base_grid();
 
 type action =
-  | RevealPath
-  | DrawPath(int, int)
+  | RevealStretchCard
+  | DrawStretch(int, int)
   | PeekPhase
-  | CountPhase
-  | CountGame;
+  | EndPhase
+  | EndGame;
 
 type game = {
   players: list(board),
   deck: list(card),
-  stage,
   phase_deck: list(farm),
+  stage,
+  current_card: option(card),
   yellow_cards: int,
   base_grid: grid,
   history: list(action),
 };
 
 let create_game = player_name => {
-  base_grid,
   players: [create_player(player_name, base_grid)],
-  deck: create_paths_deck(),
-  stage: Begin,
+  deck: create_stretches_deck(),
   phase_deck: create_farms_deck(),
+  stage: Begin,
+  current_card: Some(((Top, Bottom), Yellow)),
   yellow_cards: 0,
+  base_grid,
   history: [],
 };
 
@@ -242,14 +244,14 @@ let string_of_grape_color =
 
 let string_of_card_color =
   fun
-  | Grey => "grey"
-  | Yellow => "yellow";
+  | Grey => "lightgrey"
+  | Yellow => "lightyellow";
 
 module Farm = {
   [@react.component]
-  let make = (~farm, ~x, ~y) => {
-    let x0 = x + 5;
-    let y0 = y + 9;
+  let make = (~farm) => {
+    let x0 = 5;
+    let y0 = 9;
     let x1 = x0 + 4;
     let y1 = y0;
     let x2 = x1;
@@ -282,10 +284,10 @@ module Farm = {
 
 module Grape = {
   [@react.component]
-  let make = (~color, ~i, ~x, ~y) =>
+  let make = (~color, ~i) =>
     <circle
-      cx={(x + (i + 1) * 2)->string_of_int}
-      cy={(y + (i + 1) * 2)->string_of_int}
+      cx={((i + 1) * 2)->string_of_int}
+      cy={((i + 1) * 2)->string_of_int}
       r="1"
       fill={color->string_of_grape_color}
       stroke={color->string_of_grape_color}
@@ -295,9 +297,9 @@ module Grape = {
 
 module Castle = {
   [@react.component]
-  let make = (~color, ~x, ~y) => {
-    let x0 = x + 2;
-    let y0 = y + 8;
+  let make = (~color) => {
+    let x0 = 2;
+    let y0 = 8;
     let x1 = x0 + 6;
     let y1 = y0;
     let x2 = x1;
@@ -323,18 +325,16 @@ module Castle = {
 
 module CellContent = {
   [@react.component]
-  let make = (~cell) => {
-    let x = cell.col * 10;
-    let y = cell.row * 10;
-    switch (cell.content) {
+  let make = (~content) => {
+    switch (content) {
     | Empty => React.null
     | Grapes(colors) =>
       colors
-      |> List.mapi((i, color) => <Grape color i x y />)
+      |> List.mapi((i, color) => <Grape key={i |> string_of_int} color i />)
       |> Array.of_list
       |> ReasonReact.array
-    | Castle(color) => <Castle color x y />
-    | Farm(farm) => <Farm farm x y />
+    | Castle(color) => <Castle color />
+    | Farm(farm) => <Farm farm />
     };
   };
 };
@@ -342,75 +342,160 @@ module CellContent = {
 module Cell = {
   [@react.component]
   let make = (~cell, ~dispatch) => {
-    let x = cell.col * 10;
-    let y = cell.row * 10;
-    let edge = 10;
     <g
-      onClick={_evt => dispatch(DrawPath(cell.row, cell.col))}
+      onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
       fillOpacity="0"
       stroke="green"
-      strokeWidth="0.25">
-      <rect
-        x={x->string_of_int}
-        y={y->string_of_int}
-        width={edge->string_of_int}
-        height={edge->string_of_int}
-        rx="1"
-      />
-      <CellContent cell />
+      strokeWidth="0.25"
+      transform={
+        "translate("
+        ++ (cell.col * 10)->string_of_int
+        ++ " "
+        ++ (cell.row * 10)->string_of_int
+        ++ ")"
+      }>
+      <rect width="10" height="10" rx="1" />
+      <CellContent content={cell.content} />
     </g>;
   };
 };
+
+// module Stretch = {
+//   [@react.component]
+//   let make = (~stretch, ~x, ~y) => <
+
+// };
+
+module Deck = {
+  [@react.component]
+  let make = (~deck, ~current_card, ~dispatch) => {
+    <g
+      onClick={_evt => dispatch(RevealStretchCard)}
+      transform="translate(65 0)">
+      {deck
+       |> List.mapi((i, _) =>
+            <rect
+              key={i |> string_of_int}
+              x={0.15 *. (i |> float_of_int) |> Js.Float.toString}
+              y={0.15 *. (i |> float_of_int) |> Js.Float.toString}
+              width="15"
+              height="20"
+              rx="2"
+              fill="lightblue"
+              stroke="black"
+              strokeWidth="0.1"
+            />
+          )
+       |> Array.of_list
+       |> ReasonReact.array}
+      {switch (current_card) {
+       | None => React.null
+       | Some((stretch, color)) =>
+         <>
+           <rect
+             x={
+               0.15
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             y={
+               0.15
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             width="15"
+             height="20"
+             rx="2"
+             fill={color->string_of_card_color}
+             stroke="black"
+             strokeWidth="0.1"
+           />
+           <rect
+             x={
+               2.5
+               +. 0.15
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             y={
+               5.0
+               +. 0.15
+               *. (List.length(deck) |> float_of_int)
+               |> Js.Float.toString
+             }
+             width="10"
+             height="10"
+             rx="1"
+             fill="white"
+             stroke="black"
+             strokeWidth="0.1"
+           />
+           //  <Stretch stretch x y />
+         </>
+       }}
+    </g>;
+  };
+};
+
+let reducer = (state, action) =>
+  switch (action) {
+  | RevealStretchCard =>
+    Js.log("reveal");
+    {
+      game: {
+        ...state.game,
+        yellow_cards: 0,
+      },
+    };
+  | DrawStretch(row, col) =>
+    Js.log2(row, col);
+    {
+      game: {
+        ...state.game,
+        yellow_cards: 0,
+      },
+    };
+  | PeekPhase =>
+    Js.log("peek");
+    {
+      game: {
+        ...state.game,
+        yellow_cards: 0,
+      },
+    };
+  | EndPhase =>
+    Js.log("end phase");
+    {
+      game: {
+        ...state.game,
+        yellow_cards: 0,
+      },
+    };
+  | EndGame =>
+    Js.log("end game");
+    {
+      game: {
+        ...state.game,
+        yellow_cards: 0,
+      },
+    };
+  };
 
 [@react.component]
 let make = () => {
   let _ = Random.self_init();
 
   let ({game}, dispatch) =
-    React.useReducer(
-      (state, action) =>
-        switch (action) {
-        | RevealPath => {
-            game: {
-              ...state.game,
-              yellow_cards: 0,
-            },
-          }
-        | DrawPath(row, col) =>
-          Js.log2(row, col);
-          {
-            game: {
-              ...state.game,
-              yellow_cards: 0,
-            },
-          };
-        | PeekPhase => {
-            game: {
-              ...state.game,
-              yellow_cards: 0,
-            },
-          }
-        | CountPhase => {
-            game: {
-              ...state.game,
-              yellow_cards: 0,
-            },
-          }
-        | CountGame => {
-            game: {
-              ...state.game,
-              yellow_cards: 0,
-            },
-          }
-        },
-      {game: create_game("hervan")},
-    );
+    React.useReducer(reducer, {game: create_game("hervan")});
 
   <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
     <title> "avenue"->str </title>
     {(game.players |> List.hd).grid
      |> flatten_grid
-     |> Array.map(cell => <Cell cell dispatch />)
+     |> Array.mapi((i, cell) =>
+          <Cell key={i |> string_of_int} cell dispatch />
+        )
      |> ReasonReact.array}
+    <Deck deck={game.deck} current_card={game.current_card} dispatch />
   </svg>;
 };
