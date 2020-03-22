@@ -8,22 +8,21 @@ let make = (~game as {history}) =>
   | [last_entry, ..._] =>
     <g
       transform="translate(0 90)"
-      strokeWidth="0.5"
+      strokeWidth="0.1"
       stroke="black"
       fillOpacity="1"
-      fill="yellow"
+      fill={last_entry->history_to_color}
       style={ReactDOMRe.Style.make(
-        ~fontSize="3.6",
+        ~fontSize="2.4",
         ~fontFamily="Verdana",
         (),
       )}>
       <text>
         {last_entry->history_to_string->str}
         <animate
-          // attributeType="XML"
           attributeName="x"
-          values="0;50;0;-50;0"
-          dur="5s"
+          values="100;-120"
+          dur="8s"
           repeatCount="indefinite"
         />
       </text>

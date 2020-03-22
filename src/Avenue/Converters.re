@@ -91,3 +91,10 @@ let history_to_string =
     action->action_to_string ++ ": " ++ action->describe_action
   | Message(message, description) =>
     message->message_to_string ++ ": " ++ description;
+
+let history_to_color =
+  fun
+  | Action(_) => "blue"
+  | Message(Mistake, _) => "red"
+  | Message(Info, _) => "yellow"
+  | Message(Tip, _) => "green";
