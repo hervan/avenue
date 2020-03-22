@@ -90,7 +90,9 @@ let make = (~game as {players} as game) =>
     let purple_points = count_points(game.castles.purple |> to_pos, grid);
     let green_points = count_points(game.castles.green |> to_pos, grid);
     let total_points =
-      farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0);
+      (farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
+      + purple_points
+      + green_points;
     <g
       transform="translate(0 77)"
       strokeWidth="0.1"
