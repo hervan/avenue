@@ -81,7 +81,7 @@ let describe_action =
 
 let message_to_string =
   fun
-  | Mistake => "mistake"
+  | Mistake => "attention"
   | Info => "info"
   | Tip => "tip";
 
