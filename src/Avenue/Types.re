@@ -30,9 +30,7 @@ type action =
   | RevealPhase
   | RevealStretchCard
   | DrawStretch(int, int)
-  | PeekPhase
-  | EndPhase
-  | EndGame;
+  | PeekPhase;
 
 type cell_content =
   | Empty
@@ -41,6 +39,10 @@ type cell_content =
   | Farm(farm);
 
 type stretch = (side, side);
+
+type stretch_orientation =
+  | Forward
+  | Backward;
 
 type card = (stretch, card_color);
 
@@ -53,11 +55,24 @@ type cell = {
 
 type grid = array(array(cell));
 
+type direction =
+  | Beginning
+  | Forward
+  | Backward
+  | From(side)
+  | Nowhere;
+
 type board = {
   farmer: string,
   grid,
   lookahead: bool,
   round: int,
+  farm_points: list((farm, int)),
+};
+
+type castles = {
+  purple: cell,
+  green: cell,
 };
 
 type game = {
@@ -68,7 +83,7 @@ type game = {
   stage,
   current_card: option(card),
   yellow_cards: int,
-  phase_points: list(int),
-  castle_points: (int, int),
+  castles,
+  farms: list(cell),
   history: list(action),
 };

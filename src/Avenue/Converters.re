@@ -62,3 +62,5 @@ let string_control_point_of_side =
   | Left => "4 4"
   | Bottom => "4 6"
   | Right => "6 6";
+
+let to_pos = cell => (cell.row, cell.col);

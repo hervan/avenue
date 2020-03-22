@@ -68,6 +68,7 @@ let create_player = (player_name, base_grid) => {
   grid: base_grid,
   lookahead: false,
   round: 0,
+  farm_points: [],
 };
 
 let random_farm = () => farm_of_int(Random.int(6));
@@ -123,8 +124,18 @@ let create_game = player_name => {
   stage: Begin,
   current_card: None,
   yellow_cards: 0,
-  phase_points: [],
-  castle_points: (0, 0),
+  castles: {
+    purple: base_grid[6][0],
+    green: base_grid[0][5],
+  },
+  farms: [
+    base_grid[0][2],
+    base_grid[2][3],
+    base_grid[3][0],
+    base_grid[3][5],
+    base_grid[4][2],
+    base_grid[6][3],
+  ],
   history: [],
 };
 
@@ -132,13 +143,17 @@ let reveal_phase =
     ({players, phase_deck, stage, current_card, yellow_cards} as game) =>
   switch (players, stage, phase_deck, current_card, yellow_cards) {
   | (
-      [{lookahead: false}, ..._],
+      [{lookahead: false} as me, ...other_players],
       Begin | PhaseEnd,
       [farm, next_farm, ...rest_phase_deck],
       None,
       0,
     ) => {
       ...game,
+      players: [
+        {...me, farm_points: [(farm, 0), ...me.farm_points]},
+        ...other_players,
+      ],
       phase_deck: [next_farm, ...rest_phase_deck],
       stage: Phase(farm),
       yellow_cards: 0,
@@ -227,18 +242,78 @@ let draw_stretch = ({players, stage, current_card} as game, row, col) =>
   | (_, _, _) => game
   };
 
+let update_points = ({players, stage, farms} as game) =>
+  switch (players, stage) {
+  | (
+      [
+        {farm_points: [(farm, _), ...previous_points], grid} as me,
+        ...other_players,
+      ],
+      Phase(current_farm),
+    )
+      when current_farm == farm => {
+      ...game,
+      players: [
+        {
+          ...me,
+          farm_points: [
+            (
+              farm,
+              Summary.count_points(
+                farms
+                |> List.find(cell => cell.content == Farm(farm))
+                |> to_pos,
+                grid,
+              ),
+            ),
+            ...previous_points,
+          ],
+        },
+        ...other_players,
+      ],
+    }
+  | (_, _) => game
+  };
+
+let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
+  switch (players, stage, yellow_cards) {
+  | ([me, ...other_players], Phase(current_farm), 4)
+      when me.round == game.round => {
+      ...game,
+      players: [
+        {
+          ...me,
+          farm_points:
+            switch (me.farm_points) {
+            | [(farm, points), ...previous_phases]
+                when points <= 0 && current_farm == farm => [
+                (farm, (-5)),
+                ...previous_phases,
+              ]
+            | [(farm, points), (_, previous_points), ...previous_phases]
+                when points <= previous_points && current_farm == farm => [
+                (farm, (-5)),
+                ...previous_phases,
+              ]
+            | _ => me.farm_points
+            },
+        },
+        ...other_players,
+      ],
+      stage: phase_deck->List.length > 1 ? PhaseEnd : End,
+      current_card: None,
+      yellow_cards: 0,
+    }
+  | (_, _, _) => game
+  };
+
 let reducer = (game, action) =>
   switch (action) {
   | RevealPhase => reveal_phase(game)
   | RevealStretchCard => reveal_stretch(game)
-  | DrawStretch(row, col) => draw_stretch(game, row, col)
+  | DrawStretch(row, col) =>
+    draw_stretch(game, row, col)->update_points->process_phase
   | PeekPhase => peek_phase(game)
-  | EndPhase =>
-    Js.log("end phase");
-    {...game, yellow_cards: 0};
-  | EndGame =>
-    Js.log("end game");
-    {...game, yellow_cards: 0};
   };
 
 [@react.component]
@@ -258,5 +333,6 @@ let make = () => {
      |> ReasonReact.array}
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck deck={game.phase_deck} current_phase={game.stage} dispatch />
+    <Summary game />
   </svg>;
 };
