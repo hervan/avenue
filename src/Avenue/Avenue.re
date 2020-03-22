@@ -290,9 +290,14 @@ let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
                 (farm, (-5)),
                 ...previous_phases,
               ]
-            | [(farm, points), (_, previous_points), ...previous_phases]
+            | [
+                (farm, points),
+                (previous_farm, previous_points),
+                ...previous_phases,
+              ]
                 when points <= previous_points && current_farm == farm => [
                 (farm, (-5)),
+                (previous_farm, previous_points),
                 ...previous_phases,
               ]
             | _ => me.farm_points
