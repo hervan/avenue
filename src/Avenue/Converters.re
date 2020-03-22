@@ -64,3 +64,30 @@ let string_control_point_of_side =
   | Right => "6 6";
 
 let to_pos = cell => (cell.row, cell.col);
+
+let action_to_string =
+  fun
+  | RevealPhase => "reveal phase"
+  | RevealStretchCard => "reveal stretch"
+  | DrawStretch(row, col) => {j|draw $row, $col|j}
+  | PeekPhase => "peek phase";
+
+let describe_action =
+  fun
+  | RevealPhase => "flip farm card for the next phase, beginning a new phase"
+  | RevealStretchCard => "flip new stretch card, which all players must draw"
+  | DrawStretch(row, col) => {j|player draws current stretch card, without rotation, to row $row, column $col|j}
+  | PeekPhase => "player skips draw to peek at next farm card";
+
+let message_to_string =
+  fun
+  | Error => "error"
+  | Info => "info"
+  | Tip => "tip";
+
+let history_to_string =
+  fun
+  | Action(action) =>
+    action->action_to_string ++ ": " ++ action->describe_action
+  | Message(message, description) =>
+    message->message_to_string ++ ": " ++ description;

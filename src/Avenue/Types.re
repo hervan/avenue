@@ -75,6 +75,15 @@ type castles = {
   green: cell,
 };
 
+type message =
+  | Error
+  | Info
+  | Tip;
+
+type history_item =
+  | Action(action)
+  | Message(message, string);
+
 type game = {
   players: list(board),
   deck: list(card),
@@ -85,5 +94,5 @@ type game = {
   yellow_cards: int,
   castles,
   farms: list(cell),
-  history: list(action),
+  history: list(history_item),
 };

@@ -339,5 +339,6 @@ let make = () => {
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck deck={game.phase_deck} current_phase={game.stage} dispatch />
     <Summary game />
+    <Status game />
   </svg>;
 };
