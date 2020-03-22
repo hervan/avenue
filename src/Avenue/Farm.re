@@ -24,7 +24,7 @@ let make = (~farm) => {
       strokeWidth="0"
       fillOpacity="0.5"
       style={ReactDOMRe.Style.make(
-        ~fontSize="2.3",
+        ~fontSize="2.3px",
         ~fontFamily="Verdana",
         ~userSelect="none",
         (),

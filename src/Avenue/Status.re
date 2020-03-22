@@ -13,7 +13,7 @@ let make = (~game as {history}) =>
       fillOpacity="1"
       fill={last_entry->history_to_color}
       style={ReactDOMRe.Style.make(
-        ~fontSize="2.4",
+        ~fontSize="2.4px",
         ~fontFamily="Verdana",
         (),
       )}>

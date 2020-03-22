@@ -61,7 +61,7 @@ let make = (~deck, ~current_phase, ~dispatch) => {
              fillOpacity="1"
              fill="cornflowerblue"
              style={ReactDOMRe.Style.make(
-               ~fontSize="6",
+               ~fontSize="6px",
                ~fontFamily="Verdana",
                ~userSelect="none",
                (),

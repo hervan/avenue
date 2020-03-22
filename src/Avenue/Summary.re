@@ -103,7 +103,7 @@ let make = (~game as {players} as game) =>
       fillOpacity="1"
       fill="green"
       style={ReactDOMRe.Style.make(
-        ~fontSize="3.6",
+        ~fontSize="3.6px",
         ~fontFamily="Verdana",
         (),
       )}>
