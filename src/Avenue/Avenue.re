@@ -307,7 +307,7 @@ let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
       ],
       stage: phase_deck->List.length > 1 ? PhaseEnd : End,
       current_card: None,
-      yellow_cards: 0,
+      yellow_cards: phase_deck->List.length > 1 ? 0 : yellow_cards,
     }
   | (_, _, _) => game
   };
