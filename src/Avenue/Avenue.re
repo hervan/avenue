@@ -314,7 +314,7 @@ let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
 
 let reducer = (game, action) =>
   switch (action) {
-  | RevealPhase => reveal_phase(game)
+  | RevealPhase => reveal_phase(game)->update_points
   | RevealStretchCard => reveal_stretch(game)
   | DrawStretch(row, col) =>
     draw_stretch(game, row, col)->update_points->process_phase
