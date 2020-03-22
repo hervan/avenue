@@ -76,7 +76,7 @@ type castles = {
 };
 
 type message =
-  | Error
+  | Mistake
   | Info
   | Tip;
 

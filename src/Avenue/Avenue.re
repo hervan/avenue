@@ -140,7 +140,9 @@ let create_game = player_name => {
 };
 
 let reveal_phase =
-    ({players, phase_deck, stage, current_card, yellow_cards} as game) =>
+    (
+      {players, phase_deck, stage, current_card, yellow_cards, history} as game,
+    ) =>
   switch (players, stage, phase_deck, current_card, yellow_cards) {
   | (
       [{lookahead: false} as me, ...other_players],
@@ -157,11 +159,18 @@ let reveal_phase =
       phase_deck: [next_farm, ...rest_phase_deck],
       stage: Phase(farm),
       yellow_cards: 0,
+      history: [Action(RevealPhase), ...history],
     }
-  | (_, _, _, _, _) => game
+  | (_, _, _, _, _) => {
+      ...game,
+      history: [
+        Message(Mistake, "you can't reveal the next phase yet"),
+        ...history,
+      ],
+    }
   };
 
-let peek_phase = ({players, phase_deck, stage} as game) =>
+let peek_phase = ({players, phase_deck, stage, history} as game) =>
   switch (players, phase_deck, stage) {
   | (
       [{lookahead: false} as me, ...other_players],
@@ -176,6 +185,7 @@ let peek_phase = ({players, phase_deck, stage} as game) =>
       ],
       phase_deck: [farm, ...rest_phase_deck],
       stage: Phase(next_farm),
+      history: [Action(PeekPhase), ...history],
     }
   | (
       [{lookahead: true} as me, ...other_players],
@@ -191,10 +201,16 @@ let peek_phase = ({players, phase_deck, stage} as game) =>
       phase_deck: [next_farm, ...rest_phase_deck],
       stage: Phase(farm),
     }
-  | (_, _, _) => game
+  | (_, _, _) => {
+      ...game,
+      history: [
+        Message(Mistake, "you can't peek the next phase now"),
+        ...history,
+      ],
+    }
   };
 
-let reveal_stretch = ({players, deck, stage, yellow_cards} as game) =>
+let reveal_stretch = ({players, deck, stage, yellow_cards, history} as game) =>
   switch (players, deck, stage, yellow_cards) {
   | (
       [{lookahead: false} as me, ..._],
@@ -208,11 +224,19 @@ let reveal_stretch = ({players, deck, stage, yellow_cards} as game) =>
       round: game.round + 1,
       current_card: Some(card),
       yellow_cards: color == Yellow ? yellow_cards + 1 : yellow_cards,
+      history: [Action(RevealStretchCard), ...history],
     }
-  | (_, _, _, _) => game
+  | (_, _, _, _) => {
+      ...game,
+      history: [
+        Message(Mistake, "you can't reveal the next stretch card yet"),
+        ...history,
+      ],
+    }
   };
 
-let draw_stretch = ({players, stage, current_card} as game, row, col) =>
+let draw_stretch =
+    ({players, stage, current_card, history} as game, row, col) =>
   switch (players, stage, current_card) {
   | (
       [{grid, lookahead: false} as me, ...other_players],
@@ -238,8 +262,15 @@ let draw_stretch = ({players, stage, current_card} as game, row, col) =>
         },
         ...other_players,
       ],
+      history: [Action(DrawStretch(row, col)), ...history],
     }
-  | (_, _, _) => game
+  | (_, _, _) => {
+      ...game,
+      history: [
+        Message(Mistake, "you can't draw a stretch yet"),
+        ...history,
+      ],
+    }
   };
 
 let update_points = ({players, stage, farms} as game) =>
@@ -275,7 +306,8 @@ let update_points = ({players, stage, farms} as game) =>
   | (_, _) => game
   };
 
-let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
+let process_phase =
+    ({players, phase_deck, stage, yellow_cards, history} as game) =>
   switch (players, stage, yellow_cards) {
   | ([me, ...other_players], Phase(current_farm), 4)
       when me.round == game.round => {
@@ -308,6 +340,14 @@ let process_phase = ({players, phase_deck, stage, yellow_cards} as game) =>
       stage: phase_deck->List.length > 1 ? PhaseEnd : End,
       current_card: None,
       yellow_cards: phase_deck->List.length > 1 ? 0 : yellow_cards,
+      history: [
+        Message(
+          Info,
+          phase_deck->List.length > 1
+            ? "current phase is over" : "game is over",
+        ),
+        ...history,
+      ],
     }
   | (_, _, _) => game
   };
