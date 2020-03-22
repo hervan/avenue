@@ -93,8 +93,11 @@ let make = (~game as {players} as game) =>
       (farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
       + purple_points
       + green_points;
+
+    let n_phase = farm_points |> List.length;
+    let yc = game.yellow_cards;
     <g
-      transform="translate(0 77)"
+      transform="translate(0 75)"
       strokeWidth="0.1"
       stroke="black"
       fillOpacity="1"
@@ -114,9 +117,10 @@ let make = (~game as {players} as game) =>
          )
          ->str}
       </text>
-      <text y="6">
+      <text y="4">
         {j|purple: $purple_points, green: $green_points, total: $total_points|j}
         ->str
       </text>
+      <text y="9"> {j|phase $n_phase/5, yellow cards: $yc/4|j}->str </text>
     </g>;
   };
