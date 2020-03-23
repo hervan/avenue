@@ -82,6 +82,7 @@ let create_farms_deck = () => {
         List.for_all(card => card != farm_card, deck)
           ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
       };
+  Random.self_init();
   aux([], 6);
 };
 
@@ -101,6 +102,7 @@ let create_stretches_deck = () => {
             );
           };
   };
+  Random.self_init();
   aux(
     [],
     [|[|4, 3|], [|4, 3|], [|4, 3|], [|4, 3|], [|3, 4|], [|3, 4|]|],
@@ -363,7 +365,6 @@ let reducer = (game, action) =>
 
 [@react.component]
 let make = () => {
-  let _ = Random.self_init();
   let (game, dispatch) = React.useReducer(reducer, create_game("me"));
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
