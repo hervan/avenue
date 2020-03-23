@@ -17,7 +17,8 @@ let make = (~cell, ~dispatch) => {
     <CellContent content={cell.content} />
     {switch (cell.stretch) {
      | None => React.null
-     | Some(stretch) => <StretchDraw stretch />
+     | Some(stretch) =>
+       <StretchDraw stretch pos={Some((cell.row, cell.col))} />
      }}
   </g>;
 };

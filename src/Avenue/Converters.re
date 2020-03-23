@@ -49,19 +49,34 @@ let string_of_card_color =
   | Grey => "lightgrey"
   | Yellow => "lightyellow";
 
-let string_position_of_side =
-  fun
-  | Top => "5 0"
-  | Left => "0 5"
-  | Bottom => "5 10"
-  | Right => "10 5";
+let string_of_point = ((x, y)) => {j|$x $y|j};
 
-let string_control_point_of_side =
+let point_of_side =
   fun
-  | Top => "6 4"
-  | Left => "4 4"
-  | Bottom => "4 6"
-  | Right => "6 6";
+  | Top => (5., 0.)
+  | Right => (10., 5.)
+  | Bottom => (5., 10.)
+  | Left => (0., 5.);
+
+let control_point_of_pos_side = (pos, side) =>
+  (
+    switch (pos) {
+    | None => (0., 0.)
+    | Some((row, col)) => (
+        5. *. ((col |> float_of_int) /. 5. -. 0.5),
+        5. *. ((row |> float_of_int) /. 6. -. 0.5),
+      )
+    }
+  )
+  |> (
+    ((x, y)) =>
+      switch (side) {
+      | Top => (x +. 5., y +. 5.)
+      | Right => (y +. 5., -. x +. 5.)
+      | Bottom => (-. x +. 5., -. y +. 5.)
+      | Left => (-. y +. 5., x +. 5.)
+      }
+  );
 
 let to_pos = cell => (cell.row, cell.col);
 
