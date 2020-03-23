@@ -47,7 +47,7 @@ let string_of_grape_color =
 let string_of_card_color =
   fun
   | Grey => "lightgrey"
-  | Yellow => "lightyellow";
+  | Yellow => "yellow";
 
 let string_of_point = ((x, y)) => {j|$x $y|j};
 

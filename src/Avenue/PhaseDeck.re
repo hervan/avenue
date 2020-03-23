@@ -48,20 +48,19 @@ let make = (~deck, ~current_phase, ~dispatch) => {
            width="15"
            height="20"
            rx="2"
-           fill="lightyellow"
+           fill="yellow"
            stroke="black"
            strokeWidth="0.025"
          />
-         <g transform="translate(2.5 5)" strokeWidth="0.1">
+         <g transform="translate(4.5 12.5)" strokeWidth="0.1">
            <text
-             x="2.9"
-             y="7.3"
              strokeWidth="0.1"
              stroke="black"
              fillOpacity="1"
              fill="cornflowerblue"
              style={ReactDOMRe.Style.make(
-               ~fontSize="6px",
+               ~fontSize="8px",
+               ~fontWeight="bold",
                ~fontFamily="Verdana",
                ~userSelect="none",
                (),
