@@ -479,7 +479,6 @@ let make = () => {
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
   <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
-    <title> "avenue"->str </title>
     {(game.players |> List.hd).grid
      |> flatten_grid
      |> Array.mapi((i, cell) =>
