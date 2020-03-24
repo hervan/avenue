@@ -91,7 +91,7 @@ let describe_action =
   fun
   | RevealPhase => "flip farm card for the next phase, which begins a new phase"
   | RevealStretchCard => "flip new stretch card, which players must draw in a cell in their board"
-  | DrawStretch(row, col) => {j|player draws current stretch card without rotation at row $row, column $col|j}
+  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j}
   | PeekPhase => "player skips draw to peek at next farm card";
 
 let message_to_string =
