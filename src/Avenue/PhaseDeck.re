@@ -21,7 +21,7 @@ let make = (~deck, ~current_phase, ~dispatch) => {
             rx="2"
             fill="cornflowerblue"
             stroke="black"
-            strokeWidth="0.025"
+            strokeWidth={card_thickness /. 10. |> Js.Float.toString}
           />
         )
      |> Array.of_list
@@ -50,11 +50,11 @@ let make = (~deck, ~current_phase, ~dispatch) => {
            rx="2"
            fill="yellow"
            stroke="black"
-           strokeWidth="0.025"
+           strokeWidth={card_thickness /. 2. |> Js.Float.toString}
          />
          <g transform="translate(4.5 12.5)" strokeWidth="0.1">
            <text
-             strokeWidth="0.1"
+             strokeWidth={card_thickness /. 2. |> Js.Float.toString}
              stroke="black"
              fillOpacity="1"
              fill="cornflowerblue"

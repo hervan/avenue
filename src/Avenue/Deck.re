@@ -42,7 +42,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            rx="2"
            fill={color->string_of_card_color}
            stroke="black"
-           strokeWidth={card_thickness |> Js.Float.toString}
+           strokeWidth={card_thickness *. 5. |> Js.Float.toString}
          />
          <g
            transform={
@@ -68,7 +68,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
              rx="1"
              fill="white"
              stroke="black"
-             strokeWidth="0.1"
+             strokeWidth="0.25"
            />
            <StretchCard stretch />
          </g>
