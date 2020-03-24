@@ -94,33 +94,66 @@ let make = (~game as {players} as game) =>
       + purple_points
       + green_points;
 
-    let n_phase = farm_points |> List.length;
     let yc = game.yellow_cards;
-    <g
-      transform="translate(0 75)"
-      strokeWidth="0.1"
-      stroke="black"
-      fillOpacity="1"
-      fill="green"
-      style={ReactDOMRe.Style.make(
-        ~fontSize="3.6px",
-        ~fontFamily="Verdana",
-        (),
-      )}>
-      <text>
-        {(
-           farm_points
-           |> List.rev_map(((farm, int)) =>
-                farm->string_of_farm ++ ": " ++ int->string_of_int
-              )
-           |> String.concat(", ")
-         )
-         ->str}
-      </text>
-      <text y="4">
-        {j|purple: $purple_points, green: $green_points, total: $total_points|j}
-        ->str
-      </text>
-      <text y="9"> {j|phase $n_phase/5, yellow cards: $yc/4|j}->str </text>
-    </g>;
+    <>
+      <g
+        transform="translate(0 75)"
+        strokeWidth="0.1"
+        stroke="black"
+        fillOpacity="1"
+        fill="green"
+        style={ReactDOMRe.Style.make(
+          ~fontSize="3.6px",
+          ~fontFamily="Verdana",
+          (),
+        )}>
+        <text>
+          {(
+             farm_points
+             |> List.rev_map(((farm, int)) =>
+                  farm->string_of_farm ++ ": " ++ int->string_of_int
+                )
+             |> String.concat(", ")
+           )
+           ->str}
+        </text>
+        <text y="4">
+          {j|purple: $purple_points, green: $green_points, total: $total_points|j}
+          ->str
+        </text>
+      </g>
+      <g transform="translate(63 50)">
+        <path
+          transform="translate(10 10)"
+          d={
+            "M 0 -5 v 5 v -5"
+            ++ (
+              yc >= 1
+                ? "M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
+                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+            )
+            ++ (
+              yc >= 2
+                ? "M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
+                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+            )
+            ++ (
+              yc >= 3
+                ? "M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
+                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+            )
+            ++ (
+              yc == 4
+                ? "M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+            )
+            ++ "Z"
+          }
+          fill="yellow"
+          stroke="black"
+          strokeWidth="0.25"
+          style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
+        />
+      </g>
+    </>;
   };
