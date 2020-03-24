@@ -460,10 +460,7 @@ let process_phase =
         ...history,
       ],
     }
-  | (_, _, _) => {
-      ...game,
-      history: [Message(Info, "phase isn't over yet"), ...history],
-    }
+  | (_, _, _) => game
   };
 
 let reducer = (game, action) =>
