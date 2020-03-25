@@ -384,16 +384,12 @@ let draw_stretch =
     }
   };
 
-let update_points = ({players, stage, farms} as game) =>
-  switch (players, stage) {
-  | (
-      [
-        {farm_points: [(farm, _), ...previous_points], grid} as me,
-        ...other_players,
-      ],
-      Phase(current_farm),
-    )
-      when current_farm == farm => {
+let update_points = ({players, farms} as game) =>
+  switch (players) {
+  | [
+      {farm_points: [(farm, _), ...previous_points], grid} as me,
+      ...other_players,
+    ] => {
       ...game,
       players: [
         {
@@ -414,7 +410,7 @@ let update_points = ({players, stage, farms} as game) =>
         ...other_players,
       ],
     }
-  | (_, _) => game
+  | _ => game
   };
 
 let process_phase =
