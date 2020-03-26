@@ -384,12 +384,16 @@ let draw_stretch =
     }
   };
 
-let update_points = ({players, farms} as game) =>
-  switch (players) {
-  | [
-      {farm_points: [(farm, _), ...previous_points], grid} as me,
-      ...other_players,
-    ] => {
+let update_points = ({players, farms, stage} as game) =>
+  switch (players, stage) {
+  | (
+      [
+        {farm_points: [(farm, _), ...previous_points], grid} as me,
+        ...other_players,
+      ],
+      Phase(farm_),
+    )
+      when farm == farm_ => {
       ...game,
       players: [
         {
@@ -397,7 +401,7 @@ let update_points = ({players, farms} as game) =>
           farm_points: [
             (
               farm,
-              Summary.count_points(
+              Points.count_points(
                 farms
                 |> List.find(cell => cell.content == Farm(farm))
                 |> to_pos,
@@ -483,7 +487,7 @@ let make = () => {
      |> ReasonReact.array}
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck deck={game.phase_deck} current_phase={game.stage} dispatch />
-    <Summary game />
+    <Points game />
     <Status game />
   </svg>;
 };
