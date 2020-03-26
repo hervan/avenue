@@ -6,6 +6,7 @@
     "build": "webpack",
     "start": "bsb -make-world -w -ws _ ",
     "clean": "bsb -clean-world",
+    "compile": "bsb -make-world",
     "server": "moduleserve ./ --port 8000",
     "deploy": "firebase deploy",
     "test": "echo \"Error: no test specified\" && exit 1"

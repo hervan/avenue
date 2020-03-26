@@ -2,25 +2,31 @@ name: avenue
 
 on:
   push:
-    branches: 
+    branches:
       - master
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version:
+          - 12.x
+
     steps:
-    - uses: actions/checkout
-    - name: Use Node.js lts
-      uses: actions/setup-node
-      with:
-        node-version: lts
-    - run: npm ci
-    - run: npm run build --if-present
-      env:
-        CI: true
-    - run: npm run deploy
-      if: startsWith(github.ref, 'tags/')
+      - uses: actions/checkout@master
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@master
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run build
+        env:
+          CI: true
+      - run: npm run deploy
+        if: startsWith(github.ref, 'tags/')
