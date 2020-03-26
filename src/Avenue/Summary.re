@@ -11,75 +11,73 @@ let count_points = ((row, col), grid) => {
     | _ => false
     };
 
-  let count_grapes =
+  let count_grapes_cell =
     fun
     | Grapes(grapes) => grapes |> List.filter(filter_grapes) |> List.length
     | _ => 0;
 
-  let opposing_side =
-    fun
-    | Top => Bottom
-    | Bottom => Top
-    | Left => Right
-    | Right => Left;
-
   let same_cell = (c1, c2) => c1.row == c2.row && c1.col == c2.col;
 
   let path_taken = (path, cell) =>
-    List.exists(c => c |> same_cell(cell), path);
+    List.exists(cell_ => cell_ |> same_cell(cell), path);
 
-  let move_to = (~where=Forward, cell, grid) => {
-    let direction =
-      switch (where, cell.stretch) {
-      | (Forward, Some((_, exit))) => From(exit)
-      | (Backward, Some((entry, _))) => From(entry)
-      | (From(previous_exit), Some((entry, exit)))
-          when previous_exit |> opposing_side == entry =>
-        From(exit)
-      | (From(previous_exit), Some((exit, entry)))
-          when previous_exit |> opposing_side == entry =>
-        From(exit)
-      | (_, _) => Nowhere
-      };
-    (
-      direction,
-      switch (direction) {
-      | From(Top) when cell.row > 0 => grid[cell.row - 1][cell.col]
-      | From(Right) when cell.col < Array.length(grid[0]) - 1 => grid[cell.
-                                                                    row][cell.
-                                                                    col
-                                                                    + 1]
-      | From(Bottom) when cell.row < Array.length(grid) - 1 => grid[cell.row
-                                                                    + 1][cell.
-                                                                    col]
-      | From(Left) when cell.col > 0 => grid[cell.row][cell.col - 1]
-      | _ => cell
-      },
-    );
-  };
+  let count_grapes_path = path =>
+    path
+    |> List.fold_left(
+         (acc, cell) => acc + count_grapes_cell(cell.content),
+         0,
+       );
 
-  let rec walk_path = (~from=Beginning, path, cell, grid) => {
+  let within_boundaries = (grid, row, col) =>
+    row >= 0
+    && col >= 0
+    && row < (grid |> Array.length)
+    && col < (grid[0] |> Array.length);
+
+  let goes_to = (grid, side, {row, col}) =>
+    switch (side) {
+    | Top when within_boundaries(grid, row - 1, col) => [grid[row - 1][col]]
+    | Right when within_boundaries(grid, row, col + 1) => [
+        grid[row][col + 1],
+      ]
+    | Bottom when within_boundaries(grid, row + 1, col) => [
+        grid[row + 1][col],
+      ]
+    | Left when within_boundaries(grid, row, col - 1) => [grid[row][col - 1]]
+    | _ => []
+    };
+
+  let goes_to_list = (grid, {stretch} as cell) =>
+    switch (stretch) {
+    | None => []
+    | Some((entry, exit)) =>
+      List.append(goes_to(grid, entry, cell), goes_to(grid, exit, cell))
+    };
+
+  let goes_to_and_comes_from = (grid, cell1, cell2) =>
+    goes_to_list(grid, cell1)
+    |> List.exists(cell2_ =>
+         cell2
+         |> same_cell(cell2_)
+         && goes_to_list(grid, cell2)
+         |> List.exists(cell1_ => cell1 |> same_cell(cell1_))
+       );
+
+  let goes_to_and_comes_from_list = (grid, cell) =>
+    goes_to_list(grid, cell)
+    |> List.filter(cell_ => cell |> goes_to_and_comes_from(grid, cell_));
+
+  let rec connected_path = (grid, path, cell) =>
     path_taken(path, cell) || cell.stretch == None
       ? path
-      : (
-        switch (from) {
-        | Beginning =>
-          let (from, previous_cell) = move_to(~where=Backward, cell, grid);
-          let back_path =
-            from == Nowhere
-              ? path : walk_path(~from, [cell, ...path], previous_cell, grid);
-          let (from, next_cell) = move_to(~where=Forward, cell, grid);
-          walk_path(~from, back_path, next_cell, grid);
-        | From(_) as where =>
-          let (from, next_cell) = move_to(~where, cell, grid);
-          walk_path(~from, [cell, ...path], next_cell, grid);
-        | _ => path
-        }
-      );
-  };
+      : goes_to_and_comes_from_list(grid, cell)
+        |> List.fold_left(
+             (acc_path, neighbour) =>
+               connected_path(grid, acc_path, neighbour),
+             [cell, ...path],
+           );
 
-  walk_path([], cell, grid)
-  |> List.fold_left((acc, cell) => acc + count_grapes(cell.content), 0);
+  connected_path(grid, [], cell) |> count_grapes_path;
 };
 
 [@react.component]
