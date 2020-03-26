@@ -1,11 +1,12 @@
 {
   "name": "avenue",
   "repository": "github:hervan/avenue",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "scripts": {
     "build": "webpack",
     "start": "bsb -make-world -w -ws _ ",
     "clean": "bsb -clean-world",
+    "compile": "bsb -make-world",
     "server": "moduleserve ./ --port 8000",
     "deploy": "firebase deploy",
     "test": "echo \"Error: no test specified\" && exit 1"
