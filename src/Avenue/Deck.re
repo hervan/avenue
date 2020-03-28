@@ -7,20 +7,11 @@ let make = (~deck, ~current_card, ~dispatch) => {
   <g
     onClick={_evt => dispatch(RevealStretchCard)} transform="translate(65 0)">
     <defs>
-      <filter id="stretch-card-shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation={card_thickness |> Js.Float.toString}
-          floodColor="black"
-          floodOpacity="0.5"
-        />
-      </filter>
       <filter id="stretch-shadow">
         <feDropShadow
           dx="0"
           dy="0"
-          stdDeviation={card_thickness *. 5. |> Js.Float.toString}
+          stdDeviation={card_thickness |> Js.Float.toString}
           floodColor="black"
           floodOpacity="0.5"
         />
@@ -39,7 +30,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
             stroke="white"
             strokeWidth="1"
             style={ReactDOMRe.Style.make(
-              ~filter="url(#stretch-card-shadow)",
+              ~filter="url(#stretch-shadow)",
               (),
             )}
           />
@@ -68,7 +59,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            stroke="white"
            strokeWidth="1"
            style={ReactDOMRe.Style.make(
-             ~filter="url(#stretch-card-shadow)",
+             ~filter="url(#stretch-shadow)",
              (),
            )}
          />
@@ -97,7 +88,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
              fill="white"
              stroke="white"
              strokeWidth="0"
-             style={ReactDOMRe.Style.make(~filter="url(#stretch-shadow)", ())}
+             style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
            />
            <StretchCard stretch />
          </g>

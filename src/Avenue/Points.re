@@ -121,37 +121,58 @@ let make = (~game as {players} as game) =>
         </text>
       </g>
       <g transform="translate(63 50)">
-        <path
-          transform="translate(10 10)"
-          d={
-            "M 0 -5 v 5 v -5"
-            ++ (
-              yc >= 1
-                ? "M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
-                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              yc >= 2
-                ? "M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
-                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              yc >= 3
-                ? "M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
-                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              yc == 4
-                ? "M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-                : "M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ "Z"
-          }
-          fill="yellow"
-          stroke="black"
-          strokeWidth="0.25"
-          style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
-        />
+        <g transform="translate(10 10)">
+          <circle
+            key="face"
+            cx="0"
+            cy="0"
+            r="5"
+            fill="white"
+            style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+          />
+          <path
+            key="hands"
+            d={yc == 0 ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"}
+            stroke="black"
+            strokeWidth="0.25"
+            style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
+          />
+          <path
+            key="timer"
+            d={
+              " M 0 0"
+              ++ (
+                yc >= 1
+                  ? " M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
+                  : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+              )
+              ++ (
+                yc >= 2
+                  ? " M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
+                  : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+              )
+              ++ (
+                yc >= 3
+                  ? " M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
+                  : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+              )
+              ++ (
+                yc == 4
+                  ? " M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+                  : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+              )
+              ++ " Z"
+            }
+            fill="yellow"
+            stroke="white"
+            strokeWidth="0.5"
+            style={ReactDOMRe.Style.make(
+              ~transition="d 0.5s",
+              ~filter="url(#shadow)",
+              (),
+            )}
+          />
+        </g>
       </g>
     </>;
   };
