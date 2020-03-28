@@ -22,6 +22,7 @@ let make = (~color) => {
     points={j|$x0 $y0 $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7|j}
     fill={color->string_of_grape_color}
     stroke={color->string_of_grape_color}
+    strokeWidth="0.25"
     fillOpacity="0.5"
   />;
 };

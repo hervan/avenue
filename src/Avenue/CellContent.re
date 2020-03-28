@@ -10,6 +10,6 @@ let make = (~content) => {
     |> Array.of_list
     |> ReasonReact.array
   | Castle(color) => <Castle color />
-  | Farm(farm) => <Farm farm />
+  | Farm(farm) => <g transform="translate(5 9)"> <Farm farm /> </g>
   };
 };

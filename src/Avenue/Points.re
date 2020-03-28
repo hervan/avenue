@@ -116,8 +116,8 @@ let make = (~game as {players} as game) =>
           ->str
         </text>
       </g>
-      <g transform="translate(63 50)">
-        <g transform="translate(10 10)">
+      <g transform="translate(62 49)">
+        <g transform="translate(15 6)">
           <circle
             key="face"
             cx="0"
