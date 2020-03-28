@@ -478,7 +478,7 @@ let make = () => {
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
-  <svg width="100vmin" height="100vmin" viewBox="-5 -5 105 105">
+  <svg width="100vmin" height="100vmin" viewBox="-2 -2 102 102">
     <defs>
       <filter id="shadow">
         <feDropShadow

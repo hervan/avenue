@@ -4,8 +4,6 @@ open Types;
 let make = (~cell, ~dispatch) => {
   <g
     onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
-    fillOpacity="0"
-    strokeWidth="0.25"
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int
@@ -13,7 +11,13 @@ let make = (~cell, ~dispatch) => {
       ++ (cell.row * 10)->string_of_int
       ++ ")"
     }>
-    <rect width="10" height="10" stroke="green" strokeWidth="0.1" />
+    <rect
+      width="10"
+      height="10"
+      stroke="green"
+      strokeWidth="0.1"
+      fillOpacity="0"
+    />
     <CellContent content={cell.content} />
     {switch (cell.stretch) {
      | None => React.null

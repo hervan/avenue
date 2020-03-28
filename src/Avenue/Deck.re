@@ -2,10 +2,14 @@ open Types;
 open Converters;
 
 let card_thickness = 0.05;
+
+let stretch_shadow =
+  ReactDOMRe.Style.make(~filter="url(#stretch-shadow)", ());
+
 [@react.component]
 let make = (~deck, ~current_card, ~dispatch) => {
   <g
-    onClick={_evt => dispatch(RevealStretchCard)} transform="translate(65 0)">
+    transform="translate(63 0)" onClick={_evt => dispatch(RevealStretchCard)}>
     <defs>
       <filter id="stretch-shadow">
         <feDropShadow
@@ -29,10 +33,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
             fill="lightblue"
             stroke="white"
             strokeWidth="1"
-            style={ReactDOMRe.Style.make(
-              ~filter="url(#stretch-shadow)",
-              (),
-            )}
+            style=stretch_shadow
           />
         )
      |> Array.of_list
@@ -58,10 +59,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            fill={color->string_of_card_color}
            stroke="white"
            strokeWidth="1"
-           style={ReactDOMRe.Style.make(
-             ~filter="url(#stretch-shadow)",
-             (),
-           )}
+           style=stretch_shadow
          />
          <g
            transform={
@@ -88,7 +86,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
              fill="white"
              stroke="white"
              strokeWidth="0"
-             style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+             style=Theme.shadow
            />
            <StretchCard stretch />
          </g>

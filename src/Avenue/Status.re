@@ -7,16 +7,12 @@ let make = (~game as {history}) =>
   | [] => React.null
   | [last_entry, ..._] =>
     <g
-      transform="translate(0 90)"
+      transform="translate(0 75)"
       strokeWidth="0.1"
       stroke="black"
       fillOpacity="1"
       fill={last_entry->history_to_color}
-      style={ReactDOMRe.Style.make(
-        ~fontSize="2.4px",
-        ~fontFamily="Verdana",
-        (),
-      )}>
+      style={Theme.text("2.4px")}>
       <text>
         {last_entry->history_to_string->str}
         <animate

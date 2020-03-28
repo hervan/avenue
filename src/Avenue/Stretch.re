@@ -35,8 +35,8 @@ let make = (~stretch as (entry, exit), ~pos) => {
     d=point
     style={
       switch (pos) {
-      | Some(_) => ReactDOMRe.Style.make(~transition="d 0.5s", ())
-      | None => ReactDOMRe.Style.make()
+      | Some(_) => Theme.quick_transition
+      | None => Theme.no_transition
       }
     }
   />;

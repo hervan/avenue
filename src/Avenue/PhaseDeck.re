@@ -9,7 +9,7 @@ let make = (~deck, ~current_phase, ~dispatch) => {
     onClick={_evt => dispatch(RevealPhase)}
     onMouseDown={_evt => dispatch(PeekPhase)}
     onMouseUp={_evt => dispatch(PeekPhase)}
-    transform="translate(65 25)">
+    transform="translate(63 25)">
     {deck
      |> List.mapi((i, _) =>
           <rect
@@ -22,7 +22,7 @@ let make = (~deck, ~current_phase, ~dispatch) => {
             fill="cornflowerblue"
             stroke="white"
             strokeWidth="1"
-            style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+            style=Theme.shadow
           />
         )
      |> Array.of_list
@@ -52,20 +52,14 @@ let make = (~deck, ~current_phase, ~dispatch) => {
            fill="yellow"
            stroke="white"
            strokeWidth="1"
-           style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+           style=Theme.shadow
          />
          <g transform="translate(4.5 12.5)" strokeWidth="0.1">
            <text
              strokeWidth={card_thickness /. 2. |> Js.Float.toString}
              fillOpacity="1"
              fill="cornflowerblue"
-             style={ReactDOMRe.Style.make(
-               ~fontSize="8px",
-               ~fontWeight="bold",
-               ~fontFamily="Verdana",
-               ~userSelect="none",
-               (),
-             )}>
+             style=Theme.big_text>
              {farm->string_of_farm->str}
            </text>
          </g>
