@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - "*"
 
 jobs:
   build:
@@ -29,4 +27,3 @@ jobs:
         env:
           CI: true
       - run: npm run deploy -- --token ${{ secrets.FIREBASE_TOKEN }}
-        if: startsWith(github.ref, 'refs/tags/v')
