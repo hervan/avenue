@@ -2,8 +2,8 @@ open Converters;
 
 [@react.component]
 let make = (~color) => {
-  let x0 = 2;
-  let y0 = 8;
+  let x0 = 0;
+  let y0 = 0;
   let x1 = x0 + 6;
   let y1 = y0;
   let x2 = x1;

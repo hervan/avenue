@@ -7,7 +7,7 @@ let make = (~game as {history}) =>
   | [] => React.null
   | [last_entry, ..._] =>
     <g
-      transform="translate(0 90)"
+      transform="translate(0 75)"
       strokeWidth="0.1"
       stroke="black"
       fillOpacity="1"

@@ -9,7 +9,7 @@ let stretch_shadow =
 [@react.component]
 let make = (~deck, ~current_card, ~dispatch) => {
   <g
-    onClick={_evt => dispatch(RevealStretchCard)} transform="translate(65 0)">
+    transform="translate(63 0)" onClick={_evt => dispatch(RevealStretchCard)}>
     <defs>
       <filter id="stretch-shadow">
         <feDropShadow
