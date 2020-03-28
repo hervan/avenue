@@ -11,10 +11,10 @@ let make = (~deck, ~current_phase, ~dispatch) => {
     onMouseUp={_evt => dispatch(PeekPhase)}
     transform="translate(65 25)">
     <defs>
-      <filter id="shadow">
+      <filter id="phase-shadow">
         <feDropShadow
-          dx={card_thickness /. 2. |> Js.Float.toString}
-          dy={card_thickness /. 2. |> Js.Float.toString}
+          dx="0"
+          dy="0"
           stdDeviation={card_thickness |> Js.Float.toString}
           floodColor="black"
           floodOpacity="0.5"
@@ -30,10 +30,10 @@ let make = (~deck, ~current_phase, ~dispatch) => {
             width="15"
             height="20"
             rx="2"
+            fill="cornflowerblue"
             stroke="white"
             strokeWidth="1"
-            fill="cornflowerblue"
-            style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+            style={ReactDOMRe.Style.make(~filter="url(#phase-shadow)", ())}
           />
         )
      |> Array.of_list
@@ -60,10 +60,10 @@ let make = (~deck, ~current_phase, ~dispatch) => {
            width="15"
            height="20"
            rx="2"
+           fill="yellow"
            stroke="white"
            strokeWidth="1"
-           fill="yellow"
-           style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+           style={ReactDOMRe.Style.make(~filter="url(#phase-shadow)", ())}
          />
          <g transform="translate(4.5 12.5)" strokeWidth="0.1">
            <text
