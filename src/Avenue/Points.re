@@ -128,12 +128,13 @@ let make = (~game as {players} as game) =>
             cy="0"
             r="5"
             fill="white"
-            style={ReactDOMRe.Style.make(~filter="url(#shadow)", ())}
+            stroke="lightgray"
+            strokeWidth="0.1"
           />
           <path
             key="hands"
             d={yc == 0 ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"}
-            stroke="black"
+            stroke="lightgray"
             strokeWidth="0.25"
             style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
           />
@@ -164,13 +165,9 @@ let make = (~game as {players} as game) =>
               ++ " Z"
             }
             fill="yellow"
-            stroke="white"
-            strokeWidth="0.5"
-            style={ReactDOMRe.Style.make(
-              ~transition="d 0.5s",
-              ~filter="url(#shadow)",
-              (),
-            )}
+            stroke="lightgray"
+            strokeWidth={yc > 0 ? "0.1" : "0"}
+            style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
           />
         </g>
       </g>
