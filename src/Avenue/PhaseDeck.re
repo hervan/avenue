@@ -10,6 +10,17 @@ let make = (~deck, ~current_phase, ~dispatch) => {
     onMouseDown={_evt => dispatch(PeekPhase)}
     onMouseUp={_evt => dispatch(PeekPhase)}
     transform="translate(65 25)">
+    <defs>
+      <filter id="phase-shadow">
+        <feDropShadow
+          dx="0"
+          dy="0"
+          stdDeviation={card_thickness |> Js.Float.toString}
+          floodColor="black"
+          floodOpacity="0.5"
+        />
+      </filter>
+    </defs>
     {deck
      |> List.mapi((i, _) =>
           <rect
@@ -20,8 +31,9 @@ let make = (~deck, ~current_phase, ~dispatch) => {
             height="20"
             rx="2"
             fill="cornflowerblue"
-            stroke="black"
-            strokeWidth={card_thickness /. 10. |> Js.Float.toString}
+            stroke="white"
+            strokeWidth="1"
+            style={ReactDOMRe.Style.make(~filter="url(#phase-shadow)", ())}
           />
         )
      |> Array.of_list
@@ -49,13 +61,13 @@ let make = (~deck, ~current_phase, ~dispatch) => {
            height="20"
            rx="2"
            fill="yellow"
-           stroke="black"
-           strokeWidth={card_thickness /. 2. |> Js.Float.toString}
+           stroke="white"
+           strokeWidth="1"
+           style={ReactDOMRe.Style.make(~filter="url(#phase-shadow)", ())}
          />
          <g transform="translate(4.5 12.5)" strokeWidth="0.1">
            <text
              strokeWidth={card_thickness /. 2. |> Js.Float.toString}
-             stroke="black"
              fillOpacity="1"
              fill="cornflowerblue"
              style={ReactDOMRe.Style.make(
