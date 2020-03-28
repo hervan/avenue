@@ -6,6 +6,26 @@ let card_thickness = 0.05;
 let make = (~deck, ~current_card, ~dispatch) => {
   <g
     onClick={_evt => dispatch(RevealStretchCard)} transform="translate(65 0)">
+    <defs>
+      <filter id="stretch-card-shadow">
+        <feDropShadow
+          dx="0"
+          dy="0"
+          stdDeviation={card_thickness |> Js.Float.toString}
+          floodColor="black"
+          floodOpacity="0.5"
+        />
+      </filter>
+      <filter id="stretch-shadow">
+        <feDropShadow
+          dx="0"
+          dy="0"
+          stdDeviation={card_thickness *. 5. |> Js.Float.toString}
+          floodColor="black"
+          floodOpacity="0.5"
+        />
+      </filter>
+    </defs>
     {deck
      |> List.mapi((i, _) =>
           <rect
@@ -16,8 +36,12 @@ let make = (~deck, ~current_card, ~dispatch) => {
             height="20"
             rx="2"
             fill="lightblue"
-            stroke="black"
-            strokeWidth="0.025"
+            stroke="white"
+            strokeWidth="1"
+            style={ReactDOMRe.Style.make(
+              ~filter="url(#stretch-card-shadow)",
+              (),
+            )}
           />
         )
      |> Array.of_list
@@ -41,8 +65,12 @@ let make = (~deck, ~current_card, ~dispatch) => {
            height="20"
            rx="2"
            fill={color->string_of_card_color}
-           stroke="black"
-           strokeWidth={card_thickness *. 5. |> Js.Float.toString}
+           stroke="white"
+           strokeWidth="1"
+           style={ReactDOMRe.Style.make(
+             ~filter="url(#stretch-card-shadow)",
+             (),
+           )}
          />
          <g
            transform={
@@ -67,8 +95,9 @@ let make = (~deck, ~current_card, ~dispatch) => {
              height="10"
              rx="1"
              fill="white"
-             stroke="black"
-             strokeWidth="0.25"
+             stroke="white"
+             strokeWidth="0"
+             style={ReactDOMRe.Style.make(~filter="url(#stretch-shadow)", ())}
            />
            <StretchCard stretch />
          </g>
