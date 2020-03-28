@@ -23,12 +23,7 @@ let make = (~farm) => {
       y={(y0 -. 0.8)->Js.Float.toString}
       strokeWidth="0"
       fillOpacity="0.5"
-      style={ReactDOMRe.Style.make(
-        ~fontSize="2.3px",
-        ~fontFamily="Verdana",
-        ~userSelect="none",
-        (),
-      )}>
+      style={Theme.text("2.3px")}>
       {farm->string_of_farm->str}
     </text>
   </>;

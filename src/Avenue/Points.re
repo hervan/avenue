@@ -100,11 +100,7 @@ let make = (~game as {players} as game) =>
         stroke="black"
         fillOpacity="1"
         fill="green"
-        style={ReactDOMRe.Style.make(
-          ~fontSize="3.6px",
-          ~fontFamily="Verdana",
-          (),
-        )}>
+        style={Theme.text("3.6px")}>
         <text>
           {(
              farm_points
@@ -136,7 +132,7 @@ let make = (~game as {players} as game) =>
             d={yc == 0 ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"}
             stroke="lightgray"
             strokeWidth="0.25"
-            style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
+            style=Theme.quick_transition
           />
           <path
             key="timer"
@@ -167,7 +163,7 @@ let make = (~game as {players} as game) =>
             fill="yellow"
             stroke="lightgray"
             strokeWidth={yc > 0 ? "0.1" : "0"}
-            style={ReactDOMRe.Style.make(~transition="d 0.5s", ())}
+            style=Theme.quick_transition
           />
         </g>
       </g>
