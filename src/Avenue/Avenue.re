@@ -262,22 +262,10 @@ let peek_phase = ({players, phase_deck, stage, history} as game) => {
 };
 
 let reveal_stretch = ({players, deck, stage, history} as game) =>
-  switch (players, deck, stage) {
-  | (
-      [me, ..._],
-      [(_, color) as card, ...rest_deck],
-      Phase(farm, (Zero | One | Two | Three) as yc),
-    )
-      when me.round == game.round => {
-      ...game,
-      deck: rest_deck,
-      round: game.round + 1,
-      current_card: Some(card),
-      stage: Phase(farm, color == Yellow ? add_yc(yc) : yc),
-      history: [Action(RevealStretchCard), ...history],
-    }
-  | (_, _, End) => game |> add_history(Message(Mistake, "the game is over"))
-  | (_, _, Begin | PhaseEnd) =>
+  switch (stage) {
+  | End => game |> add_history(Message(Mistake, "the game is over"))
+  | Begin
+  | PhaseEnd =>
     game
     |> add_history(
          Message(
@@ -285,23 +273,34 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
            "you need first to flip a farm card to begin the phase",
          ),
        )
-  | ([me, ..._], _, _) when me.round < game.round =>
-    game
-    |> add_history(
-         Message(
-           Mistake,
-           "you need to draw the current stretch card before revealing the next, or peek at the next phase card",
-         ),
-       )
-  | (_, _, Phase(_, Four)) =>
+  | Phase(_, Four) =>
     game |> add_history(Message(Mistake, "the phase is over"))
-  | (_, _, Phase(_, Zero | One | Two | Three)) =>
-    game
-    |> add_history(
-         Message(Mistake, "you can't reveal the next stretch card now"),
-       )
+  | Phase(farm, yc) =>
+    switch (deck, players) {
+    | ([(_, color) as card, ...rest_deck], [me, ..._]) =>
+      me.round == game.round
+        ? {
+          ...game,
+          deck: rest_deck,
+          round: game.round + 1,
+          current_card: Some(card),
+          stage: Phase(farm, color == Yellow ? add_yc(yc) : yc),
+          history: [Action(RevealStretchCard), ...history],
+        }
+        : game
+          |> add_history(
+               Message(
+                 Mistake,
+                 "you need to draw the current stretch card before revealing the next, or peek at the next phase card",
+               ),
+             )
+    | ([], _)
+    | (_, []) =>
+      game |> add_history(Message(Impossible, "this should never happen"))
+    }
   };
 
+// TODO refactor to remove guards
 let draw_stretch =
     ({players, stage, current_card, history} as game, row, col) =>
   switch (players, stage, current_card) {
@@ -355,6 +354,7 @@ let draw_stretch =
     game |> add_history(Message(Mistake, "you can't draw a stretch"))
   };
 
+// TODO refactor to remove guards
 let update_points = ({players, farms, stage} as game) =>
   switch (players, stage) {
   | (
@@ -388,6 +388,7 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
+// TODO refactor to remove guards
 let process_phase = ({players, phase_deck, stage, history} as game) =>
   switch (players, stage) {
   | ([me, ...other_players], Phase(current_farm, Four))
