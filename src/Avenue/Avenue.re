@@ -145,12 +145,10 @@ let create_game = player_name => {
   history: [],
 };
 
-let add_message = (history_item, game) => {
+let add_history = (history_item, game) => {
   ...game,
   history: [history_item, ...game.history],
 };
-
-// add yellow cards as steps of game stage
 
 let reveal_phase = ({players, phase_deck, stage, history} as game) =>
   switch (stage, phase_deck) {
@@ -171,11 +169,11 @@ let reveal_phase = ({players, phase_deck, stage, history} as game) =>
     }
   | (_, [_]) =>
     game
-    |> add_message(Message(Mistake, "the last farm card is never played"))
-  | (End, _) => game |> add_message(Message(Mistake, "the game is over"))
+    |> add_history(Message(Mistake, "the last farm card is never played"))
+  | (End, _) => game |> add_history(Message(Mistake, "the game is over"))
   | (Phase(_, Zero | One | Two | Three), _) =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "the phase is only over after four yellow cards are played in the phase",
@@ -183,7 +181,7 @@ let reveal_phase = ({players, phase_deck, stage, history} as game) =>
        )
   | (Phase(_, Four), _) =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you need to play before advancing to the next phase",
@@ -191,40 +189,77 @@ let reveal_phase = ({players, phase_deck, stage, history} as game) =>
        )
   | (_, [])
   | (_, [_, None, ..._]) =>
-    game |> add_message(Message(Impossible, "this should never happen"))
+    game |> add_history(Message(Impossible, "this should never happen"))
   };
 
-let peek_phase = ({players, phase_deck, stage, history} as game) =>
-  switch (players, phase_deck, stage) {
-  | (
-      [{lookahead: false} as me, ...other_players],
-      [Some(farm), Some(next_farm), ..._],
-      Phase(current_farm, yc),
-    )
-      when me.round < game.round && farm == current_farm => {
-      ...game,
-      players: [
-        {...me, round: game.round, lookahead: true},
-        ...other_players,
-      ],
-      stage: Phase(next_farm, yc),
-      history: [Action(PeekPhase), ...history],
-    }
-  | (
-      [{lookahead: true}, ..._],
-      [Some(farm), Some(next_farm), ..._],
-      Phase(current_farm, yc),
-    )
-      when next_farm == current_farm => {
-      ...game,
-      stage: Phase(farm, yc),
-    }
-  | ([{lookahead: false} as me, ..._], _, _) when me.round == game.round =>
-    game |> add_message(Message(Mistake, "you already played this round"))
-  | (_, _, _) =>
+let peek_phase = ({players, phase_deck, stage, history} as game) => {
+  switch (stage) {
+  | Begin
+  | PhaseEnd
+  | End =>
     game
-    |> add_message(Message(Mistake, "you can't peek the next phase now"))
+    |> add_history(
+         Message(
+           Mistake,
+           "you can only peek the next farm when there's an already active farm",
+         ),
+       )
+  | Phase(farm, _) =>
+    switch (players) {
+    | [] =>
+      game |> add_history(Message(Impossible, "this should never happen"))
+    | [me, ...rest_players] =>
+      switch (phase_deck) {
+      | [Some(current_card), Some(next_card), ...rest_cards] =>
+        next_card == farm
+          ? {
+            ...game,
+            phase_deck: [Some(farm), Some(current_card), ...rest_cards],
+          }
+          : current_card == farm
+              ? me.lookahead
+                  ? {
+                    ...game,
+                    phase_deck: [
+                      Some(next_card),
+                      Some(farm),
+                      ...rest_cards,
+                    ],
+                  }
+                  : me.round < game.round
+                      ? {
+                        ...game,
+                        players: [
+                          {...me, lookahead: true, round: game.round},
+                          ...rest_players,
+                        ],
+                        phase_deck: [
+                          Some(next_card),
+                          Some(farm),
+                          ...rest_cards,
+                        ],
+                        history: [Action(PeekPhase), ...history],
+                      }
+                      : game
+                        |> add_history(
+                             Message(
+                               Mistake,
+                               "you already played this round",
+                             ),
+                           )
+              : game
+                |> add_history(
+                     Message(Impossible, "this should never happen"),
+                   )
+      | []
+      | [_]
+      | [_, None, ..._]
+      | [None, ..._] =>
+        game |> add_history(Message(Impossible, "this should never happen"))
+      }
+    }
   };
+};
 
 let reveal_stretch = ({players, deck, stage, history} as game) =>
   switch (players, deck, stage) {
@@ -241,10 +276,10 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
       stage: Phase(farm, color == Yellow ? add_yc(yc) : yc),
       history: [Action(RevealStretchCard), ...history],
     }
-  | (_, _, End) => game |> add_message(Message(Mistake, "the game is over"))
+  | (_, _, End) => game |> add_history(Message(Mistake, "the game is over"))
   | (_, _, Begin | PhaseEnd) =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you need first to flip a farm card to begin the phase",
@@ -252,17 +287,17 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
        )
   | ([me, ..._], _, _) when me.round < game.round =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you need to draw the current stretch card before revealing the next, or peek at the next phase card",
          ),
        )
   | (_, _, Phase(_, Four)) =>
-    game |> add_message(Message(Mistake, "the phase is over"))
+    game |> add_history(Message(Mistake, "the phase is over"))
   | (_, _, Phase(_, Zero | One | Two | Three)) =>
     game
-    |> add_message(
+    |> add_history(
          Message(Mistake, "you can't reveal the next stretch card now"),
        )
   };
@@ -294,7 +329,7 @@ let draw_stretch =
     }
   | (_, _, None) =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you need to reveal a stretch card to start playing the phase",
@@ -302,7 +337,7 @@ let draw_stretch =
        )
   | ([me, ..._], _, _) when me.round == game.round =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you already played this round (drawn a stretch or peeked next phase)",
@@ -310,14 +345,14 @@ let draw_stretch =
        )
   | ([{grid}, ..._], _, _) when grid[row][col].stretch != None =>
     game
-    |> add_message(
+    |> add_history(
          Message(
            Mistake,
            "you can't draw a stretch in a cell that has already been drawn",
          ),
        )
   | (_, _, _) =>
-    game |> add_message(Message(Mistake, "you can't draw a stretch"))
+    game |> add_history(Message(Mistake, "you can't draw a stretch"))
   };
 
 let update_points = ({players, farms, stage} as game) =>
