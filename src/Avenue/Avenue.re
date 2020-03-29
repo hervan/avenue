@@ -142,15 +142,12 @@ let create_game = player_name => {
 };
 
 let reveal_phase =
-    (
-      {players, phase_deck, stage, current_card, yellow_cards, history} as game,
-    ) =>
-  switch (players, stage, phase_deck, current_card, yellow_cards) {
+    ({players, phase_deck, stage, yellow_cards, history} as game) =>
+  switch (players, stage, phase_deck, yellow_cards) {
   | (
       [{lookahead: false} as me, ...other_players],
       Begin | PhaseEnd,
       [farm, next_farm, ...rest_phase_deck],
-      None,
       0,
     ) => {
       ...game,
@@ -163,7 +160,7 @@ let reveal_phase =
       yellow_cards: 0,
       history: [Action(RevealPhase), ...history],
     }
-  | ([], _, _, _, _) => {
+  | ([], _, _, _) => {
       ...game,
       history: [
         Message(
@@ -173,7 +170,7 @@ let reveal_phase =
         ...history,
       ],
     }
-  | ([{lookahead: true}, ..._], _, _, _, _) => {
+  | ([{lookahead: true}, ..._], _, _, _) => {
       ...game,
       history: [
         Message(
@@ -183,11 +180,11 @@ let reveal_phase =
         ...history,
       ],
     }
-  | (_, End, _, _, _) => {
+  | (_, End, _, _) => {
       ...game,
       history: [Message(Mistake, "the game is over"), ...history],
     }
-  | (_, Phase(_), _, _, 0 | 1 | 2 | 3) => {
+  | (_, Phase(_), _, 0 | 1 | 2 | 3) => {
       ...game,
       history: [
         Message(
@@ -197,20 +194,10 @@ let reveal_phase =
         ...history,
       ],
     }
-  | (_, _, _, None, _) => {
+  | (_, _, _, _) => {
       ...game,
       history: [
-        Message(
-          Mistake,
-          "you need to reveal a stretch card to start the phase",
-        ),
-        ...history,
-      ],
-    }
-  | (_, _, _, Some(_), _) => {
-      ...game,
-      history: [
-        Message(Mistake, "you still need to draw the current card"),
+        Message(Mistake, "you can't reveal a phase card now"),
         ...history,
       ],
     }
@@ -449,7 +436,6 @@ let process_phase =
         ...other_players,
       ],
       stage: phase_deck->List.length > 1 ? PhaseEnd : End,
-      current_card: None,
       yellow_cards: phase_deck->List.length > 1 ? 0 : yellow_cards,
       history: [
         Message(
