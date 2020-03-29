@@ -409,48 +409,60 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
-// TODO refactor to remove guards
 let process_phase = ({players, phase_deck, stage, history} as game) =>
-  switch (players, stage) {
-  | ([me, ...other_players], Phase(current_farm, Four))
-      when me.round == game.round => {
-      ...game,
-      players: [
-        {
-          ...me,
-          farm_points:
-            switch (me.farm_points) {
-            | [(farm, points), ...previous_phases]
-                when points <= 0 && current_farm == farm => [
-                (farm, (-5)),
-                ...previous_phases,
-              ]
-            | [
-                (farm, points),
-                (previous_farm, previous_points),
-                ...previous_phases,
-              ]
-                when points <= previous_points && current_farm == farm => [
-                (farm, (-5)),
-                (previous_farm, previous_points),
-                ...previous_phases,
-              ]
-            | _ => me.farm_points
-            },
-        },
-        ...other_players,
-      ],
-      stage: phase_deck->List.length > 1 ? PhaseEnd : End,
-      history: [
-        Message(
-          Info,
-          phase_deck->List.length > 1
-            ? "current phase is over" : "game is over",
-        ),
-        ...history,
-      ],
+  switch (players) {
+  | [] =>
+    game |> add_history(Message(Impossible, "this should never happen"))
+  | [me, ...other_players] =>
+    switch (stage) {
+    | Phase(current_farm, yc) =>
+      switch (yc) {
+      | Four =>
+        me.round == game.round
+          ? {
+            ...game,
+            players: [
+              {
+                ...me,
+                farm_points:
+                  switch (me.farm_points) {
+                  | [(farm, points) as current_phase, ...previous_phases] => [
+                      current_farm != farm
+                        ? current_phase
+                        : points <= 0
+                            ? (farm, (-5))
+                            : (
+                              switch (previous_phases) {
+                              | [(_, previous_points), ..._] =>
+                                points <= previous_points
+                                  ? (farm, (-5)) : current_phase
+                              | [] => current_phase
+                              }
+                            ),
+                      ...previous_phases,
+                    ]
+                  | [] => me.farm_points
+                  },
+              },
+              ...other_players,
+            ],
+            stage: phase_deck->List.length > 2 ? PhaseEnd : End,
+            history: [
+              Message(
+                Info,
+                phase_deck->List.length > 2
+                  ? "current phase is over" : "game is over",
+              ),
+              ...history,
+            ],
+          }
+          : game
+      | _ => game
+      }
+    | Begin
+    | PhaseEnd
+    | End => game
     }
-  | (_, _) => game
   };
 
 let reducer = (game, action) =>
