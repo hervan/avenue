@@ -4,7 +4,7 @@ open Converters;
 let card_thickness = 0.5;
 
 [@react.component]
-let make = (~deck, ~dispatch) => {
+let make = (~deck, ~dispatch) =>
   <g
     onClick={_evt => dispatch(RevealPhase)}
     onMouseDown={_evt => dispatch(PeekPhase)}
@@ -57,4 +57,3 @@ let make = (~deck, ~dispatch) => {
      |> Array.of_list
      |> ReasonReact.array}
   </g>;
-};

@@ -1,11 +1,10 @@
-let text = fontSize => {
+let text = fontSize =>
   ReactDOMRe.Style.make(
     ~fontSize,
     ~fontFamily="Verdana",
     ~userSelect="none",
     (),
   );
-};
 
 let big_text =
   text("8px")

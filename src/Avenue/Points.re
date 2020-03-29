@@ -81,7 +81,7 @@ let count_points = ((row, col), grid) => {
 };
 
 [@react.component]
-let make = (~game as {players} as game) => {
+let make = (~game as {players} as game) =>
   switch (players) {
   | [] => React.null
   | [{grid, farm_points}, ..._] =>
@@ -249,4 +249,3 @@ let make = (~game as {players} as game) => {
       </g>
     </g>;
   };
-};

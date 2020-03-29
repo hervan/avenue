@@ -192,7 +192,7 @@ let reveal_phase = ({players, phase_deck, stage, history} as game) =>
     game |> add_history(Message(Impossible, "this should never happen"))
   };
 
-let peek_phase = ({players, phase_deck, stage, history} as game) => {
+let peek_phase = ({players, phase_deck, stage, history} as game) =>
   switch (stage) {
   | Begin
   | PhaseEnd
@@ -259,7 +259,6 @@ let peek_phase = ({players, phase_deck, stage, history} as game) => {
       }
     }
   };
-};
 
 let reveal_stretch = ({players, deck, stage, history} as game) =>
   switch (stage) {
