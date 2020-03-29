@@ -300,33 +300,9 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
     }
   };
 
-// TODO refactor to remove guards
-let draw_stretch =
-    ({players, stage, current_card, history} as game, row, col) =>
-  switch (players, stage, current_card) {
-  | ([{grid} as me, ...other_players], Phase(_), Some((stretch, _)))
-      when me.round < game.round && grid[row][col].stretch == None => {
-      ...game,
-      players: [
-        {
-          ...me,
-          round: game.round,
-          grid:
-            grid
-            |> Array.mapi((i, grid_row) =>
-                 i == row
-                   ? grid_row
-                     |> Array.mapi((j, cell) =>
-                          j == col ? {...cell, stretch: Some(stretch)} : cell
-                        )
-                   : grid_row
-               ),
-        },
-        ...other_players,
-      ],
-      history: [Action(DrawStretch(row, col)), ...history],
-    }
-  | (_, _, None) =>
+let draw_stretch = ({players, stage, current_card} as game, row, col) =>
+  switch (current_card) {
+  | None =>
     game
     |> add_history(
          Message(
@@ -334,56 +310,101 @@ let draw_stretch =
            "you need to reveal a stretch card to start playing the phase",
          ),
        )
-  | ([me, ..._], _, _) when me.round == game.round =>
-    game
-    |> add_history(
-         Message(
-           Mistake,
-           "you already played this round (drawn a stretch or peeked next phase)",
-         ),
-       )
-  | ([{grid}, ..._], _, _) when grid[row][col].stretch != None =>
-    game
-    |> add_history(
-         Message(
-           Mistake,
-           "you can't draw a stretch in a cell that has already been drawn",
-         ),
-       )
-  | (_, _, _) =>
-    game |> add_history(Message(Mistake, "you can't draw a stretch"))
+  | Some((stretch, _)) =>
+    switch (stage) {
+    | Phase(_, _) =>
+      switch (players) {
+      | [] =>
+        game |> add_history(Message(Impossible, "this should never happen"))
+      | [{round, grid} as me, ...other_players] =>
+        round < game.round
+          ? switch (grid[row][col].stretch) {
+            | Some(_) =>
+              game
+              |> add_history(
+                   Message(
+                     Mistake,
+                     "you can't draw a stretch in a cell that has already been drawn",
+                   ),
+                 )
+            | None => {
+                ...game,
+                players: [
+                  {
+                    ...me,
+                    round: game.round,
+                    grid:
+                      grid
+                      |> Array.mapi((i, grid_row) =>
+                           i == row
+                             ? grid_row
+                               |> Array.mapi((j, cell) =>
+                                    j == col
+                                      ? {...cell, stretch: Some(stretch)}
+                                      : cell
+                                  )
+                             : grid_row
+                         ),
+                  },
+                  ...other_players,
+                ],
+                history: [Action(DrawStretch(row, col)), ...game.history],
+              }
+            }
+          : game
+            |> add_history(
+                 Message(
+                   Mistake,
+                   "you already played this round (either drawn a stretch or peeked next phase)",
+                 ),
+               )
+      }
+    | _ =>
+      game
+      |> add_history(
+           Message(
+             Mistake,
+             "in order to draw stretches, you need to start a phase by revealing a farm",
+           ),
+         )
+    }
   };
 
-// TODO refactor to remove guards
 let update_points = ({players, farms, stage} as game) =>
-  switch (players, stage) {
-  | (
-      [
-        {farm_points: [(farm, _), ...previous_points], grid} as me,
-        ...other_players,
-      ],
-      Phase(farm_card, _),
-    )
-      when farm == farm_card => {
-      ...game,
-      players: [
-        {
-          ...me,
-          farm_points: [
-            (
-              farm,
-              Points.count_points(
-                farms
-                |> List.find(cell => cell.content == Farm(farm))
-                |> to_pos,
-                grid,
-              ),
-            ),
-            ...previous_points,
-          ],
-        },
-        ...other_players,
-      ],
+  switch (stage) {
+  | Phase(farm_card, _) =>
+    switch (players) {
+    | [] =>
+      game |> add_history(Message(Impossible, "this should never happen"))
+    | [{farm_points, grid} as me, ...other_players] =>
+      switch (farm_points) {
+      | [(farm, _), ...previous_points] =>
+        farm == farm_card
+          ? {
+            ...game,
+            players: [
+              {
+                ...me,
+                farm_points: [
+                  (
+                    farm,
+                    Points.count_points(
+                      farms
+                      |> List.find(cell => cell.content == Farm(farm))
+                      |> to_pos,
+                      grid,
+                    ),
+                  ),
+                  ...previous_points,
+                ],
+              },
+              ...other_players,
+            ],
+          }
+          : game
+      | [] =>
+        game |> add_history(Message(Impossible, "this should never happen"))
+      }
     }
   | _ => game
   };
