@@ -20,9 +20,16 @@ type card_color =
   | Grey
   | Yellow;
 
+type yellow_cards =
+  | Zero
+  | One
+  | Two
+  | Three
+  | Four;
+
 type stage =
   | Begin
-  | Phase(farm)
+  | Phase(farm, yellow_cards)
   | PhaseEnd
   | End;
 
@@ -76,6 +83,7 @@ type castles = {
 };
 
 type message =
+  | Impossible
   | Mistake
   | Info
   | Tip;
@@ -91,7 +99,6 @@ type game = {
   phase_deck: list(option(farm)),
   stage,
   current_card: option(card),
-  yellow_cards: int,
   castles,
   farms: list(cell),
   history: list(history_item),

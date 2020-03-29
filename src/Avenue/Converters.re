@@ -96,6 +96,7 @@ let describe_action =
 
 let message_to_string =
   fun
+  | Impossible => "error"
   | Mistake => "attention"
   | Info => "info"
   | Tip => "tip";
@@ -110,6 +111,23 @@ let history_to_string =
 let history_to_color =
   fun
   | Action(_) => "blue"
-  | Message(Mistake, _) => "red"
+  | Message(Impossible, _) => "red"
+  | Message(Mistake, _) => "orange"
   | Message(Info, _) => "yellow"
   | Message(Tip, _) => "green";
+
+let add_yc =
+  fun
+  | Zero => One
+  | One => Two
+  | Two => Three
+  | Three => Four
+  | Four => Four;
+
+let int_of_yc =
+  fun
+  | Zero => 0
+  | One => 1
+  | Two => 2
+  | Three => 3
+  | Four => 4;

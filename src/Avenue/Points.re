@@ -91,8 +91,11 @@ let make = (~game as {players} as game) => {
       (farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
       + purple_points
       + green_points;
-
-    let yc = game.yellow_cards;
+    let yc =
+      switch (game.stage) {
+      | Phase(_, yc) => yc
+      | _ => Zero
+      };
     <g transform="translate(62 50)">
       {farm_points->List.rev
        |> List.mapi((i, (farm, points)) =>
@@ -191,7 +194,9 @@ let make = (~game as {players} as game) => {
         />
         <path
           key="hands"
-          d={yc == 0 ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"}
+          d={
+            yc == Zero ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"
+          }
           stroke="lightgray"
           strokeWidth="0.25"
           style={Theme.quick_transition("d")}
@@ -201,22 +206,22 @@ let make = (~game as {players} as game) => {
           d={
             " M 0 0"
             ++ (
-              yc >= 1
+              int_of_yc(yc) >= 1
                 ? " M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
                 : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
             )
             ++ (
-              yc >= 2
+              int_of_yc(yc) >= 2
                 ? " M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
                 : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
             )
             ++ (
-              yc >= 3
+              int_of_yc(yc) >= 3
                 ? " M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
                 : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
             )
             ++ (
-              yc == 4
+              int_of_yc(yc) == 4
                 ? " M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
                 : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
             )
@@ -224,7 +229,7 @@ let make = (~game as {players} as game) => {
           }
           fill="yellow"
           stroke="lightgray"
-          strokeWidth={yc > 0 ? "0.1" : "0"}
+          strokeWidth={int_of_yc(yc) > 0 ? "0.1" : "0"}
           style={Theme.quick_transition("d")}
         />
       </g>
