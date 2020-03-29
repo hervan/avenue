@@ -8,7 +8,9 @@ let make = (~deck, ~current_phase, ~dispatch) => {
   <g
     onClick={_evt => dispatch(RevealPhase)}
     onMouseDown={_evt => dispatch(PeekPhase)}
+    onTouchStart={_evt => dispatch(PeekPhase)}
     onMouseUp={_evt => dispatch(PeekPhase)}
+    onTouchEnd={_evt => dispatch(PeekPhase)}
     transform="translate(63 25)">
     {deck
      |> List.mapi((i, _) =>
