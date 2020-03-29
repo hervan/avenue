@@ -79,11 +79,16 @@ let create_farms_deck = () => {
     | 0 => deck
     | n => {
         let farm_card = random_farm();
-        List.for_all(card => card != farm_card, deck)
-          ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
+        List.for_all(
+          fun
+          | Some(card) => card != farm_card
+          | None => true,
+          deck,
+        )
+          ? aux([Some(farm_card), ...deck], n - 1) : aux(deck, n);
       };
   Random.self_init();
-  aux([], 6);
+  [None, ...aux([], 6)];
 };
 
 let create_stretches_deck = () => {
@@ -145,40 +150,24 @@ let reveal_phase =
     ({players, phase_deck, stage, yellow_cards, history} as game) =>
   switch (players, stage, phase_deck, yellow_cards) {
   | (
-      [{lookahead: false} as me, ...other_players],
+      [me, ...other_players],
       Begin | PhaseEnd,
-      [farm, next_farm, ...rest_phase_deck],
+      [_, Some(farm), ...rest_phase_deck],
       0,
     ) => {
       ...game,
       players: [
-        {...me, farm_points: [(farm, 0), ...me.farm_points]},
+        {
+          ...me,
+          farm_points: [(farm, 0), ...me.farm_points],
+          lookahead: false,
+        },
         ...other_players,
       ],
-      phase_deck: [next_farm, ...rest_phase_deck],
+      phase_deck: [Some(farm), ...rest_phase_deck],
       stage: Phase(farm),
       yellow_cards: 0,
       history: [Action(RevealPhase), ...history],
-    }
-  | ([], _, _, _) => {
-      ...game,
-      history: [
-        Message(
-          Mistake,
-          "there are no players in this game, you can't play without them",
-        ),
-        ...history,
-      ],
-    }
-  | ([{lookahead: true}, ..._], _, _, _) => {
-      ...game,
-      history: [
-        Message(
-          Mistake,
-          "you are peeking the next phase, you can't reveal the next",
-        ),
-        ...history,
-      ],
     }
   | (_, End, _, _) => {
       ...game,
@@ -207,31 +196,25 @@ let peek_phase = ({players, phase_deck, stage, history} as game) =>
   switch (players, phase_deck, stage) {
   | (
       [{lookahead: false} as me, ...other_players],
-      [next_farm, ...rest_phase_deck],
-      Phase(farm),
+      [Some(farm), Some(next_farm), ..._],
+      Phase(current_farm),
     )
-      when me.round < game.round => {
+      when me.round < game.round && farm == current_farm => {
       ...game,
       players: [
         {...me, round: game.round, lookahead: true},
         ...other_players,
       ],
-      phase_deck: [farm, ...rest_phase_deck],
       stage: Phase(next_farm),
       history: [Action(PeekPhase), ...history],
     }
   | (
-      [{lookahead: true} as me, ...other_players],
-      [farm, ...rest_phase_deck],
-      Phase(next_farm),
+      [{lookahead: true}, ..._],
+      [Some(farm), Some(next_farm), ..._],
+      Phase(current_farm),
     )
-      when me.round == game.round => {
+      when next_farm == current_farm => {
       ...game,
-      players: [
-        {...me, round: game.round, lookahead: false},
-        ...other_players,
-      ],
-      phase_deck: [next_farm, ...rest_phase_deck],
       stage: Phase(farm),
     }
   | ([{lookahead: false} as me, ..._], _, _) when me.round == game.round => {
@@ -244,10 +227,7 @@ let peek_phase = ({players, phase_deck, stage, history} as game) =>
   | (_, _, _) => {
       ...game,
       history: [
-        Message(
-          Mistake,
-          "you only can peek the next phase during an ongoing phase",
-        ),
+        Message(Mistake, "you can't peek the next phase now"),
         ...history,
       ],
     }
@@ -256,7 +236,7 @@ let peek_phase = ({players, phase_deck, stage, history} as game) =>
 let reveal_stretch = ({players, deck, stage, yellow_cards, history} as game) =>
   switch (players, deck, stage, yellow_cards) {
   | (
-      [{lookahead: false} as me, ..._],
+      [me, ..._],
       [(_, color) as card, ...rest_deck],
       Phase(_),
       0 | 1 | 2 | 3,
@@ -274,7 +254,7 @@ let reveal_stretch = ({players, deck, stage, yellow_cards, history} as game) =>
       history: [
         Message(
           Mistake,
-          "you can only reveal a stretch card after a phase begins (revealing a phase card)",
+          "you can only reveal a stretch card when a phase begins",
         ),
         ...history,
       ],
@@ -309,11 +289,7 @@ let reveal_stretch = ({players, deck, stage, yellow_cards, history} as game) =>
 let draw_stretch =
     ({players, stage, current_card, history} as game, row, col) =>
   switch (players, stage, current_card) {
-  | (
-      [{grid, lookahead: false} as me, ...other_players],
-      Phase(_),
-      Some((stretch, _)),
-    )
+  | ([{grid} as me, ...other_players], Phase(_), Some((stretch, _)))
       when me.round < game.round && grid[row][col].stretch == None => {
       ...game,
       players: [
@@ -483,7 +459,7 @@ let make = () => {
         )
      |> ReasonReact.array}
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
-    <PhaseDeck deck={game.phase_deck} current_phase={game.stage} dispatch />
+    <PhaseDeck deck={game.phase_deck} dispatch />
     <Points game />
     <Status game />
   </svg>;

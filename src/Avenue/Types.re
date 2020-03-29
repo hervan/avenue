@@ -88,7 +88,7 @@ type game = {
   players: list(board),
   deck: list(card),
   round: int,
-  phase_deck: list(farm),
+  phase_deck: list(option(farm)),
   stage,
   current_card: option(card),
   yellow_cards: int,
