@@ -34,10 +34,10 @@ type stage =
   | End;
 
 type action =
-  | RevealPhase
-  | RevealStretchCard
-  | DrawStretch(int, int)
-  | PeekPhase;
+  | PeekFarm
+  | FlipFarm
+  | FlipStretchCard
+  | DrawStretch(int, int);
 
 type cell_content =
   | Empty

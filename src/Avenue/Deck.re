@@ -23,8 +23,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
     transform="translate(63 0)"
     onClick={_evt => {
       setRotation(_ => 90);
-      let _ =
-        Js.Global.setTimeoutFloat(_ => dispatch(RevealStretchCard), 500.);
+      let _ = Js.Global.setTimeout(_ => dispatch(FlipStretchCard), 500);
       ();
     }}>
     <defs>
@@ -57,13 +56,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
      |> ReasonReact.array}
     {switch (current_card) {
      | None =>
-       <g
-         style={ReactDOMRe.Style.make(
-           ~transitionDuration="0.5s",
-           ~transitionProperty="transform",
-           ~transform="rotateY(" ++ rotation->string_of_int ++ "deg)",
-           (),
-         )}>
+       <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
              card_thickness
@@ -85,13 +78,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
          />
        </g>
      | Some((stretch, color)) =>
-       <g
-         style={ReactDOMRe.Style.make(
-           ~transitionDuration="0.5s",
-           ~transitionProperty="transform",
-           ~transform="rotateY(" ++ rotation->string_of_int ++ "deg)",
-           (),
-         )}>
+       <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
              card_thickness

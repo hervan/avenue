@@ -16,3 +16,11 @@ let quick_transition = property =>
 let no_transition = ReactDOMRe.Style.make();
 
 let shadow = ReactDOMRe.Style.make(~filter="url(#shadow)", ());
+
+let rotate_card = rotation =>
+  ReactDOMRe.Style.make(
+    ~transitionDuration="0.5s",
+    ~transitionProperty="transform",
+    ~transform="rotateY(" ++ rotation->string_of_int ++ "deg)",
+    (),
+  );

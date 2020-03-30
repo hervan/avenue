@@ -82,17 +82,17 @@ let to_pos = cell => (cell.row, cell.col);
 
 let action_to_string =
   fun
-  | RevealPhase => "reveal phase"
-  | RevealStretchCard => "reveal stretch"
-  | DrawStretch(row, col) => {j|draw $row, $col|j}
-  | PeekPhase => "peek phase";
+  | PeekFarm => "peek farm"
+  | FlipFarm => "flip farm"
+  | FlipStretchCard => "flip stretch"
+  | DrawStretch(row, col) => {j|draw $row, $col|j};
 
 let describe_action =
   fun
-  | RevealPhase => "flip farm card for the next phase, which begins a new phase"
-  | RevealStretchCard => "flip new stretch card, which players must draw in a cell in their board"
-  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j}
-  | PeekPhase => "player skips draw to peek at next farm card";
+  | PeekFarm => "peek at the next farm card, which makes the player skips their turn"
+  | FlipFarm => "flip farm card for the next phase, beginning a new phase"
+  | FlipStretchCard => "flip new stretch card, which players must draw in a cell in their board"
+  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j};
 
 let message_to_string =
   fun
