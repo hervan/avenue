@@ -1,7 +1,7 @@
 open Types;
 
 [@react.component]
-let make = (~content) => {
+let make = (~content) =>
   switch (content) {
   | Empty => React.null
   | Grapes(colors) =>
@@ -12,4 +12,3 @@ let make = (~content) => {
   | Castle(color) => <g transform="translate(2 8)"> <Castle color /> </g>
   | Farm(farm) => <g transform="translate(5 9)"> <Farm farm /> </g>
   };
-};

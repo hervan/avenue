@@ -1,7 +1,7 @@
 open Types;
 
 [@react.component]
-let make = (~cell, ~dispatch) => {
+let make = (~cell, ~dispatch) =>
   <g
     onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
     transform={
@@ -25,4 +25,3 @@ let make = (~cell, ~dispatch) => {
        <StretchDraw stretch pos={Some((cell.row, cell.col))} />
      }}
   </g>;
-};

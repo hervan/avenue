@@ -82,20 +82,21 @@ let to_pos = cell => (cell.row, cell.col);
 
 let action_to_string =
   fun
-  | RevealPhase => "reveal phase"
-  | RevealStretchCard => "reveal stretch"
-  | DrawStretch(row, col) => {j|draw $row, $col|j}
-  | PeekPhase => "peek phase";
+  | PeekFarm => "peek farm"
+  | FlipFarm => "flip farm"
+  | FlipStretchCard => "flip stretch"
+  | DrawStretch(row, col) => {j|draw $row, $col|j};
 
 let describe_action =
   fun
-  | RevealPhase => "flip farm card for the next phase, which begins a new phase"
-  | RevealStretchCard => "flip new stretch card, which players must draw in a cell in their board"
-  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j}
-  | PeekPhase => "player skips draw to peek at next farm card";
+  | PeekFarm => "peek at the next farm card, which makes the player skips their turn"
+  | FlipFarm => "flip farm card for the next phase, beginning a new phase"
+  | FlipStretchCard => "flip new stretch card, which players must draw in a cell in their board"
+  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j};
 
 let message_to_string =
   fun
+  | Impossible => "error"
   | Mistake => "attention"
   | Info => "info"
   | Tip => "tip";
@@ -110,6 +111,23 @@ let history_to_string =
 let history_to_color =
   fun
   | Action(_) => "blue"
-  | Message(Mistake, _) => "red"
+  | Message(Impossible, _) => "red"
+  | Message(Mistake, _) => "orange"
   | Message(Info, _) => "yellow"
   | Message(Tip, _) => "green";
+
+let add_yc =
+  fun
+  | Zero => One
+  | One => Two
+  | Two => Three
+  | Three => Four
+  | Four => Four;
+
+let int_of_yc =
+  fun
+  | Zero => 0
+  | One => 1
+  | Two => 2
+  | Three => 3
+  | Four => 4;

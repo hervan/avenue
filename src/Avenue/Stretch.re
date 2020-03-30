@@ -35,7 +35,7 @@ let make = (~stretch as (entry, exit), ~pos) => {
     d=point
     style={
       switch (pos) {
-      | Some(_) => Theme.quick_transition
+      | Some(_) => Theme.quick_transition("d")
       | None => Theme.no_transition
       }
     }

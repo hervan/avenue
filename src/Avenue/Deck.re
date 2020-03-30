@@ -8,8 +8,24 @@ let stretch_shadow =
 
 [@react.component]
 let make = (~deck, ~current_card, ~dispatch) => {
+  let (rotation, setRotation) = React.useState(_ => 90);
+  React.useEffect1(
+    _ => {
+      switch (current_card) {
+      | None => setRotation(_ => 90)
+      | Some(_) => setRotation(_ => 0)
+      };
+      None;
+    },
+    [|current_card|],
+  );
   <g
-    transform="translate(63 0)" onClick={_evt => dispatch(RevealStretchCard)}>
+    transform="translate(63 0)"
+    onClick={_evt => {
+      setRotation(_ => 90);
+      let _ = Js.Global.setTimeout(_ => dispatch(FlipStretchCard), 500);
+      ();
+    }}>
     <defs>
       <filter id="stretch-shadow">
         <feDropShadow
@@ -39,9 +55,30 @@ let make = (~deck, ~current_card, ~dispatch) => {
      |> Array.of_list
      |> ReasonReact.array}
     {switch (current_card) {
-     | None => React.null
+     | None =>
+       <g style={Theme.rotate_card(rotation)}>
+         <rect
+           x={
+             card_thickness
+             *. (List.length(deck) |> float_of_int)
+             |> Js.Float.toString
+           }
+           y={
+             card_thickness
+             *. (List.length(deck) |> float_of_int)
+             |> Js.Float.toString
+           }
+           width="15"
+           height="20"
+           rx="2"
+           fill="lightblue"
+           stroke="white"
+           strokeWidth="1"
+           style=stretch_shadow
+         />
+       </g>
      | Some((stretch, color)) =>
-       <>
+       <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
              card_thickness
@@ -90,7 +127,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            />
            <StretchCard stretch />
          </g>
-       </>
+       </g>
      }}
   </g>;
 };

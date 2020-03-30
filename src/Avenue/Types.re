@@ -20,17 +20,24 @@ type card_color =
   | Grey
   | Yellow;
 
+type yellow_cards =
+  | Zero
+  | One
+  | Two
+  | Three
+  | Four;
+
 type stage =
   | Begin
-  | Phase(farm)
+  | Phase(farm, yellow_cards)
   | PhaseEnd
   | End;
 
 type action =
-  | RevealPhase
-  | RevealStretchCard
-  | DrawStretch(int, int)
-  | PeekPhase;
+  | PeekFarm
+  | FlipFarm
+  | FlipStretchCard
+  | DrawStretch(int, int);
 
 type cell_content =
   | Empty
@@ -76,6 +83,7 @@ type castles = {
 };
 
 type message =
+  | Impossible
   | Mistake
   | Info
   | Tip;
@@ -88,10 +96,9 @@ type game = {
   players: list(board),
   deck: list(card),
   round: int,
-  phase_deck: list(farm),
+  phase_deck: list(option(farm)),
   stage,
   current_card: option(card),
-  yellow_cards: int,
   castles,
   farms: list(cell),
   history: list(history_item),
