@@ -479,6 +479,15 @@ let make = () => {
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck game dispatch />
     <Points game />
-    <Status game />
+    <Status
+      messages={
+        game.history
+        |> List.filter(
+             fun
+             | Action(_) => false
+             | Message(_, _) => true,
+           )
+      }
+    />
   </svg>;
 };
