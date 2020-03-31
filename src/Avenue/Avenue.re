@@ -144,7 +144,7 @@ let reducer = (game, action) =>
       switch (action) {
       | PeekFarm => peek_farm(game)
       | FlipFarm => flip_farm(game)->update_points
-      | FlipStretchCard => reveal_stretch(game)
+      | FlipStretch => flip_stretch(game)
       | DrawStretch(row, col) =>
         draw_stretch(game, row, col)->update_points->process_phase
       }

@@ -26,7 +26,7 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
       let _ =
         Js.Global.setTimeout(
           _ => {
-            dispatch(FlipStretchCard);
+            dispatch(FlipStretch);
             setRotation(_ => 0);
           },
           500,

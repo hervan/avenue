@@ -36,7 +36,7 @@ type stage =
 type action =
   | PeekFarm
   | FlipFarm
-  | FlipStretchCard
+  | FlipStretch
   | DrawStretch(int, int);
 
 type cell_content =

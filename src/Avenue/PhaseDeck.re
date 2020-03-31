@@ -59,12 +59,12 @@ let make = (~game as {phase_deck, stage} as game, ~dispatch) => {
               width="15"
               height="20"
               rx="2"
-              fill={Rules.can_peek(game) ? "yellow" : "cornflowerblue"}
+              fill={Rules.can_peek_farm(game) ? "yellow" : "cornflowerblue"}
               stroke="white"
               strokeWidth="1"
               style=Theme.shadow
             />
-            {Rules.can_peek(game)
+            {Rules.can_peek_farm(game)
                ? <g transform="translate(4.5 12.5)" strokeWidth="0.1">
                    <text
                      strokeWidth={card_thickness /. 2. |> Js.Float.toString}

@@ -86,14 +86,14 @@ let action_to_string =
   fun
   | PeekFarm => "peek farm"
   | FlipFarm => "flip farm"
-  | FlipStretchCard => "flip stretch"
+  | FlipStretch => "flip stretch"
   | DrawStretch(row, col) => {j|draw $row, $col|j};
 
 let describe_action =
   fun
   | PeekFarm => "peek at the next farm card, which makes the player skips their turn"
   | FlipFarm => "flip farm card for the next phase, beginning a new phase"
-  | FlipStretchCard => "flip new stretch card, which players must draw in a cell in their board"
+  | FlipStretch => "flip new stretch card, which players must draw in a cell in their board"
   | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j};
 
 let message_to_string =

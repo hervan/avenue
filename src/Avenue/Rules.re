@@ -23,7 +23,9 @@ let add_history = (history_item, game) => {
     },
 };
 
-let can_peek = ({players, stage}) =>
+let can_flip_farm = _game => true;
+
+let can_peek_farm = ({players, stage}) =>
   switch (stage) {
   | Phase(_, _) =>
     switch (players) {
@@ -34,6 +36,10 @@ let can_peek = ({players, stage}) =>
   | Begin => true
   | End(_) => false
   };
+
+let can_flip_stretch = _game => true;
+
+let can_draw_stretch = _game => true;
 
 let update_points = ({players, farms, stage} as game) =>
   switch (stage) {

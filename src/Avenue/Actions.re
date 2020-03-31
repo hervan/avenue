@@ -63,7 +63,7 @@ let peek_farm = ({players, stage, history} as game) =>
     }
   };
 
-let reveal_stretch = ({players, deck, stage, history} as game) =>
+let flip_stretch = ({players, deck, stage, history} as game) =>
   switch (stage) {
   | End(_) => game |> add_history(Message(Mistake, "the game is over"))
   | Begin
@@ -87,7 +87,7 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
           round: game.round + 1,
           current_card: Some(card),
           stage: Phase(farm, color == Yellow ? add_yc(yc) : yc),
-          history: [Action(FlipStretchCard), ...history],
+          history: [Action(FlipStretch), ...history],
         }
         : game
           |> add_history(
