@@ -2,7 +2,7 @@ open Types;
 open Converters;
 
 [@react.component]
-let make = (~game as {history}) => {
+let make = (~game as {history}) =>
   <g
     transform="translate(0 75)"
     strokeWidth="0.05"
@@ -29,4 +29,3 @@ let make = (~game as {history}) => {
         )
      |> arr}
   </g>;
-};
