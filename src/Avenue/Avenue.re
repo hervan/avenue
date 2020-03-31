@@ -142,7 +142,13 @@ let create_game = player_name => {
 
 let add_history = (history_item, game) => {
   ...game,
-  history: [history_item, ...game.history],
+  history:
+    switch (history_item) {
+    | Action(_) => [history_item, ...game.history]
+    | Message(_, _) =>
+      history_item == (game.history |> List.hd)
+        ? game.history : [history_item, ...game.history]
+    },
 };
 
 let flip_farm = ({players, stage, phase_deck, history} as game) =>
@@ -453,12 +459,14 @@ let make = () => {
         />
       </filter>
     </defs>
-    {(game.players |> List.hd).grid
-     |> flatten_grid
-     |> Array.mapi((i, cell) =>
-          <Cell key={i |> string_of_int} cell dispatch />
-        )
-     |> ReasonReact.array}
+    <g>
+      {(game.players |> List.hd).grid
+       |> flatten_grid
+       |> Array.mapi((i, cell) =>
+            <Cell key={i |> string_of_int} cell dispatch />
+          )
+       |> ReasonReact.array}
+    </g>
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck game dispatch />
     <Points game />

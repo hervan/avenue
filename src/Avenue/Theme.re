@@ -6,6 +6,9 @@ let text = fontSize =>
     (),
   );
 
+let log_text =
+  ReactDOMRe.Style.make(~fontSize="2.4px", ~fontFamily="Verdana", ());
+
 let big_text =
   text("8px")
   |> ReactDOMRe.Style.combine(ReactDOMRe.Style.make(~fontWeight="bold", ()));
