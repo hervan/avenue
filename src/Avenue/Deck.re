@@ -7,7 +7,7 @@ let stretch_shadow =
   ReactDOMRe.Style.make(~filter="url(#stretch-shadow)", ());
 
 [@react.component]
-let make = (~deck, ~current_card, ~dispatch) => {
+let make = (~game as {deck, current_card}, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);
   React.useEffect1(
     _ => {

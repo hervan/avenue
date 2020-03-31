@@ -433,13 +433,15 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
   };
 
 let reducer = (game, action) =>
+    Rules.(
   switch (action) {
   | PeekFarm => peek_farm(game)
   | FlipFarm => flip_farm(game)->update_points
   | FlipStretchCard => reveal_stretch(game)
   | DrawStretch(row, col) =>
     draw_stretch(game, row, col)->update_points->process_phase
-  };
+      }
+  );
 
 [@react.component]
 let make = () => {
@@ -476,7 +478,7 @@ let make = () => {
           )
        |> ReasonReact.array}
     </g>
-    <Deck deck={game.deck} current_card={game.current_card} dispatch />
+    <Deck game dispatch />
     <PhaseDeck game dispatch />
     <Points game />
     <Status
