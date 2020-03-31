@@ -453,12 +453,14 @@ let make = () => {
         />
       </filter>
     </defs>
+    <g>
     {(game.players |> List.hd).grid
      |> flatten_grid
      |> Array.mapi((i, cell) =>
           <Cell key={i |> string_of_int} cell dispatch />
         )
      |> ReasonReact.array}
+    </g>
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
     <PhaseDeck game dispatch />
     <Points game />
