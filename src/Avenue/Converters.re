@@ -112,11 +112,11 @@ let history_to_string =
 
 let history_to_color =
   fun
-  | Action(_) => "blue"
-  | Message(Impossible, _) => "red"
-  | Message(Mistake, _) => "orange"
-  | Message(Info, _) => "yellow"
-  | Message(Tip, _) => "green";
+  | Action(_) => "green"
+  | Message(Impossible, _) => "white"
+  | Message(Mistake, _) => "red"
+  | Message(Info, _) => "orange"
+  | Message(Tip, _) => "blue";
 
 let add_yc =
   fun

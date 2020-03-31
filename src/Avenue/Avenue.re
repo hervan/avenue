@@ -458,6 +458,15 @@ let make = () => {
           floodOpacity="0.5"
         />
       </filter>
+      <filter id="text-shadow">
+        <feDropShadow
+          dx="0"
+          dy="0"
+          stdDeviation="0.2"
+          floodColor="black"
+          floodOpacity="0.2"
+        />
+      </filter>
     </defs>
     <g>
       {(game.players |> List.hd).grid
