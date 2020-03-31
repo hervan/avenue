@@ -23,7 +23,14 @@ let make = (~deck, ~current_card, ~dispatch) => {
     transform="translate(63 0)"
     onClick={_evt => {
       setRotation(_ => 90);
-      let _ = Js.Global.setTimeout(_ => dispatch(FlipStretchCard), 500);
+      let _ =
+        Js.Global.setTimeout(
+          _ => {
+            dispatch(FlipStretchCard);
+            setRotation(_ => 0);
+          },
+          500,
+        );
       ();
     }}>
     <defs>
