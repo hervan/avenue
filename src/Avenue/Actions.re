@@ -1,5 +1,4 @@
 open Types;
-open Converters;
 open Rules;
 
 let flip_farm = ({players, stage, phase_deck, history} as game) =>

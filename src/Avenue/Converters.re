@@ -118,14 +118,6 @@ let history_to_color =
   | Message(Info, _) => "orange"
   | Message(Tip, _) => "blue";
 
-let add_yc =
-  fun
-  | Zero => One
-  | One => Two
-  | Two => Three
-  | Three => Four
-  | Four => Four;
-
 let int_of_yc =
   fun
   | Zero => 0

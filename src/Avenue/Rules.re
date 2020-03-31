@@ -1,6 +1,16 @@
 open Types;
 open Converters;
 
+let random_farm = () => farm_of_int(Random.int(6));
+
+let add_yc =
+  fun
+  | Zero => One
+  | One => Two
+  | Two => Three
+  | Three => Four
+  | Four => Four;
+
 let add_history = (history_item, game) => {
   ...game,
   history:
