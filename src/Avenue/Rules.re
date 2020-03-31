@@ -1,6 +1,11 @@
 open Types;
 open Converters;
 
+// TODO: create can_[action] functions that will allow to list possible next actions
+// TODO: can_peek_farm is being used with another meaning, fix that
+// TODO: create more rules functions that will change more minimally game state, i.e.
+// flip_farm = | Begin => game|>flip_top_farm|>set_current_stage|>add_players_phase_points|>add_history
+
 let random_farm = () => farm_of_int(Random.int(6));
 
 let add_yc =
