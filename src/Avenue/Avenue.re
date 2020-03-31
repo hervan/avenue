@@ -79,16 +79,11 @@ let create_farms_deck = () => {
     | 0 => deck
     | n => {
         let farm_card = random_farm();
-        List.for_all(
-          fun
-          | Some(card) => card != farm_card
-          | None => true,
-          deck,
-        )
-          ? aux([Some(farm_card), ...deck], n - 1) : aux(deck, n);
+        List.for_all(card => card != farm_card, deck)
+          ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
       };
   Random.self_init();
-  [None, ...aux([], 6)];
+  aux([], 6);
 };
 
 let create_stretches_deck = () => {
@@ -152,14 +147,12 @@ let add_history = (history_item, game) => {
 
 let flip_farm = ({players, stage, phase_deck, history} as game) =>
   switch (stage) {
-  | End => game |> add_history(Message(Mistake, "the game is over"))
+  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
   | Phase(_, _) => game
   | Begin
-  | PhaseEnd =>
+  | PhaseEnd(_) =>
     switch (phase_deck) {
-    | [None, Some(farm), ...rest_phase_deck]
-    | [_, Some(farm), None, ...rest_phase_deck]
-    | [_, None, Some(farm), ...rest_phase_deck] => {
+    | [farm, next_farm, ...rest_phase_deck] => {
         ...game,
         players:
           players
@@ -170,71 +163,60 @@ let flip_farm = ({players, stage, phase_deck, history} as game) =>
                  lookahead: false,
                }
              ),
-        phase_deck: [Some(farm), None, ...rest_phase_deck],
+        phase_deck: [next_farm, ...rest_phase_deck],
         stage: Phase(farm, Zero),
         history: [Action(FlipFarm), ...history],
       }
-    | [Some(_), Some(_), Some(_), ..._]
-    | [_, None, None, ..._]
     | [_]
     | [] =>
-      game |> add_history(Message(Impossible, "this should never happen"))
-    | [_, _] => game
+      game
+      |> add_history(
+           Message(Impossible, "this should be an impossible state"),
+         )
     }
   };
 
-let peek_farm = ({players, stage, phase_deck, history} as game) =>
+let peek_farm = ({players, stage, history} as game) =>
   switch (stage) {
-  | End => game |> add_history(Message(Mistake, "the game is over"))
+  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
   | Begin
-  | PhaseEnd => game
+  | PhaseEnd(_) => game
   | Phase(_, _) =>
     switch (players) {
     | [] =>
-      game |> add_history(Message(Impossible, "this should never happen"))
+      game
+      |> add_history(
+           Message(Impossible, "this should be an impossible state"),
+         )
     | [me, ...rest_players] =>
-      switch (phase_deck) {
-      | [top_card, None, Some(farm), ...rest_phase_deck] =>
-        switch (me) {
-        | {lookahead: false} =>
-          me.round < game.round
-            ? {
-              ...game,
-              players: [
-                {...me, lookahead: true, round: game.round},
-                ...rest_players,
-              ],
-              phase_deck: [top_card, Some(farm), None, ...rest_phase_deck],
-              history: [Action(FlipFarm), ...history],
-            }
-            : game
-              |> add_history(
-                   Message(Mistake, "you already played this round"),
-                 )
-        | {lookahead: true} => game
-        }
-      | [_, Some(_), None, ..._] => game
-      | [Some(_), Some(_), Some(_), ..._]
-      | [_, None, None, ..._]
-      | [None, ..._]
-      | [_]
-      | [] =>
-        game |> add_history(Message(Impossible, "this should never happen"))
-      | [_, _] => game
+      switch (me) {
+      | {lookahead: false} =>
+        me.round < game.round
+          ? {
+            ...game,
+            players: [
+              {...me, lookahead: true, round: game.round},
+              ...rest_players,
+            ],
+            history: [Action(FlipFarm), ...history],
+          }
+          : game
+            |> add_history(Message(Mistake, "you already played this round"))
+      | {lookahead: true} => game
       }
     }
   };
 
 let reveal_stretch = ({players, deck, stage, history} as game) =>
   switch (stage) {
-  | End => game |> add_history(Message(Mistake, "the game is over"))
+  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
   | Begin
-  | PhaseEnd =>
+  | PhaseEnd(_) =>
     game
     |> add_history(
          Message(
            Mistake,
-           "you need first to flip a farm card to begin the phase",
+           "you need first to flip a farm card to begin the next phase",
          ),
        )
   | Phase(_, Four) =>
@@ -260,7 +242,10 @@ let reveal_stretch = ({players, deck, stage, history} as game) =>
              )
     | ([], _)
     | (_, []) =>
-      game |> add_history(Message(Impossible, "this should never happen"))
+      game
+      |> add_history(
+           Message(Impossible, "this should be an impossible state"),
+         )
     }
   };
 
@@ -279,7 +264,10 @@ let draw_stretch = ({players, stage, current_card} as game, row, col) =>
     | Phase(_, _) =>
       switch (players) {
       | [] =>
-        game |> add_history(Message(Impossible, "this should never happen"))
+        game
+        |> add_history(
+             Message(Impossible, "this should be an impossible state"),
+           )
       | [{round, grid} as me, ...other_players] =>
         round < game.round
           ? switch (grid[row][col].stretch) {
@@ -339,7 +327,10 @@ let update_points = ({players, farms, stage} as game) =>
   | Phase(farm_card, _) =>
     switch (players) {
     | [] =>
-      game |> add_history(Message(Impossible, "this should never happen"))
+      game
+      |> add_history(
+           Message(Impossible, "this should be an impossible state"),
+         )
     | [{farm_points, grid} as me, ...other_players] =>
       switch (farm_points) {
       | [(farm, _), ...previous_points] =>
@@ -367,7 +358,10 @@ let update_points = ({players, farms, stage} as game) =>
           }
           : game
       | [] =>
-        game |> add_history(Message(Impossible, "this should never happen"))
+        game
+        |> add_history(
+             Message(Impossible, "this should be an impossible state"),
+           )
       }
     }
   | _ => game
@@ -376,7 +370,8 @@ let update_points = ({players, farms, stage} as game) =>
 let process_phase = ({players, phase_deck, stage, history} as game) =>
   switch (players) {
   | [] =>
-    game |> add_history(Message(Impossible, "this should never happen"))
+    game
+    |> add_history(Message(Impossible, "this should be an impossible state"))
   | [me, ...other_players] =>
     switch (stage) {
     | Phase(current_farm, yc) =>
@@ -410,11 +405,13 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
               },
               ...other_players,
             ],
-            stage: phase_deck->List.length > 2 ? PhaseEnd : End,
+            stage:
+              phase_deck->List.length > 1
+                ? PhaseEnd(current_farm) : End(current_farm),
             history: [
               Message(
                 Info,
-                phase_deck->List.length > 2
+                phase_deck->List.length > 1
                   ? "current phase is over" : "game is over",
               ),
               ...history,
@@ -424,8 +421,8 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
       | _ => game
       }
     | Begin
-    | PhaseEnd
-    | End => game
+    | PhaseEnd(_)
+    | End(_) => game
     }
   };
 
@@ -463,7 +460,7 @@ let make = () => {
         )
      |> ReasonReact.array}
     <Deck deck={game.deck} current_card={game.current_card} dispatch />
-    <PhaseDeck deck={game.phase_deck} stage={game.stage} dispatch />
+    <PhaseDeck game dispatch />
     <Points game />
     <Status game />
   </svg>;

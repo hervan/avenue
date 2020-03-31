@@ -30,8 +30,8 @@ type yellow_cards =
 type stage =
   | Begin
   | Phase(farm, yellow_cards)
-  | PhaseEnd
-  | End;
+  | PhaseEnd(farm)
+  | End(farm);
 
 type action =
   | PeekFarm
@@ -96,7 +96,7 @@ type game = {
   players: list(board),
   deck: list(card),
   round: int,
-  phase_deck: list(option(farm)),
+  phase_deck: list(farm),
   stage,
   current_card: option(card),
   castles,
