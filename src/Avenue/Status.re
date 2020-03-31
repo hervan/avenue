@@ -27,7 +27,6 @@ let make = (~game as {history}) => {
             {entry->history_to_string->str}
           </text>
         )
-     |> Array.of_list
-     |> ReasonReact.array}
+     |> arr}
   </g>;
 };

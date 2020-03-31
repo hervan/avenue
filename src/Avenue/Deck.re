@@ -59,8 +59,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
             style=stretch_shadow
           />
         )
-     |> Array.of_list
-     |> ReasonReact.array}
+     |> arr}
     {switch (current_card) {
      | None =>
        <g style={Theme.rotate_card(rotation)}>

@@ -136,8 +136,7 @@ let make = (~game as {players} as game) =>
               </g>
             </g>
           )
-       |> Array.of_list
-       |> ReasonReact.array}
+       |> arr}
       {game.phase_deck
        |> List.tl
        |> List.mapi((i, _) =>
@@ -152,8 +151,7 @@ let make = (~game as {players} as game) =>
               <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
             </g>
           )
-       |> Array.of_list
-       |> ReasonReact.array}
+       |> arr}
       <g transform={"translate(0, " ++ (5. *. 2.8)->Js.Float.toString ++ ")"}>
         <rect width="7" height="2.7" fill="lightgreen" rx="0.5" />
         <g transform="translate(0.5 2.4)">

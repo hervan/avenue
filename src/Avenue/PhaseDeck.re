@@ -88,8 +88,7 @@ let make = (~game as {players, phase_deck, stage}, ~dispatch) => {
                : React.null}
           </g>
         )
-     |> Array.of_list
-     |> ReasonReact.array}
+     |> arr}
     <g
       key={phase_deck |> List.length |> string_of_int}
       transform={
