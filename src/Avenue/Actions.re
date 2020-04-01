@@ -1,36 +1,14 @@
 open Types;
 open Rules;
 
-let flip_farm = ({players, stage, phase_deck, history} as game) =>
-  switch (stage) {
-  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
-  | Phase(_, _) => game
-  | Begin
-  | PhaseEnd(_) =>
-    switch (phase_deck) {
-    | [farm, next_farm, ...rest_phase_deck] => {
-        ...game,
-        players:
-          players
-          |> List.map(player =>
-               {
-                 ...player,
-                 farm_points: [(farm, 0), ...player.farm_points],
-                 lookahead: false,
-               }
-             ),
-        phase_deck: [next_farm, ...rest_phase_deck],
-        stage: Phase(farm, Zero),
-        history: [Action(FlipFarm), ...history],
-      }
-    | [_]
-    | [] =>
-      game
-      |> add_history(
-           Message(Impossible, "this should be an impossible state"),
-         )
-    }
-  };
+let flip_farm = game =>
+  game->can_flip_farm
+    ? game
+      |> flip_top_farm
+      |> discard_top_farm
+      |> add_players_phase_points
+      |> add_history(Action(FlipFarm))
+    : game;
 
 let peek_farm = ({players, stage, history} as game) =>
   switch (stage) {

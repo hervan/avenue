@@ -1,10 +1,6 @@
 open Types;
 open Converters;
 
-// TODO: create can_[action] functions that will allow to list possible next actions
-// TODO: create more rules functions that will change more minimally game state, i.e.
-// flip_farm = | Begin => game|>flip_top_farm|>set_current_stage|>add_players_phase_points|>add_history
-
 let random_farm = () => farm_of_int(Random.int(6));
 
 let add_yc =
@@ -40,18 +36,38 @@ let can_flip_farm = ({phase_deck, stage}) =>
     }
   };
 
-
-let can_peek_farm = ({players, stage}) =>
-  switch (stage) {
-  | Phase(_, _) =>
-    switch (players) {
-    | [{lookahead}, ..._] => lookahead
-    | [] => false
-    }
-  | PhaseEnd(_)
-  | Begin => true
-  | End(_) => false
+let flip_top_farm = ({phase_deck} as game) =>
+  switch (phase_deck) {
+  | [farm, _, ..._] => {...game, stage: Phase(farm, Zero)}
+  | _ => game
   };
+
+let discard_top_farm = ({phase_deck} as game) =>
+  switch (phase_deck) {
+  | [_, next_farm, ...rest_phase_deck] => {
+      ...game,
+      phase_deck: [next_farm, ...rest_phase_deck],
+    }
+  | _ => game
+  };
+
+let add_players_phase_points = ({players, stage} as game) =>
+  switch (stage) {
+  | Phase(farm, Zero) => {
+      ...game,
+      players:
+        players
+        |> List.map(player =>
+             {...player, farm_points: [(farm, 0), ...player.farm_points]}
+           ),
+    }
+  | _ => game
+  };
+
+let reset_players_lookahead = ({players} as game) => {
+  ...game,
+  players: players |> List.map(player => {...player, lookahead: false}),
+};
 
 let can_peek_farm = _game => true;
 
