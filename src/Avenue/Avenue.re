@@ -146,7 +146,7 @@ let reducer = (game, action) =>
       | FlipFarm => flip_farm(game)->update_points
       | FlipStretch => flip_stretch(game)
       | DrawStretch(row, col) =>
-        draw_stretch(game, row, col)->update_points->process_phase
+        draw_stretch(row, col, game)->update_points->process_phase
       }
     )
   );

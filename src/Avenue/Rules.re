@@ -124,7 +124,44 @@ let advance_yc_stage = ({stage, current_card} as game) => {
 
 let advance_game_round = ({round} as game) => {...game, round: round + 1};
 
-let can_draw_stretch = _game => true;
+let can_draw_stretch = (row, col, {players, stage, current_card} as game) =>
+  switch (current_card) {
+  | Some((_, _)) =>
+    switch (stage) {
+    | Phase(_, _) =>
+      switch (players) {
+      | [{round, grid}, ..._] =>
+        round < game.round && grid[row][col].stretch == None
+      | [] => false
+      }
+    | _ => false
+    }
+  | None => false
+  };
+
+let draw_stretch_on_grid_cell = (row, col, {players, current_card} as game) =>
+  switch (current_card) {
+  | Some((stretch, _)) => {
+      ...game,
+      players: [
+        {
+          ...players |> List.hd,
+          grid:
+            (players |> List.hd).grid
+            |> Array.mapi((i, grid_row) =>
+                 i == row
+                   ? grid_row
+                     |> Array.mapi((j, cell) =>
+                          j == col ? {...cell, stretch: Some(stretch)} : cell
+                        )
+                   : grid_row
+               ),
+        },
+        ...players |> List.tl,
+      ],
+    }
+  | None => game
+  };
 
 let update_points = ({players, farms, stage} as game) =>
   switch (stage) {
