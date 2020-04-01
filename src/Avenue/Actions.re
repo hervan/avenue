@@ -4,42 +4,20 @@ open Rules;
 let flip_farm = game =>
   game->can_flip_farm
     ? game
-      |> flip_top_farm
+      |> set_stage_new_phase_farm
       |> discard_top_farm
       |> add_players_phase_points
+      |> reset_players_lookahead
       |> add_history(Action(FlipFarm))
     : game;
 
-let peek_farm = ({players, stage, history} as game) =>
-  switch (stage) {
-  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
-  | Begin
-  | PhaseEnd(_) => game
-  | Phase(_, _) =>
-    switch (players) {
-    | [] =>
-      game
-      |> add_history(
-           Message(Impossible, "this should be an impossible state"),
-         )
-    | [me, ...rest_players] =>
-      switch (me) {
-      | {lookahead: false} =>
-        me.round < game.round
-          ? {
-            ...game,
-            players: [
-              {...me, lookahead: true, round: game.round},
-              ...rest_players,
-            ],
-            history: [Action(PeekFarm), ...history],
-          }
-          : game
-            |> add_history(Message(Mistake, "you already played this round"))
-      | {lookahead: true} => game
-      }
-    }
-  };
+let peek_farm = game =>
+  game->can_peek_farm
+    ? game
+      |> enable_player_lookahead
+      |> advance_player_round
+      |> add_history(Action(PeekFarm))
+    : game;
 
 let flip_stretch = ({players, deck, stage, history} as game) =>
   switch (stage) {

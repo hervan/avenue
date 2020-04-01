@@ -36,7 +36,7 @@ let can_flip_farm = ({phase_deck, stage}) =>
     }
   };
 
-let flip_top_farm = ({phase_deck} as game) =>
+let set_stage_new_phase_farm = ({phase_deck} as game) =>
   switch (phase_deck) {
   | [farm, _, ..._] => {...game, stage: Phase(farm, Zero)}
   | _ => game
@@ -69,7 +69,35 @@ let reset_players_lookahead = ({players} as game) => {
   players: players |> List.map(player => {...player, lookahead: false}),
 };
 
-let can_peek_farm = _game => true;
+let can_peek_farm = ({players, stage} as game) =>
+  switch (stage) {
+  | End(_)
+  | Begin
+  | PhaseEnd(_) => false
+  | Phase(_, _) =>
+    switch (players) {
+    | [] => false
+    | [me, ..._] => !me.lookahead && me.round < game.round
+    }
+  };
+
+let enable_player_lookahead = ({players} as game) =>
+  switch (players) {
+  | [me, ...rest_players] => {
+      ...game,
+      players: [{...me, lookahead: true}, ...rest_players],
+    }
+  | _ => game
+  };
+
+let advance_player_round = ({players} as game) =>
+  switch (players) {
+  | [me, ...rest_players] => {
+      ...game,
+      players: [{...me, round: game.round}, ...rest_players],
+    }
+  | _ => game
+  };
 
 let can_flip_stretch = _game => true;
 
