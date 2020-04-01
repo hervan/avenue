@@ -27,7 +27,19 @@ let add_history = (history_item, game) => {
     },
 };
 
-let can_flip_farm = _game => true;
+let can_flip_farm = ({phase_deck, stage}) =>
+  switch (stage) {
+  | End(_)
+  | Phase(_, _) => false
+  | Begin
+  | PhaseEnd(_) =>
+    switch (phase_deck) {
+    | [_, _, ..._] => true
+    | [_]
+    | [] => false
+    }
+  };
+
 
 let can_peek_farm = ({players, stage}) =>
   switch (stage) {
