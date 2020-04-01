@@ -25,31 +25,24 @@ let add_history = (history_item, game) => {
 
 let can_flip_farm = ({phase_deck, stage}) =>
   switch (stage) {
-  | End(_)
-  | Phase(_, _) => false
   | Begin
   | PhaseEnd(_) =>
     switch (phase_deck) {
     | [_, _, ..._] => true
-    | [_]
-    | [] => false
+    | _ => false
     }
+  | _ => false
   };
 
-let set_stage_new_phase_farm = ({phase_deck} as game) =>
-  switch (phase_deck) {
-  | [farm, _, ..._] => {...game, stage: Phase(farm, Zero)}
-  | _ => game
-  };
+let set_stage_phase_farm = ({phase_deck} as game) => {
+  ...game,
+  stage: Phase(phase_deck |> List.hd, Zero),
+};
 
-let discard_top_farm = ({phase_deck} as game) =>
-  switch (phase_deck) {
-  | [_, next_farm, ...rest_phase_deck] => {
-      ...game,
-      phase_deck: [next_farm, ...rest_phase_deck],
-    }
-  | _ => game
-  };
+let discard_top_farm = ({phase_deck} as game) => {
+  ...game,
+  phase_deck: phase_deck |> List.tl,
+};
 
 let add_players_phase_points = ({players, stage} as game) =>
   switch (stage) {
@@ -71,35 +64,65 @@ let reset_players_lookahead = ({players} as game) => {
 
 let can_peek_farm = ({players, stage} as game) =>
   switch (stage) {
-  | End(_)
-  | Begin
-  | PhaseEnd(_) => false
   | Phase(_, _) =>
     switch (players) {
-    | [] => false
     | [me, ..._] => !me.lookahead && me.round < game.round
+    | _ => false
     }
+  | _ => false
   };
 
-let enable_player_lookahead = ({players} as game) =>
-  switch (players) {
-  | [me, ...rest_players] => {
-      ...game,
-      players: [{...me, lookahead: true}, ...rest_players],
+let enable_player_lookahead = ({players} as game) => {
+  ...game,
+  players: [{...players |> List.hd, lookahead: true}, ...players |> List.tl],
+};
+
+let advance_player_round = ({players} as game) => {
+  ...game,
+  players: [
+    {...players |> List.hd, round: game.round},
+    ...players |> List.tl,
+  ],
+};
+
+let can_flip_stretch = ({players, deck, stage} as game) =>
+  switch (stage) {
+  | Phase(_, _) =>
+    switch (deck) {
+    | [_, ..._] =>
+      switch (players) {
+      | [me, ..._] => me.round == game.round
+      | _ => false
+      }
+    | _ => false
     }
-  | _ => game
+  | _ => false
   };
 
-let advance_player_round = ({players} as game) =>
-  switch (players) {
-  | [me, ...rest_players] => {
-      ...game,
-      players: [{...me, round: game.round}, ...rest_players],
-    }
-  | _ => game
-  };
+let set_current_stretch = ({deck} as game) => {
+  ...game,
+  current_card: Some(deck |> List.hd),
+};
 
-let can_flip_stretch = _game => true;
+let discard_top_stretch = ({deck} as game) => {
+  ...game,
+  deck: deck |> List.tl,
+};
+
+let advance_yc_stage = ({stage, current_card} as game) => {
+  ...game,
+  stage:
+    switch (stage) {
+    | Phase(farm, yc) =>
+      switch (current_card) {
+      | Some((_, Yellow)) => Phase(farm, yc->add_yc)
+      | _ => stage
+      }
+    | _ => stage
+    },
+};
+
+let advance_game_round = ({round} as game) => {...game, round: round + 1};
 
 let can_draw_stretch = _game => true;
 

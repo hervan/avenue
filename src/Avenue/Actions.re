@@ -4,7 +4,7 @@ open Rules;
 let flip_farm = game =>
   game->can_flip_farm
     ? game
-      |> set_stage_new_phase_farm
+      |> set_stage_phase_farm
       |> discard_top_farm
       |> add_players_phase_points
       |> reset_players_lookahead
@@ -19,47 +19,15 @@ let peek_farm = game =>
       |> add_history(Action(PeekFarm))
     : game;
 
-let flip_stretch = ({players, deck, stage, history} as game) =>
-  switch (stage) {
-  | End(_) => game |> add_history(Message(Mistake, "the game is over"))
-  | Begin
-  | PhaseEnd(_) =>
-    game
-    |> add_history(
-         Message(
-           Mistake,
-           "you need first to flip a farm card to begin the next phase",
-         ),
-       )
-  | Phase(_, Four) =>
-    game |> add_history(Message(Mistake, "the phase is over"))
-  | Phase(farm, yc) =>
-    switch (deck, players) {
-    | ([(_, color) as card, ...rest_deck], [me, ..._]) =>
-      me.round == game.round
-        ? {
-          ...game,
-          deck: rest_deck,
-          round: game.round + 1,
-          current_card: Some(card),
-          stage: Phase(farm, color == Yellow ? add_yc(yc) : yc),
-          history: [Action(FlipStretch), ...history],
-        }
-        : game
-          |> add_history(
-               Message(
-                 Mistake,
-                 "you need to draw the current stretch card before revealing the next, or peek at the next phase card",
-               ),
-             )
-    | ([], _)
-    | (_, []) =>
-      game
-      |> add_history(
-           Message(Impossible, "this should be an impossible state"),
-         )
-    }
-  };
+let flip_stretch = game =>
+  game->can_flip_stretch
+    ? game
+      |> set_current_stretch
+      |> discard_top_stretch
+      |> advance_yc_stage
+      |> advance_game_round
+      |> add_history(Action(FlipStretch))
+    : game;
 
 let draw_stretch = ({players, stage, current_card} as game, row, col) =>
   switch (current_card) {
