@@ -2,7 +2,6 @@ open Types;
 open Converters;
 
 // TODO: create can_[action] functions that will allow to list possible next actions
-// TODO: can_peek_farm is being used with another meaning, fix that
 // TODO: create more rules functions that will change more minimally game state, i.e.
 // flip_farm = | Begin => game|>flip_top_farm|>set_current_stage|>add_players_phase_points|>add_history
 
@@ -41,6 +40,8 @@ let can_peek_farm = ({players, stage}) =>
   | Begin => true
   | End(_) => false
   };
+
+let can_peek_farm = _game => true;
 
 let can_flip_stretch = _game => true;
 

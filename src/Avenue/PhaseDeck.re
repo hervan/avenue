@@ -4,8 +4,19 @@ open Converters;
 let card_thickness = 0.5;
 
 [@react.component]
-let make = (~game as {phase_deck, stage} as game, ~dispatch) => {
+let make = (~game as {players, phase_deck, stage}, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 0);
+  let can_peek =
+    switch (stage) {
+    | Phase(_, _) =>
+      switch (players) {
+      | [{lookahead}, ..._] => lookahead
+      | [] => false
+      }
+    | PhaseEnd(_)
+    | Begin => true
+    | End(_) => false
+    };
   React.useEffect1(
     () => {
       switch (stage) {
@@ -59,12 +70,12 @@ let make = (~game as {phase_deck, stage} as game, ~dispatch) => {
               width="15"
               height="20"
               rx="2"
-              fill={Rules.can_peek_farm(game) ? "yellow" : "cornflowerblue"}
+              fill={can_peek ? "yellow" : "cornflowerblue"}
               stroke="white"
               strokeWidth="1"
               style=Theme.shadow
             />
-            {Rules.can_peek_farm(game)
+            {can_peek
                ? <g transform="translate(4.5 12.5)" strokeWidth="0.1">
                    <text
                      strokeWidth={card_thickness /. 2. |> Js.Float.toString}
