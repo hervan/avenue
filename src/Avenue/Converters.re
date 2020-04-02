@@ -91,17 +91,23 @@ let action_to_string =
 
 let describe_action =
   fun
-  | PeekFarm => "peek at the next farm card, which makes the player skips their turn"
-  | FlipFarm => "flip farm card for the next phase, beginning a new phase"
-  | FlipStretch => "flip new stretch card, which players must draw in a cell in their board"
-  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j};
+  | PeekFarm => "click the bottom deck to see the upcoming farm"
+  | FlipFarm => "click the bottom deck to begin next phase"
+  | FlipStretch => "click the top deck to flip a stretch card"
+  | DrawStretch(_, _) => "click an empty cell to draw the stretch card";
 
 let message_to_string =
   fun
   | Impossible => "error"
   | Mistake => "attention"
   | Info => "info"
-  | Tip => "tip";
+  | Guide => "next:";
+
+let history_to_friendly_string =
+  fun
+  | Action(action) => "you chose to " ++ action->describe_action
+  | Message(Guide, description) => "you can now " ++ description
+  | Message(_, description) => description;
 
 let history_to_string =
   fun
@@ -112,11 +118,11 @@ let history_to_string =
 
 let history_to_color =
   fun
-  | Action(_) => "green"
+  | Action(_) => "blue"
   | Message(Impossible, _) => "white"
   | Message(Mistake, _) => "red"
   | Message(Info, _) => "orange"
-  | Message(Tip, _) => "blue";
+  | Message(Guide, _) => "green";
 
 let int_of_yc =
   fun

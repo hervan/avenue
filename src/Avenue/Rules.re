@@ -11,15 +11,14 @@ let add_yc =
   | Three => Four
   | Four => Four;
 
-let add_history = (history_item, game) => {
+let add_history = (history_item, {history} as game) => {
   ...game,
   history:
     switch (history_item) {
-    | Action(_) => [history_item, ...game.history]
+    | Action(_) => [history_item, ...history]
     | Message(_, _) =>
-      game.history->List.length > 0
-      && history_item == (game.history |> List.hd)
-        ? game.history : [history_item, ...game.history]
+      history->List.length > 0 && history_item == (history |> List.hd)
+        ? history : [history_item, ...history]
     },
 };
 
@@ -139,6 +138,19 @@ let can_draw_stretch = (row, col, {players, stage, current_card} as game) =>
   | None => false
   };
 
+let can_draw_stretch_somewhere = ({players} as game) =>
+  switch (players) {
+  | [{grid}, ..._] =>
+    grid
+    |> Array.to_list
+    |> List.exists(grid_row =>
+         grid_row
+         |> Array.to_list
+         |> List.exists(cell => can_draw_stretch(cell.row, cell.col, game))
+       )
+  | _ => false
+  };
+
 let draw_stretch_on_grid_cell = (row, col, {players, current_card} as game) =>
   switch (current_card) {
   | Some((stretch, _)) => {
@@ -167,11 +179,7 @@ let update_points = ({players, farms, stage} as game) =>
   switch (stage) {
   | Phase(farm_card, _) =>
     switch (players) {
-    | [] =>
-      game
-      |> add_history(
-           Message(Impossible, "this should be an impossible state"),
-         )
+    | [] => game
     | [{farm_points, grid} as me, ...other_players] =>
       switch (farm_points) {
       | [(farm, _), ...previous_points] =>
@@ -198,11 +206,7 @@ let update_points = ({players, farms, stage} as game) =>
             ],
           }
           : game
-      | [] =>
-        game
-        |> add_history(
-             Message(Impossible, "this should be an impossible state"),
-           )
+      | [] => game
       }
     }
   | _ => game
@@ -210,9 +214,7 @@ let update_points = ({players, farms, stage} as game) =>
 
 let process_phase = ({players, phase_deck, stage, history} as game) =>
   switch (players) {
-  | [] =>
-    game
-    |> add_history(Message(Impossible, "this should be an impossible state"))
+  | [] => game
   | [me, ...other_players] =>
     switch (stage) {
     | Phase(current_farm, yc) =>
@@ -266,3 +268,30 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
     | End(_) => game
     }
   };
+
+let guide_peek_farm = game =>
+  game |> can_peek_farm
+    ? game |> add_history(Message(Info, "or " ++ PeekFarm->describe_action))
+    : game;
+
+let guide_flip_farm = game =>
+  game |> can_flip_farm
+    ? game |> add_history(Message(Guide, FlipFarm->describe_action)) : game;
+
+let guide_flip_stretch = game =>
+  game |> can_flip_stretch
+    ? game |> add_history(Message(Guide, FlipStretch->describe_action))
+    : game;
+
+let guide_draw_stretch = game =>
+  game |> can_draw_stretch_somewhere
+    ? game
+      |> add_history(Message(Guide, DrawStretch(0, 0)->describe_action))
+    : game;
+
+let guide = game =>
+  game
+  |> guide_peek_farm
+  |> guide_flip_farm
+  |> guide_flip_stretch
+  |> guide_draw_stretch;

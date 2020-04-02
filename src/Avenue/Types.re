@@ -86,7 +86,7 @@ type message =
   | Impossible
   | Mistake
   | Info
-  | Tip;
+  | Guide;
 
 type history_item =
   | Action(action)

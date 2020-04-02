@@ -116,37 +116,39 @@ let create_base_grid = () =>
 
 let base_grid = create_base_grid();
 
-let create_game = player_name => {
-  players: [create_player(player_name, base_grid)],
-  deck: create_stretches_deck(),
-  round: 0,
-  phase_deck: create_farms_deck(),
-  stage: Begin,
-  current_card: None,
-  castles: {
-    purple: base_grid[6][0],
-    green: base_grid[0][5],
-  },
-  farms: [
-    base_grid[0][2],
-    base_grid[2][3],
-    base_grid[3][0],
-    base_grid[3][5],
-    base_grid[4][2],
-    base_grid[6][3],
-  ],
-  history: [],
-};
+let create_game = player_name =>
+  {
+    players: [create_player(player_name, base_grid)],
+    deck: create_stretches_deck(),
+    round: 0,
+    phase_deck: create_farms_deck(),
+    stage: Begin,
+    current_card: None,
+    castles: {
+      purple: base_grid[6][0],
+      green: base_grid[0][5],
+    },
+    farms: [
+      base_grid[0][2],
+      base_grid[2][3],
+      base_grid[3][0],
+      base_grid[3][5],
+      base_grid[4][2],
+      base_grid[6][3],
+    ],
+    history: [],
+  }
+  ->Rules.guide;
 
 let reducer = (game, action) =>
   Actions.(
     Rules.(
       switch (action) {
-      | PeekFarm => peek_farm(game)
-      | FlipFarm => flip_farm(game)->update_points
-      | FlipStretch => flip_stretch(game)
+      | PeekFarm => peek_farm(game)->guide
+      | FlipFarm => flip_farm(game)->update_points->guide
+      | FlipStretch => flip_stretch(game)->guide
       | DrawStretch(row, col) =>
-        draw_stretch(row, col, game)->update_points->process_phase
+        draw_stretch(row, col, game)->update_points->process_phase->guide
       }
     )
   );
