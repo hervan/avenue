@@ -84,20 +84,16 @@ let create_farms_deck = () => {
   aux([], 6);
 };
 
-let create_stretches_deck = () => {
+let create_road_deck = () => {
   let rec aux = (deck, available_cards) => {
-    let (stretch, color) = (Random.int(6), Random.int(2));
+    let (road, color) = (Random.int(6), Random.int(2));
     List.length(deck) == grid_columns * grid_rows
       ? deck
-      : available_cards[stretch][color] == 0
+      : available_cards[road][color] == 0
           ? aux(deck, available_cards)
           : {
-            available_cards[stretch][color] =
-              available_cards[stretch][color] - 1;
-            aux(
-              [stretch_card_of_ints(stretch, color), ...deck],
-              available_cards,
-            );
+            available_cards[road][color] = available_cards[road][color] - 1;
+            aux([road_card_of_ints(road, color), ...deck], available_cards);
           };
   };
   Random.self_init();
@@ -110,7 +106,7 @@ let create_stretches_deck = () => {
 let create_base_grid = () =>
   Array.init(grid_rows, row =>
     Array.init(grid_columns, col =>
-      {row, col, content: grid_contents[row][col], stretch: None}
+      {row, col, content: grid_contents[row][col], road: None}
     )
   );
 
@@ -119,7 +115,7 @@ let base_grid = create_base_grid();
 let create_game = player_name =>
   {
     players: [create_player(player_name, base_grid)],
-    deck: create_stretches_deck(),
+    deck: create_road_deck(),
     round: 0,
     phase_deck: create_farms_deck(),
     stage: Begin,
@@ -146,9 +142,9 @@ let reducer = (game, action) =>
       switch (action) {
       | PeekFarm => peek_farm(game)->guide
       | FlipFarm => flip_farm(game)->update_points->guide
-      | FlipStretch => flip_stretch(game)->guide
-      | DrawStretch(row, col) =>
-        draw_stretch(row, col, game)->update_points->process_phase->guide
+      | FlipRoad => flip_road(game)->guide
+      | DrawRoad(row, col) =>
+        draw_road(row, col, game)->update_points->process_phase->guide
       }
     )
   );

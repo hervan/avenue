@@ -84,7 +84,7 @@ let advance_player_round = ({players} as game) => {
   ],
 };
 
-let can_flip_stretch = ({players, deck, stage} as game) =>
+let can_flip_road = ({players, deck, stage} as game) =>
   switch (stage) {
   | Phase(_, _) =>
     switch (deck) {
@@ -98,15 +98,12 @@ let can_flip_stretch = ({players, deck, stage} as game) =>
   | _ => false
   };
 
-let set_current_stretch = ({deck} as game) => {
+let set_current_road = ({deck} as game) => {
   ...game,
   current_card: Some(deck |> List.hd),
 };
 
-let discard_top_stretch = ({deck} as game) => {
-  ...game,
-  deck: deck |> List.tl,
-};
+let discard_top_road = ({deck} as game) => {...game, deck: deck |> List.tl};
 
 let advance_yc_stage = ({stage, current_card} as game) => {
   ...game,
@@ -123,14 +120,14 @@ let advance_yc_stage = ({stage, current_card} as game) => {
 
 let advance_game_round = ({round} as game) => {...game, round: round + 1};
 
-let can_draw_stretch = (row, col, {players, stage, current_card} as game) =>
+let can_draw_road = (row, col, {players, stage, current_card} as game) =>
   switch (current_card) {
   | Some((_, _)) =>
     switch (stage) {
     | Phase(_, _) =>
       switch (players) {
       | [{round, grid}, ..._] =>
-        round < game.round && grid[row][col].stretch == None
+        round < game.round && grid[row][col].road == None
       | [] => false
       }
     | _ => false
@@ -138,7 +135,7 @@ let can_draw_stretch = (row, col, {players, stage, current_card} as game) =>
   | None => false
   };
 
-let can_draw_stretch_somewhere = ({players} as game) =>
+let can_draw_road_somewhere = ({players} as game) =>
   switch (players) {
   | [{grid}, ..._] =>
     grid
@@ -146,14 +143,14 @@ let can_draw_stretch_somewhere = ({players} as game) =>
     |> List.exists(grid_row =>
          grid_row
          |> Array.to_list
-         |> List.exists(cell => can_draw_stretch(cell.row, cell.col, game))
+         |> List.exists(cell => can_draw_road(cell.row, cell.col, game))
        )
   | _ => false
   };
 
-let draw_stretch_on_grid_cell = (row, col, {players, current_card} as game) =>
+let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
   switch (current_card) {
-  | Some((stretch, _)) => {
+  | Some((road, _)) => {
       ...game,
       players: [
         {
@@ -164,7 +161,7 @@ let draw_stretch_on_grid_cell = (row, col, {players, current_card} as game) =>
                  i == row
                    ? grid_row
                      |> Array.mapi((j, cell) =>
-                          j == col ? {...cell, stretch: Some(stretch)} : cell
+                          j == col ? {...cell, road: Some(road)} : cell
                         )
                    : grid_row
                ),
@@ -278,20 +275,18 @@ let guide_flip_farm = game =>
   game |> can_flip_farm
     ? game |> add_history(Message(Guide, FlipFarm->describe_action)) : game;
 
-let guide_flip_stretch = game =>
-  game |> can_flip_stretch
-    ? game |> add_history(Message(Guide, FlipStretch->describe_action))
-    : game;
+let guide_flip_road = game =>
+  game |> can_flip_road
+    ? game |> add_history(Message(Guide, FlipRoad->describe_action)) : game;
 
-let guide_draw_stretch = game =>
-  game |> can_draw_stretch_somewhere
-    ? game
-      |> add_history(Message(Guide, DrawStretch(0, 0)->describe_action))
+let guide_draw_road = game =>
+  game |> can_draw_road_somewhere
+    ? game |> add_history(Message(Guide, DrawRoad(0, 0)->describe_action))
     : game;
 
 let guide = game =>
   game
   |> guide_peek_farm
   |> guide_flip_farm
-  |> guide_flip_stretch
-  |> guide_draw_stretch;
+  |> guide_flip_road
+  |> guide_draw_road;

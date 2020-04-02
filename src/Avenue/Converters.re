@@ -22,7 +22,7 @@ let farm_of_int =
   | 4 => E
   | _ => F;
 
-let stretch_of_int =
+let road_of_int =
   fun
   | 0 => (Top, Left)
   | 1 => (Top, Right)
@@ -36,8 +36,8 @@ let card_color_of_int =
   | 0 => Yellow
   | _ => Grey;
 
-let stretch_card_of_ints = (stretch, color) => (
-  stretch_of_int(stretch),
+let road_card_of_ints = (road, color) => (
+  road_of_int(road),
   card_color_of_int(color),
 );
 
@@ -86,15 +86,15 @@ let action_to_string =
   fun
   | PeekFarm => "peek farm"
   | FlipFarm => "flip farm"
-  | FlipStretch => "flip stretch"
-  | DrawStretch(row, col) => {j|draw $row, $col|j};
+  | FlipRoad => "flip road"
+  | DrawRoad(row, col) => {j|draw $row, $col|j};
 
 let describe_action =
   fun
   | PeekFarm => "click the bottom deck to see the upcoming farm"
   | FlipFarm => "click the bottom deck to begin next phase"
-  | FlipStretch => "click the top deck to flip a stretch card"
-  | DrawStretch(_, _) => "click an empty cell to draw the stretch card";
+  | FlipRoad => "click the top deck to flip a road card"
+  | DrawRoad(_, _) => "click an empty cell to draw the road card";
 
 let message_to_string =
   fun

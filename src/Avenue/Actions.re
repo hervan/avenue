@@ -19,20 +19,20 @@ let peek_farm = game =>
       |> add_history(Action(PeekFarm))
     : game;
 
-let flip_stretch = game =>
-  game->can_flip_stretch
+let flip_road = game =>
+  game->can_flip_road
     ? game
-      |> set_current_stretch
-      |> discard_top_stretch
+      |> set_current_road
+      |> discard_top_road
       |> advance_yc_stage
       |> advance_game_round
-      |> add_history(Action(FlipStretch))
+      |> add_history(Action(FlipRoad))
     : game;
 
-let draw_stretch = (row, col, game) =>
-  game |> can_draw_stretch(row, col)
+let draw_road = (row, col, game) =>
+  game |> can_draw_road(row, col)
     ? game
-      |> draw_stretch_on_grid_cell(row, col)
+      |> draw_road_on_grid_cell(row, col)
       |> advance_player_round
-      |> add_history(Action(DrawStretch(row, col)))
+      |> add_history(Action(DrawRoad(row, col)))
     : game;

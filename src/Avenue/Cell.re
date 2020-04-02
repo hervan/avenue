@@ -3,7 +3,7 @@ open Types;
 [@react.component]
 let make = (~cell, ~dispatch) =>
   <g
-    onClick={_evt => dispatch(DrawStretch(cell.row, cell.col))}
+    onClick={_evt => dispatch(DrawRoad(cell.row, cell.col))}
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int
@@ -19,9 +19,8 @@ let make = (~cell, ~dispatch) =>
       fillOpacity="0"
     />
     <CellContent content={cell.content} />
-    {switch (cell.stretch) {
+    {switch (cell.road) {
      | None => React.null
-     | Some(stretch) =>
-       <StretchDraw stretch pos={Some((cell.row, cell.col))} />
+     | Some(road) => <RoadDraw road pos={Some((cell.row, cell.col))} />
      }}
   </g>;
