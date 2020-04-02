@@ -7,7 +7,12 @@ let text = fontSize =>
   );
 
 let log_text =
-  ReactDOMRe.Style.make(~fontSize="2.4px", ~fontFamily="Verdana", ());
+  ReactDOMRe.Style.make(
+    ~fontSize="2.4px",
+    ~fontFamily="Verdana",
+    ~filter="url(#text-shadow)",
+    (),
+  );
 
 let big_text =
   text("8px")

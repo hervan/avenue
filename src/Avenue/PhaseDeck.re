@@ -5,6 +5,7 @@ let card_thickness = 0.5;
 
 [@react.component]
 let make = (~game as {players, phase_deck, stage}, ~dispatch) => {
+  let (rotation, setRotation) = React.useState(_ => 0);
   let can_peek =
     switch (stage) {
     | Phase(_, _) =>
@@ -16,7 +17,6 @@ let make = (~game as {players, phase_deck, stage}, ~dispatch) => {
     | Begin => true
     | End(_) => false
     };
-  let (rotation, setRotation) = React.useState(_ => 0);
   React.useEffect1(
     () => {
       switch (stage) {
@@ -88,8 +88,7 @@ let make = (~game as {players, phase_deck, stage}, ~dispatch) => {
                : React.null}
           </g>
         )
-     |> Array.of_list
-     |> ReasonReact.array}
+     |> arr}
     <g
       key={phase_deck |> List.length |> string_of_int}
       transform={

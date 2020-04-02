@@ -1,8 +1,8 @@
 open Converters;
 
 [@react.component]
-let make = (~stretch as (entry, exit), ~pos) => {
-  let initial_stretch =
+let make = (~road as (entry, exit), ~pos) => {
+  let initial_road =
     "M "
     ++ (point_of_side(entry) |> string_of_point)
     ++ " C "
@@ -12,7 +12,7 @@ let make = (~stretch as (entry, exit), ~pos) => {
     ++ " "
     ++ (point_of_side(entry) |> string_of_point);
 
-  let final_stretch =
+  let final_road =
     "M "
     ++ (point_of_side(entry) |> string_of_point)
     ++ " C "
@@ -22,10 +22,10 @@ let make = (~stretch as (entry, exit), ~pos) => {
     ++ " "
     ++ (point_of_side(exit) |> string_of_point);
 
-  let (point, setPoint) = React.useState(() => initial_stretch);
+  let (point, setPoint) = React.useState(() => initial_road);
 
   React.useEffect(() => {
-    setPoint(_ => final_stretch);
+    setPoint(_ => final_road);
     None;
   });
 

@@ -2,6 +2,8 @@ open Types;
 
 let str = React.string;
 
+let arr = list => list |> Array.of_list |> ReasonReact.array;
+
 let string_of_farm =
   fun
   | A => "A"
@@ -20,7 +22,7 @@ let farm_of_int =
   | 4 => E
   | _ => F;
 
-let stretch_of_int =
+let road_of_int =
   fun
   | 0 => (Top, Left)
   | 1 => (Top, Right)
@@ -34,8 +36,8 @@ let card_color_of_int =
   | 0 => Yellow
   | _ => Grey;
 
-let stretch_card_of_ints = (stretch, color) => (
-  stretch_of_int(stretch),
+let road_card_of_ints = (road, color) => (
+  road_of_int(road),
   card_color_of_int(color),
 );
 
@@ -84,22 +86,28 @@ let action_to_string =
   fun
   | PeekFarm => "peek farm"
   | FlipFarm => "flip farm"
-  | FlipStretchCard => "flip stretch"
-  | DrawStretch(row, col) => {j|draw $row, $col|j};
+  | FlipRoad => "flip road"
+  | DrawRoad(row, col) => {j|draw $row, $col|j};
 
 let describe_action =
   fun
-  | PeekFarm => "peek at the next farm card, which makes the player skips their turn"
-  | FlipFarm => "flip farm card for the next phase, beginning a new phase"
-  | FlipStretchCard => "flip new stretch card, which players must draw in a cell in their board"
-  | DrawStretch(row, col) => {j|player draws current stretch card (without rotation) at row $row, column $col|j};
+  | PeekFarm => "click the bottom deck to see the upcoming farm"
+  | FlipFarm => "click the bottom deck to begin next phase"
+  | FlipRoad => "click the top deck to flip a road card"
+  | DrawRoad(_, _) => "click an empty cell to draw the road card";
 
 let message_to_string =
   fun
   | Impossible => "error"
   | Mistake => "attention"
   | Info => "info"
-  | Tip => "tip";
+  | Guide => "next:";
+
+let history_to_friendly_string =
+  fun
+  | Action(action) => "you chose to " ++ action->describe_action
+  | Message(Guide, description) => "you can now " ++ description
+  | Message(_, description) => description;
 
 let history_to_string =
   fun
@@ -111,18 +119,10 @@ let history_to_string =
 let history_to_color =
   fun
   | Action(_) => "blue"
-  | Message(Impossible, _) => "red"
-  | Message(Mistake, _) => "orange"
-  | Message(Info, _) => "yellow"
-  | Message(Tip, _) => "green";
-
-let add_yc =
-  fun
-  | Zero => One
-  | One => Two
-  | Two => Three
-  | Three => Four
-  | Four => Four;
+  | Message(Impossible, _) => "white"
+  | Message(Mistake, _) => "red"
+  | Message(Info, _) => "orange"
+  | Message(Guide, _) => "green";
 
 let int_of_yc =
   fun

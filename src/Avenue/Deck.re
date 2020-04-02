@@ -3,11 +3,10 @@ open Converters;
 
 let card_thickness = 0.05;
 
-let stretch_shadow =
-  ReactDOMRe.Style.make(~filter="url(#stretch-shadow)", ());
+let road_shadow = ReactDOMRe.Style.make(~filter="url(#road-shadow)", ());
 
 [@react.component]
-let make = (~deck, ~current_card, ~dispatch) => {
+let make = (~game as {deck, current_card}, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);
   React.useEffect1(
     _ => {
@@ -26,7 +25,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
       let _ =
         Js.Global.setTimeout(
           _ => {
-            dispatch(FlipStretchCard);
+            dispatch(FlipRoad);
             setRotation(_ => 0);
           },
           500,
@@ -34,7 +33,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
       ();
     }}>
     <defs>
-      <filter id="stretch-shadow">
+      <filter id="road-shadow">
         <feDropShadow
           dx="0"
           dy="0"
@@ -56,11 +55,10 @@ let make = (~deck, ~current_card, ~dispatch) => {
             fill="lightblue"
             stroke="white"
             strokeWidth="1"
-            style=stretch_shadow
+            style=road_shadow
           />
         )
-     |> Array.of_list
-     |> ReasonReact.array}
+     |> arr}
     {switch (current_card) {
      | None =>
        <g style={Theme.rotate_card(rotation)}>
@@ -81,10 +79,10 @@ let make = (~deck, ~current_card, ~dispatch) => {
            fill="lightblue"
            stroke="white"
            strokeWidth="1"
-           style=stretch_shadow
+           style=road_shadow
          />
        </g>
-     | Some((stretch, color)) =>
+     | Some((road, color)) =>
        <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
@@ -103,7 +101,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
            fill={color->string_of_card_color}
            stroke="white"
            strokeWidth="1"
-           style=stretch_shadow
+           style=road_shadow
          />
          <g
            transform={
@@ -132,7 +130,7 @@ let make = (~deck, ~current_card, ~dispatch) => {
              strokeWidth="0"
              style=Theme.shadow
            />
-           <StretchCard stretch />
+           <RoadCard road />
          </g>
        </g>
      }}

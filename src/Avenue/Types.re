@@ -36,8 +36,8 @@ type stage =
 type action =
   | PeekFarm
   | FlipFarm
-  | FlipStretchCard
-  | DrawStretch(int, int);
+  | FlipRoad
+  | DrawRoad(int, int);
 
 type cell_content =
   | Empty
@@ -45,19 +45,19 @@ type cell_content =
   | Castle(grape_color)
   | Farm(farm);
 
-type stretch = (side, side);
+type road = (side, side);
 
-type stretch_orientation =
+type road_orientation =
   | Forward
   | Backward;
 
-type card = (stretch, card_color);
+type card = (road, card_color);
 
 type cell = {
   row: int,
   col: int,
   content: cell_content,
-  stretch: option(stretch),
+  road: option(road),
 };
 
 type grid = array(array(cell));
@@ -86,7 +86,7 @@ type message =
   | Impossible
   | Mistake
   | Info
-  | Tip;
+  | Guide;
 
 type history_item =
   | Action(action)

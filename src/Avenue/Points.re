@@ -47,8 +47,8 @@ let count_points = ((row, col), grid) => {
     | _ => []
     };
 
-  let goes_to_list = (grid, {stretch} as cell) =>
-    switch (stretch) {
+  let goes_to_list = (grid, {road} as cell) =>
+    switch (road) {
     | None => []
     | Some((entry, exit)) =>
       List.append(goes_to(grid, entry, cell), goes_to(grid, exit, cell))
@@ -68,7 +68,7 @@ let count_points = ((row, col), grid) => {
     |> List.filter(cell_ => cell |> goes_to_and_comes_from(grid, cell_));
 
   let rec connected_path = (grid, path, cell) =>
-    path_taken(path, cell) || cell.stretch == None
+    path_taken(path, cell) || cell.road == None
       ? path
       : goes_to_and_comes_from_list(grid, cell)
         |> List.fold_left(
@@ -136,8 +136,7 @@ let make = (~game as {players} as game) =>
               </g>
             </g>
           )
-       |> Array.of_list
-       |> ReasonReact.array}
+       |> arr}
       {game.phase_deck
        |> List.tl
        |> List.mapi((i, _) =>
@@ -152,8 +151,7 @@ let make = (~game as {players} as game) =>
               <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
             </g>
           )
-       |> Array.of_list
-       |> ReasonReact.array}
+       |> arr}
       <g transform={"translate(0, " ++ (5. *. 2.8)->Js.Float.toString ++ ")"}>
         <rect width="7" height="2.7" fill="lightgreen" rx="0.5" />
         <g transform="translate(0.5 2.4)">
