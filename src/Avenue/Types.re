@@ -82,15 +82,21 @@ type castles = {
   green: cell,
 };
 
-type message =
-  | Impossible
-  | Mistake
-  | Info
-  | Guide;
+type event =
+  | GameStarted
+  | RoundStarted(farm)
+  | SkippedTurn
+  | RoundIsOver(farm)
+  | ScoredZero
+  | ScoredNotEnough(int, int)
+  | ScoredEnough(int)
+  | GameIsOver
+  | ScoredCastle(grape_color, int)
+  | ScoredTotal(int);
 
 type history_item =
   | Action(action)
-  | Message(message, string);
+  | Event(event);
 
 type game = {
   players: list(board),

@@ -132,7 +132,7 @@ let create_game = player_name =>
       base_grid[4][2],
       base_grid[6][3],
     ],
-    history: [],
+    history: [Event(GameStarted)],
   }
   ->Rules.guide;
 

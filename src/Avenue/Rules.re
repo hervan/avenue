@@ -13,13 +13,7 @@ let add_yc =
 
 let add_history = (history_item, {history} as game) => {
   ...game,
-  history:
-    switch (history_item) {
-    | Action(_) => [history_item, ...history]
-    | Message(_, _) =>
-      history->List.length > 0 && history_item == (history |> List.hd)
-        ? history : [history_item, ...history]
-    },
+  history: [history_item, ...history],
 };
 
 let can_flip_farm = ({round_deck, stage}) =>
@@ -264,22 +258,17 @@ let process_round = ({players, round_deck, stage, history} as game) =>
   };
 
 let guide_peek_farm = game =>
-  game |> can_peek_farm
-    ? game |> add_history(Message(Info, "or " ++ PeekFarm->describe_action))
-    : game;
+  game |> can_peek_farm ? game |> add_history(Action(PeekFarm)) : game;
 
 let guide_flip_farm = game =>
-  game |> can_flip_farm
-    ? game |> add_history(Message(Guide, FlipFarm->describe_action)) : game;
+  game |> can_flip_farm ? game |> add_history(Action(FlipFarm)) : game;
 
 let guide_flip_road = game =>
-  game |> can_flip_road
-    ? game |> add_history(Message(Guide, FlipRoad->describe_action)) : game;
+  game |> can_flip_road ? game |> add_history(Action(FlipRoad)) : game;
 
 let guide_draw_road = game =>
   game |> can_draw_road_somewhere
-    ? game |> add_history(Message(Guide, DrawRoad(0, 0)->describe_action))
-    : game;
+    ? game |> add_history(Action(DrawRoad(0, 0))) : game;
 
 let guide = game =>
   game

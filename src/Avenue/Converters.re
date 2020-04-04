@@ -96,33 +96,50 @@ let describe_action =
   | FlipRoad => "click the top deck to flip a road card"
   | DrawRoad(_, _) => "click an empty cell to draw the road card";
 
-let message_to_string =
+let describe_event =
   fun
-  | Impossible => "error"
-  | Mistake => "attention"
-  | Info => "info"
-  | Guide => "next:";
+  | GameStarted => [
+      "welcome to avenue!",
+      "try to draw paths connecting grapes to farms",
+    ]
+  | RoundStarted(farm) => [
+      {j|round $farm started!|j},
+      {j|you must draw roads to connect grapes to farm $farm|j},
+    ]
+  | SkippedTurn => [
+      "you used your turn to peek at the next farm,",
+      "so you can't draw a road this turn",
+    ]
+  | RoundIsOver(farm) => ["round " ++ farm->string_of_farm ++ " is over!"]
+  | ScoredZero => [
+      "you don't have any grape connected to farm $farm,",
+      "so this round you take a -5 points penalty",
+    ]
+  | ScoredNotEnough(previous, points) => [
+      {j|you connected $points grapes this round,|j},
+      {j|but last round you connected more grapes ($previous),|j},
+      "so this round you take a -5 points penalty",
+    ]
+  | ScoredEnough(points) => [
+      {j|you scored $points connected grapes this round!|j},
+    ]
+  | GameIsOver => ["five rounds played, the game is over!"]
+  | ScoredCastle(color, points) => [
+      {j|you scored $points $color grapes connected to the $color castle!|j},
+    ]
+  | ScoredTotal(points) => [
+      {j|your final score is $points points! congratulations!|j},
+    ];
 
-let history_to_friendly_string =
+let string_of_history =
   fun
-  | Action(action) => "you chose to " ++ action->describe_action
-  | Message(Guide, description) => "you can now " ++ description
-  | Message(_, description) => description;
-
-let history_to_string =
-  fun
-  | Action(action) =>
-    action->action_to_string ++ ": " ++ action->describe_action
-  | Message(message, description) =>
-    message->message_to_string ++ ": " ++ description;
+  | Action(action) => action->describe_action
+  | Event(event) => event->describe_event;
 
 let history_to_color =
   fun
   | Action(_) => "blue"
-  | Message(Impossible, _) => "white"
-  | Message(Mistake, _) => "red"
-  | Message(Info, _) => "orange"
-  | Message(Guide, _) => "green";
+  | Event(_) => "orange";
 
 let int_of_yc =
   fun
