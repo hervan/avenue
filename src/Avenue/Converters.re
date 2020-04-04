@@ -82,19 +82,12 @@ let control_point_of_pos_side = (pos, side) =>
 
 let to_pos = cell => (cell.row, cell.col);
 
-let action_to_string =
-  fun
-  | PeekFarm => "peek farm"
-  | FlipFarm => "flip farm"
-  | FlipRoad => "flip road"
-  | DrawRoad(row, col) => {j|draw $row, $col|j};
-
 let describe_action =
   fun
-  | PeekFarm => "click the bottom deck to see the upcoming farm"
-  | FlipFarm => "click the bottom deck to begin next phase"
-  | FlipRoad => "click the top deck to flip a road card"
-  | DrawRoad(_, _) => "click an empty cell to draw the road card";
+  | PeekFarm => ["click the bottom deck to peek at the upcoming farm"]
+  | FlipFarm => ["click the bottom deck to begin the next round"]
+  | FlipRoad => ["click the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["click an empty cell to draw the road card"];
 
 let describe_event =
   fun

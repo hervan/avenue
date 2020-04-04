@@ -168,15 +168,6 @@ let make = () => {
     <Deck game dispatch />
     <RoundDeck game dispatch />
     <Points game />
-    <Status
-      messages={
-        game.history
-        |> List.filter(
-             fun
-             | Action(_) => false
-             | Message(_, _) => true,
-           )
-      }
-    />
+    <Status history={game.history} />
   </svg>;
 };
