@@ -134,19 +134,17 @@ let create_game = player_name =>
     ],
     history: [Event(GameStarted)],
   }
-  ->Rules.guide;
+  ->Actions.guide;
 
 let reducer = (game, action) =>
   Actions.(
-    Rules.(
-      switch (action) {
-      | PeekFarm => peek_farm(game)->guide
-      | FlipFarm => flip_farm(game)->update_points->guide
-      | FlipRoad => flip_road(game)->guide
-      | DrawRoad(row, col) =>
-        draw_road(row, col, game)->update_points->process_round->guide
-      }
-    )
+    switch (action) {
+    | PeekFarm => peek_farm(game)->guide
+    | FlipFarm => flip_farm(game)->count_points->guide
+    | FlipRoad => flip_road(game)->guide
+    | DrawRoad(row, col) =>
+      draw_road(row, col, game)->count_points->end_round->end_game->guide
+    }
   );
 
 [@react.component]

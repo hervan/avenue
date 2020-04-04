@@ -36,3 +36,16 @@ let draw_road = (row, col, game) =>
       |> advance_player_turn
       |> add_history(Action(DrawRoad(row, col)))
     : game;
+
+let end_round = game => game;
+
+let end_game = game => game;
+
+let count_points = game => game;
+
+let guide = game =>
+  game
+  |> guide_peek_farm
+  |> guide_flip_farm
+  |> guide_flip_road
+  |> guide_draw_road;

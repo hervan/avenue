@@ -141,3 +141,11 @@ let int_of_yc =
   | Two => 2
   | Three => 3
   | Four => 4;
+
+let add_yc =
+  fun
+  | Zero => One
+  | One => Two
+  | Two => Three
+  | Three => Four
+  | Four => Four;
