@@ -123,7 +123,7 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
              strokeWidth="0"
              style=Theme.shadow
            />
-           <RoadCard road />
+           <g strokeWidth="1"> <Road road pos=None /> </g>
          </g>
        </g>
      }}
