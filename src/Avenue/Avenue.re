@@ -67,7 +67,7 @@ let create_player = (player_name, base_grid) => {
   farmer: player_name,
   grid: base_grid,
   lookahead: false,
-  round: 0,
+  turn: 0,
   farm_points: [],
 };
 
@@ -116,8 +116,8 @@ let create_game = player_name =>
   {
     players: [create_player(player_name, base_grid)],
     deck: create_road_deck(),
-    round: 0,
-    phase_deck: create_farms_deck(),
+    turn: 0,
+    round_deck: create_farms_deck(),
     stage: Begin,
     current_card: None,
     castles: {
@@ -144,7 +144,7 @@ let reducer = (game, action) =>
       | FlipFarm => flip_farm(game)->update_points->guide
       | FlipRoad => flip_road(game)->guide
       | DrawRoad(row, col) =>
-        draw_road(row, col, game)->update_points->process_phase->guide
+        draw_road(row, col, game)->update_points->process_round->guide
       }
     )
   );
@@ -185,7 +185,7 @@ let make = () => {
        |> ReasonReact.array}
     </g>
     <Deck game dispatch />
-    <PhaseDeck game dispatch />
+    <RoundDeck game dispatch />
     <Points game />
     <Status
       messages={

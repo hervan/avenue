@@ -22,30 +22,30 @@ let add_history = (history_item, {history} as game) => {
     },
 };
 
-let can_flip_farm = ({phase_deck, stage}) =>
+let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
   | Begin
-  | PhaseEnd(_) =>
-    switch (phase_deck) {
+  | RoundEnd(_) =>
+    switch (round_deck) {
     | [_, _, ..._] => true
     | _ => false
     }
   | _ => false
   };
 
-let set_stage_phase_farm = ({phase_deck} as game) => {
+let set_stage_round_farm = ({round_deck} as game) => {
   ...game,
-  stage: Phase(phase_deck |> List.hd, Zero),
+  stage: Round(round_deck |> List.hd, Zero),
 };
 
-let discard_top_farm = ({phase_deck} as game) => {
+let discard_top_farm = ({round_deck} as game) => {
   ...game,
-  phase_deck: phase_deck |> List.tl,
+  round_deck: round_deck |> List.tl,
 };
 
-let add_players_phase_points = ({players, stage} as game) =>
+let add_players_round_points = ({players, stage} as game) =>
   switch (stage) {
-  | Phase(farm, Zero) => {
+  | Round(farm, Zero) => {
       ...game,
       players:
         players
@@ -63,9 +63,9 @@ let reset_players_lookahead = ({players} as game) => {
 
 let can_peek_farm = ({players, stage} as game) =>
   switch (stage) {
-  | Phase(_, _) =>
+  | Round(_, _) =>
     switch (players) {
-    | [me, ..._] => !me.lookahead && me.round < game.round
+    | [me, ..._] => !me.lookahead && me.turn < game.turn
     | _ => false
     }
   | _ => false
@@ -76,21 +76,18 @@ let enable_player_lookahead = ({players} as game) => {
   players: [{...players |> List.hd, lookahead: true}, ...players |> List.tl],
 };
 
-let advance_player_round = ({players} as game) => {
+let advance_player_turn = ({players} as game) => {
   ...game,
-  players: [
-    {...players |> List.hd, round: game.round},
-    ...players |> List.tl,
-  ],
+  players: [{...players |> List.hd, turn: game.turn}, ...players |> List.tl],
 };
 
 let can_flip_road = ({players, deck, stage} as game) =>
   switch (stage) {
-  | Phase(_, _) =>
+  | Round(_, _) =>
     switch (deck) {
     | [_, ..._] =>
       switch (players) {
-      | [me, ..._] => me.round == game.round
+      | [me, ..._] => me.turn == game.turn
       | _ => false
       }
     | _ => false
@@ -109,25 +106,25 @@ let advance_yc_stage = ({stage, current_card} as game) => {
   ...game,
   stage:
     switch (stage) {
-    | Phase(farm, yc) =>
+    | Round(farm, yc) =>
       switch (current_card) {
-      | Some((_, Yellow)) => Phase(farm, yc->add_yc)
+      | Some((_, Yellow)) => Round(farm, yc->add_yc)
       | _ => stage
       }
     | _ => stage
     },
 };
 
-let advance_game_round = ({round} as game) => {...game, round: round + 1};
+let advance_game_turn = ({turn} as game) => {...game, turn: turn + 1};
 
 let can_draw_road = (row, col, {players, stage, current_card} as game) =>
   switch (current_card) {
   | Some((_, _)) =>
     switch (stage) {
-    | Phase(_, _) =>
+    | Round(_, _) =>
       switch (players) {
-      | [{round, grid}, ..._] =>
-        round < game.round && grid[row][col].road == None
+      | [{turn, grid}, ..._] =>
+        turn < game.turn && grid[row][col].road == None
       | [] => false
       }
     | _ => false
@@ -174,7 +171,7 @@ let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
 
 let update_points = ({players, farms, stage} as game) =>
   switch (stage) {
-  | Phase(farm_card, _) =>
+  | Round(farm_card, _) =>
     switch (players) {
     | [] => game
     | [{farm_points, grid} as me, ...other_players] =>
@@ -209,15 +206,16 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
-let process_phase = ({players, phase_deck, stage, history} as game) =>
+// TODO rework process_round to be modular like actions are now
+let process_round = ({players, round_deck, stage, history} as game) =>
   switch (players) {
   | [] => game
   | [me, ...other_players] =>
     switch (stage) {
-    | Phase(current_farm, yc) =>
+    | Round(current_farm, yc) =>
       switch (yc) {
       | Four =>
-        me.round == game.round
+        me.turn == game.turn
           ? {
             ...game,
             players: [
@@ -225,20 +223,20 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
                 ...me,
                 farm_points:
                   switch (me.farm_points) {
-                  | [(farm, points) as current_phase, ...previous_phases] => [
+                  | [(farm, points) as current_round, ...previous_rounds] => [
                       current_farm != farm
-                        ? current_phase
+                        ? current_round
                         : points <= 0
                             ? (farm, (-5))
                             : (
-                              switch (previous_phases) {
+                              switch (previous_rounds) {
                               | [(_, previous_points), ..._] =>
                                 points <= previous_points
-                                  ? (farm, (-5)) : current_phase
-                              | [] => current_phase
+                                  ? (farm, (-5)) : current_round
+                              | [] => current_round
                               }
                             ),
-                      ...previous_phases,
+                      ...previous_rounds,
                     ]
                   | [] => me.farm_points
                   },
@@ -246,13 +244,12 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
               ...other_players,
             ],
             stage:
-              phase_deck->List.length > 1
-                ? PhaseEnd(current_farm) : End(current_farm),
+              round_deck->List.length > 1
+                ? RoundEnd(current_farm) : End(current_farm),
             history: [
-              Message(
-                Info,
-                phase_deck->List.length > 1
-                  ? "current phase is over" : "game is over",
+              Event(
+                round_deck->List.length > 1
+                  ? RoundIsOver(current_farm) : GameIsOver,
               ),
               ...history,
             ],
@@ -261,7 +258,7 @@ let process_phase = ({players, phase_deck, stage, history} as game) =>
       | _ => game
       }
     | Begin
-    | PhaseEnd(_)
+    | RoundEnd(_)
     | End(_) => game
     }
   };

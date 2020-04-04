@@ -93,7 +93,7 @@ let make = (~game as {players} as game) =>
       + green_points;
     let yc =
       switch (game.stage) {
-      | Phase(_, yc) => yc
+      | Round(_, yc) => yc
       | _ => Zero
       };
     <g transform="translate(62 50)">
@@ -137,7 +137,7 @@ let make = (~game as {players} as game) =>
             </g>
           )
        |> arr}
-      {game.phase_deck
+      {game.round_deck
        |> List.tl
        |> List.mapi((i, _) =>
             <g

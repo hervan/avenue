@@ -29,8 +29,8 @@ type yellow_cards =
 
 type stage =
   | Begin
-  | Phase(farm, yellow_cards)
-  | PhaseEnd(farm)
+  | Round(farm, yellow_cards)
+  | RoundEnd(farm)
   | End(farm);
 
 type action =
@@ -73,7 +73,7 @@ type board = {
   farmer: string,
   grid,
   lookahead: bool,
-  round: int,
+  turn: int,
   farm_points: list((farm, int)),
 };
 
@@ -95,8 +95,8 @@ type history_item =
 type game = {
   players: list(board),
   deck: list(card),
-  round: int,
-  phase_deck: list(farm),
+  turn: int,
+  round_deck: list(farm),
   stage,
   current_card: option(card),
   castles,
