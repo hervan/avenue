@@ -90,7 +90,7 @@ let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
   | None => game
   };
 
-let update_points = ({players, farms, stage} as game) =>
+let recount_points = ({players, farms, stage} as game) =>
   switch (stage) {
   | Round(farm_card, _) =>
     switch (players) {
@@ -127,8 +127,8 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
-// TODO rework end_round to be modular like actions are now
-let end_round = ({players, round_deck, stage, history} as game) =>
+// TODO refactor round_penalty to be modular like actions are now
+let round_penalty = ({players, round_deck, stage, history} as game) =>
   switch (players) {
   | [] => game
   | [me, ...other_players] =>

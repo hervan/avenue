@@ -9,6 +9,7 @@ let flip_farm = game =>
       |> discard_top_farm
       |> add_players_round_points
       |> reset_players_lookahead
+      |> recount_points
       |> add_history(Action(FlipFarm))
     : game;
 
@@ -35,12 +36,13 @@ let draw_road = (row, col, game) =>
     ? game
       |> draw_road_on_grid_cell(row, col)
       |> advance_player_turn
+      |> recount_points
       |> add_history(Action(DrawRoad(row, col)))
     : game;
 
-let recount_points = game => game |> update_points;
-
-let end_round = game => game->can_end_round ? game |> advance_stage : game;
+let end_round = game =>
+  game->can_end_round
+    ? game |> recount_points |> advance_stage |> round_penalty : game;
 
 let end_game = game => game->can_end_game ? game |> advance_stage : game;
 
