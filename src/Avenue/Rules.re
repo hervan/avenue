@@ -200,6 +200,23 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
+let can_end_round =
+  fun
+  | {players: [me, ..._], stage: Round(_, Four), turn} => me.turn == turn
+  | _ => false;
+
+let can_end_game =
+  fun
+  | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
+  | _ => false;
+
+let advance_stage = (stage, game) => {...game, stage};
+
+let end_game =
+  fun
+  | {stage: RoundEnd(farm)} as game => game |> advance_stage(End(farm))
+  | _ as game => game;
+
 // TODO rework process_round to be modular like actions are now
 let process_round = ({players, round_deck, stage, history} as game) =>
   switch (players) {
