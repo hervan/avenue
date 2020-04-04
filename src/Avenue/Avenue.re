@@ -139,11 +139,11 @@ let create_game = player_name =>
 let reducer = (game, action) =>
   Actions.(
     switch (action) {
-    | PeekFarm => peek_farm(game)->guide
-    | FlipFarm => flip_farm(game)->recount_points->guide
-    | FlipRoad => flip_road(game)->guide
+    | PeekFarm => game->peek_farm->guide
+    | FlipFarm => game->flip_farm->guide
+    | FlipRoad => game->flip_road->guide
     | DrawRoad(row, col) =>
-      draw_road(row, col, game)->end_round->recount_points->end_game->guide
+      (game |> draw_road(row, col))->end_round->end_game->guide
     }
   );
 
