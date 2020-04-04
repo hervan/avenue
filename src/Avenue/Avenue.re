@@ -110,9 +110,7 @@ let create_base_grid = () =>
     )
   );
 
-let base_grid = create_base_grid();
-
-let create_game = player_name =>
+let create_game = (player_name, base_grid) =>
   {
     players: [create_player(player_name, base_grid)],
     deck: create_road_deck(),
@@ -149,7 +147,8 @@ let reducer = (game, action) =>
 
 [@react.component]
 let make = () => {
-  let (game, dispatch) = React.useReducer(reducer, create_game("me"));
+  let (game, dispatch) =
+    React.useReducer(reducer, create_game("me", create_base_grid()));
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
