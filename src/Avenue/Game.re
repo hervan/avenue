@@ -6,11 +6,6 @@ let add_history = (history_item, {history} as game) => {
   history: [history_item, ...history],
 };
 
-let set_stage_round_farm = ({round_deck} as game) => {
-  ...game,
-  stage: Round(round_deck |> List.hd, Zero),
-};
-
 let discard_top_farm = ({round_deck} as game) => {
   ...game,
   round_deck: round_deck |> List.tl,
@@ -51,22 +46,25 @@ let set_current_road = ({deck} as game) => {
 
 let discard_top_road = ({deck} as game) => {...game, deck: deck |> List.tl};
 
-let advance_yc_stage = ({stage, current_card} as game) => {
-  ...game,
-  stage:
-    switch (stage) {
-    | Round(farm, yc) =>
-      switch (current_card) {
-      | Some((_, Yellow)) => Round(farm, yc->add_yc)
-      | _ => stage
-      }
-    | _ => stage
-    },
-};
-
 let advance_game_turn = ({turn} as game) => {...game, turn: turn + 1};
 
-let advance_stage = (stage, game) => {...game, stage};
+let advance_stage =
+  fun
+  | {stage: Begin, round_deck: [next_farm, ..._]} as game
+  | {stage: RoundEnd(_), round_deck: [next_farm, _, ..._]} as game => {
+      ...game,
+      stage: Round(next_farm, Zero),
+    }
+  | {stage: Round(farm, Four)} as game => {...game, stage: RoundEnd(farm)}
+  | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game => {
+      ...game,
+      stage: Round(farm, yc->add_yc),
+    }
+  | {stage: RoundEnd(farm), round_deck: _} as game => {
+      ...game,
+      stage: End(farm),
+    }
+  | _ as game => game;
 
 let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
   switch (current_card) {
@@ -129,13 +127,8 @@ let update_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
-let end_game =
-  fun
-  | {stage: RoundEnd(farm)} as game => game |> advance_stage(End(farm))
-  | _ as game => game;
-
-// TODO rework process_round to be modular like actions are now
-let process_round = ({players, round_deck, stage, history} as game) =>
+// TODO rework end_round to be modular like actions are now
+let end_round = ({players, round_deck, stage, history} as game) =>
   switch (players) {
   | [] => game
   | [me, ...other_players] =>

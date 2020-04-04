@@ -1,10 +1,11 @@
 open Types;
+open Game;
 open Rules;
 
 let flip_farm = game =>
   game->can_flip_farm
     ? game
-      |> set_stage_round_farm
+      |> advance_stage
       |> discard_top_farm
       |> add_players_round_points
       |> reset_players_lookahead
@@ -24,7 +25,7 @@ let flip_road = game =>
     ? game
       |> set_current_road
       |> discard_top_road
-      |> advance_yc_stage
+      |> advance_stage
       |> advance_game_turn
       |> add_history(Action(FlipRoad))
     : game;
@@ -37,11 +38,11 @@ let draw_road = (row, col, game) =>
       |> add_history(Action(DrawRoad(row, col)))
     : game;
 
-let end_round = game => game;
+let recount_points = game => game |> update_points;
 
-let end_game = game => game;
+let end_round = game => game->can_end_round ? game |> advance_stage : game;
 
-let count_points = game => game;
+let end_game = game => game->can_end_game ? game |> advance_stage : game;
 
 let guide = game =>
   game

@@ -140,10 +140,10 @@ let reducer = (game, action) =>
   Actions.(
     switch (action) {
     | PeekFarm => peek_farm(game)->guide
-    | FlipFarm => flip_farm(game)->count_points->guide
+    | FlipFarm => flip_farm(game)->recount_points->guide
     | FlipRoad => flip_road(game)->guide
     | DrawRoad(row, col) =>
-      draw_road(row, col, game)->count_points->end_round->end_game->guide
+      draw_road(row, col, game)->end_round->recount_points->end_game->guide
     }
   );
 
