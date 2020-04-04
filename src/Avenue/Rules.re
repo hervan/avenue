@@ -78,63 +78,6 @@ let can_end_game =
   | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
   | _ => false;
 
-// TODO rework process_round to be modular like actions are now
-let process_round = ({players, round_deck, stage, history} as game) =>
-  switch (players) {
-  | [] => game
-  | [me, ...other_players] =>
-    switch (stage) {
-    | Round(current_farm, yc) =>
-      switch (yc) {
-      | Four =>
-        me.turn == game.turn
-          ? {
-            ...game,
-            players: [
-              {
-                ...me,
-                farm_points:
-                  switch (me.farm_points) {
-                  | [(farm, points) as current_round, ...previous_rounds] => [
-                      current_farm != farm
-                        ? current_round
-                        : points <= 0
-                            ? (farm, (-5))
-                            : (
-                              switch (previous_rounds) {
-                              | [(_, previous_points), ..._] =>
-                                points <= previous_points
-                                  ? (farm, (-5)) : current_round
-                              | [] => current_round
-                              }
-                            ),
-                      ...previous_rounds,
-                    ]
-                  | [] => me.farm_points
-                  },
-              },
-              ...other_players,
-            ],
-            stage:
-              round_deck->List.length > 1
-                ? RoundEnd(current_farm) : End(current_farm),
-            history: [
-              Event(
-                round_deck->List.length > 1
-                  ? RoundIsOver(current_farm) : GameIsOver,
-              ),
-              ...history,
-            ],
-          }
-          : game
-      | _ => game
-      }
-    | Begin
-    | RoundEnd(_)
-    | End(_) => game
-    }
-  };
-
 let guide_peek_farm = game =>
   game |> can_peek_farm ? game |> add_history(Action(PeekFarm)) : game;
 
