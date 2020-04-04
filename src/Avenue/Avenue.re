@@ -155,27 +155,8 @@ let make = () => {
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
-  <svg width="100vmin" height="100vmin" viewBox="-2 -2 102 102">
-    <defs>
-      <filter id="shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation="0.25"
-          floodColor="black"
-          floodOpacity="0.5"
-        />
-      </filter>
-      <filter id="text-shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation="0.2"
-          floodColor="black"
-          floodOpacity="0.2"
-        />
-      </filter>
-    </defs>
+  <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
+    Theme.filters
     <g>
       {(game.players |> List.hd).grid
        |> flatten_grid

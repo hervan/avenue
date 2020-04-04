@@ -1,10 +1,6 @@
 open Types;
 open Converters;
 
-let card_thickness = 0.05;
-
-let road_shadow = ReactDOMRe.Style.make(~filter="url(#road-shadow)", ());
-
 [@react.component]
 let make = (~game as {deck, current_card}, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);
@@ -32,30 +28,27 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
         );
       ();
     }}>
-    <defs>
-      <filter id="road-shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation={card_thickness |> Js.Float.toString}
-          floodColor="black"
-          floodOpacity="0.5"
-        />
-      </filter>
-    </defs>
     {deck
      |> List.mapi((i, _) =>
           <rect
             key={i |> string_of_int}
-            x={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
-            y={card_thickness *. (i |> float_of_int) |> Js.Float.toString}
+            x={
+              Theme.road_card_thickness
+              *. (i |> float_of_int)
+              |> Js.Float.toString
+            }
+            y={
+              Theme.road_card_thickness
+              *. (i |> float_of_int)
+              |> Js.Float.toString
+            }
             width="15"
             height="20"
             rx="2"
             fill="lightblue"
             stroke="white"
             strokeWidth="1"
-            style=road_shadow
+            style=Theme.road_shadow
           />
         )
      |> arr}
@@ -64,12 +57,12 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
        <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
-             card_thickness
+             Theme.road_card_thickness
              *. (List.length(deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
-             card_thickness
+             Theme.road_card_thickness
              *. (List.length(deck) |> float_of_int)
              |> Js.Float.toString
            }
@@ -79,19 +72,19 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
            fill="lightblue"
            stroke="white"
            strokeWidth="1"
-           style=road_shadow
+           style=Theme.road_shadow
          />
        </g>
      | Some((road, color)) =>
        <g style={Theme.rotate_card(rotation)}>
          <rect
            x={
-             card_thickness
+             Theme.road_card_thickness
              *. (List.length(deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
-             card_thickness
+             Theme.road_card_thickness
              *. (List.length(deck) |> float_of_int)
              |> Js.Float.toString
            }
@@ -101,21 +94,21 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
            fill={color->string_of_card_color}
            stroke="white"
            strokeWidth="1"
-           style=road_shadow
+           style=Theme.road_shadow
          />
          <g
            transform={
              "translate("
              ++ (
                2.5
-               +. card_thickness
+               +. Theme.road_card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ " "
              ++ (
                5.0
-               +. card_thickness
+               +. Theme.road_card_thickness
                *. (List.length(deck) |> float_of_int)
                |> Js.Float.toString
              )

@@ -1,11 +1,8 @@
 open Converters;
 
 [@react.component]
-let make = (~messages) =>
-  <>
-    <clipPath id="status">
-      <rect x="0" y="0" width="80" height="30" />
-    </clipPath>
+  <g>
+    <clipPath id="status"> <rect width="80" height="30" /> </clipPath>
     <g
       transform="translate(0 70)"
       fillOpacity="1"
@@ -28,4 +25,4 @@ let make = (~messages) =>
           )
        |> arr}
     </g>
-  </>;
+  </g>;
