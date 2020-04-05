@@ -104,8 +104,8 @@ let create_road_deck = () => {
 };
 
 let create_base_grid = grid_contents =>
-  Array.init(grid_rows, row =>
-    Array.init(grid_columns, col =>
+  Array.init(grid_contents |> Array.length, row =>
+    Array.init(grid_contents[0] |> Array.length, col =>
       {row, col, content: grid_contents[row][col], road: None}
     )
   );
@@ -121,25 +121,25 @@ let find_content = (cell_content, grid) =>
   |> List.concat
   |> List.hd;
 
-let create_game = (player_name, common_grid, road_deck, farms_deck) =>
+let create_game = (player_name, base_grid, road_deck, farms_deck) =>
   {
-    players: [create_player(player_name, common_grid)],
+    players: [create_player(player_name, base_grid)],
     deck: road_deck,
     turn: 0,
     round_deck: farms_deck,
     stage: Begin,
     current_card: None,
     castles: {
-      purple: find_content(Castle(Purple), common_grid),
-      green: find_content(Castle(Green), common_grid),
+      purple: find_content(Castle(Purple), base_grid),
+      green: find_content(Castle(Green), base_grid),
     },
     farms: [
-      find_content(Farm(A), common_grid),
-      find_content(Farm(B), common_grid),
-      find_content(Farm(C), common_grid),
-      find_content(Farm(D), common_grid),
-      find_content(Farm(E), common_grid),
-      find_content(Farm(F), common_grid),
+      find_content(Farm(A), base_grid),
+      find_content(Farm(B), base_grid),
+      find_content(Farm(C), base_grid),
+      find_content(Farm(D), base_grid),
+      find_content(Farm(E), base_grid),
+      find_content(Farm(F), base_grid),
     ],
     history: [Event(GameStarted)],
   }
