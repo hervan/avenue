@@ -154,59 +154,43 @@ let recount_points = ({players, farms, stage} as game) =>
   | _ => game
   };
 
-// TODO refactor round_penalty to be modular like actions are now
-let round_penalty = ({players, round_deck, stage, history} as game) =>
-  switch (players) {
-  | [] => game
-  | [me, ...other_players] =>
-    switch (stage) {
-    | Round(current_farm, yc) =>
-      switch (yc) {
-      | Four =>
-        me.turn == game.turn
-          ? {
-            ...game,
-            players: [
-              {
-                ...me,
-                farm_points:
-                  switch (me.farm_points) {
-                  | [(farm, points) as current_round, ...previous_rounds] => [
-                      current_farm != farm
-                        ? current_round
-                        : points <= 0
-                            ? (farm, (-5))
-                            : (
-                              switch (previous_rounds) {
-                              | [(_, previous_points), ..._] =>
-                                points <= previous_points
-                                  ? (farm, (-5)) : current_round
-                              | [] => current_round
-                              }
-                            ),
-                      ...previous_rounds,
-                    ]
-                  | [] => me.farm_points
-                  },
-              },
-              ...other_players,
-            ],
-            stage:
-              round_deck->List.length > 1
-                ? RoundEnd(current_farm) : End(current_farm),
-            history: [
-              Event(
-                round_deck->List.length > 1
-                  ? RoundIsOver(current_farm) : GameIsOver,
-              ),
-              ...history,
-            ],
-          }
-          : game
-      | _ => game
-      }
-    | Begin
-    | RoundEnd(_)
-    | End(_) => game
+let round_penalty =
+  fun
+  | {
+      players: [
+        {farm_points: [(farm, 0), ...previous_rounds]} as me,
+        ...other_players,
+      ],
+      stage: Round(_, _),
+    } as game =>
+    {
+      ...game,
+      players: [
+        {...me, farm_points: [(farm, (-5)), ...previous_rounds]},
+        ...other_players,
+      ],
     }
-  };
+    |> add_history(Event(ScoredZero(farm->string_of_farm)))
+  | {
+      players: [
+        {
+          farm_points: [
+            (farm, points),
+            (_, previous_points),
+            ...previous_rounds,
+          ],
+        } as me,
+        ...other_players,
+      ],
+      stage: Round(_, _),
+    } as game
+      when points <= previous_points =>
+    {
+      ...game,
+      players: [
+        {...me, farm_points: [(farm, (-5)), ...previous_rounds]},
+        ...other_players,
+      ],
+    }
+    |> add_history(Event(ScoredNotEnough(previous_points, points)))
+  | game => game;
