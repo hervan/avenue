@@ -1,9 +1,8 @@
 open Types;
 open Game;
-open Rules;
 
 let flip_farm = game =>
-  game->can_flip_farm
+  game->Rules.can_flip_farm
     ? game
       |> advance_stage
       |> discard_top_farm
@@ -14,7 +13,7 @@ let flip_farm = game =>
     : game;
 
 let peek_farm = game =>
-  game->can_peek_farm
+  game->Rules.can_peek_farm
     ? game
       |> enable_player_lookahead
       |> advance_player_turn
@@ -22,7 +21,7 @@ let peek_farm = game =>
     : game;
 
 let flip_road = game =>
-  game->can_flip_road
+  game->Rules.can_flip_road
     ? game
       |> set_current_road
       |> discard_top_road
@@ -32,7 +31,7 @@ let flip_road = game =>
     : game;
 
 let draw_road = (row, col, game) =>
-  game |> can_draw_road(row, col)
+  game |> Rules.can_draw_road(row, col)
     ? game
       |> draw_road_on_grid_cell(row, col)
       |> advance_player_turn
@@ -41,14 +40,6 @@ let draw_road = (row, col, game) =>
     : game;
 
 let end_round = game =>
-  game->can_end_round ? game |> round_penalty |> advance_stage : game;
+  game->Rules.can_end_round ? game |> round_penalty |> advance_stage : game;
 
-let end_game = game => game->can_end_game ? game |> advance_stage : game;
-
-let guide = game =>
-  game
-  |> clear_suggestions
-  |> guide_peek_farm
-  |> guide_flip_farm
-  |> guide_flip_road
-  |> guide_draw_road;
+let end_game = game => game->Rules.can_end_game ? game |> advance_stage : game;

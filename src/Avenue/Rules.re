@@ -90,3 +90,11 @@ let guide_flip_road = game =>
 let guide_draw_road = game =>
   game |> can_draw_road_somewhere
     ? game |> add_history(Suggestion(DrawRoad(0, 0))) : game;
+
+let guide = game =>
+  game
+  |> clear_suggestions
+  |> guide_peek_farm
+  |> guide_flip_farm
+  |> guide_flip_road
+  |> guide_draw_road;
