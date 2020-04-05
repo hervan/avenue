@@ -41,8 +41,7 @@ let draw_road = (row, col, game) =>
     : game;
 
 let end_round = game =>
-  game->can_end_round
-    ? game |> recount_points |> advance_stage |> round_penalty : game;
+  game->can_end_round ? game |> round_penalty |> advance_stage : game;
 
 let end_game = game => game->can_end_game ? game |> advance_stage : game;
 
