@@ -4,12 +4,13 @@ open Game;
 let flip_farm = game =>
   game->Rules.can_flip_farm
     ? game
+      |> add_history(Action(FlipFarm))
       |> advance_stage
+      |> add_round_start_event
       |> discard_top_farm
       |> add_players_round_points
       |> reset_players_lookahead
       |> recount_points
-      |> add_history(Action(FlipFarm))
     : game;
 
 let peek_farm = game =>
@@ -18,6 +19,7 @@ let peek_farm = game =>
       |> enable_player_lookahead
       |> advance_player_turn
       |> add_history(Action(PeekFarm))
+      |> add_history(Event(TurnSkipped))
     : game;
 
 let flip_road = game =>
@@ -40,6 +42,9 @@ let draw_road = (row, col, game) =>
     : game;
 
 let end_round = game =>
-  game->Rules.can_end_round ? game |> round_penalty |> advance_stage : game;
+  game->Rules.can_end_round
+    ? game |> round_penalty |> add_round_over_event |> advance_stage : game;
 
-let end_game = game => game->Rules.can_end_game ? game |> advance_stage : game;
+let end_game = game =>
+  game->Rules.can_end_game
+    ? game |> advance_stage |> add_history(Event(GameIsOver)) : game;

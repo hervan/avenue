@@ -87,7 +87,7 @@ let suggest_action =
   | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
   | FlipFarm => ["you must click the bottom deck to begin the next round"]
   | FlipRoad => ["you must click the top deck to flip a road card"]
-  | DrawRoad(_, _) => ["you can click an empty cell to draw the road card"];
+  | DrawRoad(_, _) => ["you must click an empty cell to draw the road card"];
 
 let describe_action =
   fun
@@ -103,33 +103,23 @@ let describe_event =
       "try to draw paths connecting grapes to farms",
     ]
   | RoundStarted(farm) => [
-      {j|round $farm started!|j},
-      {j|you must draw roads to connect grapes to farm $farm|j},
+      {j|round $farm started! draw roads to connect grapes to farm $farm|j},
     ]
-  | SkippedTurn => [
+  | TurnSkipped => [
       "you used your turn to peek at the next farm,",
       "so you can't draw a road this turn",
     ]
-  | RoundIsOver(farm) => ["round " ++ farm->string_of_farm ++ " is over!"]
-  | ScoredZero => [
-      "you don't have any grape connected to farm $farm,",
+  | RoundIsOver(farm) => [{j|round $farm is over!|j}]
+  | ScoredZero(farm) => [
+      {j|you don't have any grapes connected to farm $farm|j},
       "so this round you take a -5 points penalty",
     ]
   | ScoredNotEnough(previous, points) => [
-      {j|you connected $points grapes this round,|j},
+      {j|you connected $points grapes this round|j},
       {j|but last round you connected more grapes ($previous),|j},
       "so this round you take a -5 points penalty",
     ]
-  | ScoredEnough(points) => [
-      {j|you scored $points connected grapes this round!|j},
-    ]
-  | GameIsOver => ["five rounds played, the game is over!"]
-  | ScoredCastle(color, points) => [
-      {j|you scored $points $color grapes connected to the $color castle!|j},
-    ]
-  | ScoredTotal(points) => [
-      {j|your final score is $points points! congratulations!|j},
-    ];
+  | GameIsOver => ["five rounds played, the game is over!"];
 
 let string_of_history =
   fun

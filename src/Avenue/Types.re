@@ -76,15 +76,12 @@ type castles = {
 
 type event =
   | GameStarted
-  | RoundStarted(farm)
-  | SkippedTurn
-  | RoundIsOver(farm)
-  | ScoredZero
+  | RoundStarted(string)
+  | TurnSkipped
+  | RoundIsOver(string)
+  | ScoredZero(string)
   | ScoredNotEnough(int, int)
-  | ScoredEnough(int)
-  | GameIsOver
-  | ScoredCastle(grape_color, int)
-  | ScoredTotal(int);
+  | GameIsOver;
 
 type history_item =
   | Action(action)

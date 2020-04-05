@@ -27,6 +27,18 @@ let add_history =
         )
     );
 
+let add_round_start_event =
+  fun
+  | {stage: Round(farm, _)} as game =>
+    game |> add_history(Event(RoundStarted(farm->string_of_farm)))
+  | game => game;
+
+let add_round_over_event =
+  fun
+  | {stage: Round(farm, _)} as game =>
+    game |> add_history(Event(RoundIsOver(farm->string_of_farm)))
+  | game => game;
+
 let discard_top_farm = ({round_deck} as game) => {
   ...game,
   round_deck: round_deck |> List.tl,
@@ -42,7 +54,7 @@ let add_players_round_points =
              {...player, farm_points: [(farm, 0), ...player.farm_points]}
            ),
     }
-  | _ as game => game;
+  | game => game;
 
 let reset_players_lookahead = ({players} as game) => {
   ...game,
@@ -103,7 +115,7 @@ let advance_stage =
     game |> set_stage(Round(farm, yc->add_yc))
   | {stage: RoundEnd(farm), round_deck: _} as game =>
     game |> set_stage(End(farm))
-  | _ as game => game;
+  | game => game;
 
 let recount_points = ({players, farms, stage} as game) =>
   switch (stage) {
