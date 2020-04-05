@@ -48,24 +48,6 @@ let discard_top_road = ({deck} as game) => {...game, deck: deck |> List.tl};
 
 let advance_game_turn = ({turn} as game) => {...game, turn: turn + 1};
 
-let advance_stage =
-  fun
-  | {stage: Begin, round_deck: [next_farm, ..._]} as game
-  | {stage: RoundEnd(_), round_deck: [next_farm, _, ..._]} as game => {
-      ...game,
-      stage: Round(next_farm, Zero),
-    }
-  | {stage: Round(farm, Four)} as game => {...game, stage: RoundEnd(farm)}
-  | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game => {
-      ...game,
-      stage: Round(farm, yc->add_yc),
-    }
-  | {stage: RoundEnd(farm), round_deck: _} as game => {
-      ...game,
-      stage: End(farm),
-    }
-  | _ as game => game;
-
 let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
   switch (current_card) {
   | Some((road, _)) => {
@@ -89,6 +71,24 @@ let draw_road_on_grid_cell = (row, col, {players, current_card} as game) =>
     }
   | None => game
   };
+
+let advance_stage =
+  fun
+  | {stage: Begin, round_deck: [next_farm, ..._]} as game
+  | {stage: RoundEnd(_), round_deck: [next_farm, _, ..._]} as game => {
+      ...game,
+      stage: Round(next_farm, Zero),
+    }
+  | {stage: Round(farm, Four)} as game => {...game, stage: RoundEnd(farm)}
+  | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game => {
+      ...game,
+      stage: Round(farm, yc->add_yc),
+    }
+  | {stage: RoundEnd(farm), round_deck: _} as game => {
+      ...game,
+      stage: End(farm),
+    }
+  | _ as game => game;
 
 let recount_points = ({players, farms, stage} as game) =>
   switch (stage) {
