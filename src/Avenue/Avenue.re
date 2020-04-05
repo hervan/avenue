@@ -71,7 +71,7 @@ let create_player = (player_name, base_grid) => {
   farm_points: [],
 };
 
-let create_farms_deck = () => {
+let create_farm_deck = () => {
   let rec aux = deck =>
     fun
     | 0 => deck
@@ -121,12 +121,12 @@ let find_content = (cell_content, grid) =>
   |> List.concat
   |> List.hd;
 
-let create_game = (player_name, base_grid, road_deck, farms_deck) =>
+let create_game = (player_name, base_grid, road_deck, farm_deck) =>
   {
     players: [create_player(player_name, base_grid)],
     deck: road_deck,
     turn: 0,
-    round_deck: farms_deck,
+    round_deck: farm_deck,
     stage: Begin,
     current_card: None,
     castles: {
@@ -165,7 +165,7 @@ let make = () => {
         "me",
         create_base_grid(map_A_grid_contents),
         create_road_deck(),
-        create_farms_deck(),
+        create_farm_deck(),
       ),
     );
 

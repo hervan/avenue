@@ -69,14 +69,6 @@ type direction =
   | From(side)
   | Nowhere;
 
-type board = {
-  farmer: string,
-  grid,
-  lookahead: bool,
-  turn: int,
-  farm_points: list((farm, int)),
-};
-
 type castles = {
   purple: cell,
   green: cell,
@@ -98,6 +90,14 @@ type history_item =
   | Action(action)
   | Suggestion(action)
   | Event(event);
+
+type board = {
+  farmer: string,
+  grid,
+  lookahead: bool,
+  turn: int,
+  farm_points: list((farm, int)),
+};
 
 type game = {
   players: list(board),
