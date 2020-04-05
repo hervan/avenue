@@ -48,6 +48,7 @@ let end_game = game => game->can_end_game ? game |> advance_stage : game;
 
 let guide = game =>
   game
+  |> clear_suggestions
   |> guide_peek_farm
   |> guide_flip_farm
   |> guide_flip_road

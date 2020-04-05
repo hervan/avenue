@@ -1,10 +1,31 @@
 open Types;
 open Converters;
 
-let add_history = (history_item, {history} as game) => {
-  ...game,
-  history: [history_item, ...history],
-};
+let rec clear_suggestions =
+  fun
+  | {history: [Suggestion(_), ...history]} as game =>
+    {...game, history} |> clear_suggestions
+  | game => game;
+
+let add_history =
+  fun
+  | Suggestion(_) as history_item => (
+      fun
+      | {history} as game => {...game, history: [history_item, ...history]}
+    )
+  | history_item => (
+      fun
+      | game =>
+        game
+        |> clear_suggestions
+        |> (
+          fun
+          | {history} as game => {
+              ...game,
+              history: [history_item, ...history],
+            }
+        )
+    );
 
 let discard_top_farm = ({round_deck} as game) => {
   ...game,

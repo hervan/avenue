@@ -13,28 +13,27 @@ let minimal_grid_contents = [|
 
 let minimal_grid = Avenue.create_base_grid(minimal_grid_contents);
 
-let road_deck = [
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-  (road_of_int(0), Yellow),
-];
+let road_deck = [];
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
+// (road_of_int(0), Yellow),
 
 let farms_deck = [A, B, C, D, E, F];
 
