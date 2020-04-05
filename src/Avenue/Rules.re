@@ -55,9 +55,9 @@ let can_draw_road = (row, col, {players, stage, current_card} as game) =>
   | None => false
   };
 
-let can_draw_road_somewhere = ({players} as game) =>
-  switch (players) {
-  | [{grid}, ..._] =>
+let can_draw_road_somewhere =
+  fun
+  | {players: [{grid}, ..._]} as game =>
     grid
     |> Array.to_list
     |> List.exists(grid_row =>
@@ -65,8 +65,7 @@ let can_draw_road_somewhere = ({players} as game) =>
          |> Array.to_list
          |> List.exists(cell => can_draw_road(cell.row, cell.col, game))
        )
-  | _ => false
-  };
+  | _ => false;
 
 let can_end_round =
   fun

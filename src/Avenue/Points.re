@@ -33,21 +33,19 @@ let within_boundaries = (grid, row, col) =>
   && row < (grid |> Array.length)
   && col < (grid[0] |> Array.length);
 
-let goes_to = (grid, side, {row, col}) =>
-  switch (side) {
+let goes_to = (grid, {row, col}) =>
+  fun
   | Top when within_boundaries(grid, row - 1, col) => [grid[row - 1][col]]
   | Right when within_boundaries(grid, row, col + 1) => [grid[row][col + 1]]
   | Bottom when within_boundaries(grid, row + 1, col) => [grid[row + 1][col]]
   | Left when within_boundaries(grid, row, col - 1) => [grid[row][col - 1]]
-  | _ => []
-  };
+  | _ => [];
 
-let goes_to_list = (grid, {road} as cell) =>
-  switch (road) {
-  | None => []
-  | Some((entry, exit)) =>
-    List.append(goes_to(grid, entry, cell), goes_to(grid, exit, cell))
-  };
+let goes_to_list = grid =>
+  fun
+  | {road: None} => []
+  | {road: Some((entry, exit))} as cell =>
+    List.append(goes_to(grid, cell, entry), goes_to(grid, cell, exit));
 
 let goes_to_and_comes_from = (grid, cell1, cell2) =>
   goes_to_list(grid, cell1)
