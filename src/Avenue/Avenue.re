@@ -4,7 +4,7 @@ open Converters;
 let grid_columns = 6;
 let grid_rows = 7;
 
-let grid_contents = [|
+let map_A_grid_contents = [|
   [|
     Grapes([Green, Green, Green, Purple]),
     Grapes([Purple]),
@@ -103,32 +103,43 @@ let create_road_deck = () => {
   );
 };
 
-let create_base_grid = () =>
+let create_base_grid = grid_contents =>
   Array.init(grid_rows, row =>
     Array.init(grid_columns, col =>
       {row, col, content: grid_contents[row][col], road: None}
     )
   );
 
-let create_game = (player_name, base_grid) =>
+let find_content = (cell_content, grid) =>
+  grid
+  |> Array.to_list
+  |> List.map(row =>
+       row
+       |> Array.to_list
+       |> List.filter(cell => cell.content == cell_content)
+     )
+  |> List.concat
+  |> List.hd;
+
+let create_game = (player_name, common_grid, road_deck, farms_deck) =>
   {
-    players: [create_player(player_name, base_grid)],
-    deck: create_road_deck(),
+    players: [create_player(player_name, common_grid)],
+    deck: road_deck,
     turn: 0,
-    round_deck: create_farms_deck(),
+    round_deck: farms_deck,
     stage: Begin,
     current_card: None,
     castles: {
-      purple: base_grid[6][0],
-      green: base_grid[0][5],
+      purple: find_content(Castle(Purple), common_grid),
+      green: find_content(Castle(Green), common_grid),
     },
     farms: [
-      base_grid[0][2],
-      base_grid[2][3],
-      base_grid[3][0],
-      base_grid[3][5],
-      base_grid[4][2],
-      base_grid[6][3],
+      find_content(Farm(A), common_grid),
+      find_content(Farm(B), common_grid),
+      find_content(Farm(C), common_grid),
+      find_content(Farm(D), common_grid),
+      find_content(Farm(E), common_grid),
+      find_content(Farm(F), common_grid),
     ],
     history: [Event(GameStarted)],
   }
@@ -148,7 +159,15 @@ let reducer = (game, action) =>
 [@react.component]
 let make = () => {
   let (game, dispatch) =
-    React.useReducer(reducer, create_game("me", create_base_grid()));
+    React.useReducer(
+      reducer,
+      create_game(
+        "me",
+        create_base_grid(map_A_grid_contents),
+        create_road_deck(),
+        create_farms_deck(),
+      ),
+    );
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
