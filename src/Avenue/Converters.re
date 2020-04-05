@@ -82,12 +82,19 @@ let control_point_of_pos_side = (pos, side) =>
 
 let to_pos = cell => (cell.row, cell.col);
 
+let suggest_action =
+  fun
+  | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
+  | FlipFarm => ["you must click the bottom deck to begin the next round"]
+  | FlipRoad => ["you must click the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["you can click an empty cell to draw the road card"];
+
 let describe_action =
   fun
-  | PeekFarm => ["click the bottom deck to peek at the upcoming farm"]
-  | FlipFarm => ["click the bottom deck to begin the next round"]
-  | FlipRoad => ["click the top deck to flip a road card"]
-  | DrawRoad(_, _) => ["click an empty cell to draw the road card"];
+  | PeekFarm => ["you clicked the bottom deck to peek at the upcoming farm"]
+  | FlipFarm => ["you clicked the bottom deck to begin the next round"]
+  | FlipRoad => ["you clicked the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["you clicked an empty cell to draw the road card"];
 
 let describe_event =
   fun
@@ -127,11 +134,13 @@ let describe_event =
 let string_of_history =
   fun
   | Action(action) => action->describe_action
+  | Suggestion(action) => action->suggest_action
   | Event(event) => event->describe_event;
 
 let history_to_color =
   fun
   | Action(_) => "blue"
+  | Suggestion(_) => "green"
   | Event(_) => "orange";
 
 let int_of_yc =

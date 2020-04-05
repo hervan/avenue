@@ -96,6 +96,7 @@ type event =
 
 type history_item =
   | Action(action)
+  | Suggestion(action)
   | Event(event);
 
 type game = {
