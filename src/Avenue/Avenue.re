@@ -4,7 +4,7 @@ open Converters;
 let grid_columns = 6;
 let grid_rows = 7;
 
-let grid_contents = [|
+let map_A_grid_contents = [|
   [|
     Grapes([Green, Green, Green, Purple]),
     Grapes([Purple]),
@@ -67,11 +67,11 @@ let create_player = (player_name, base_grid) => {
   farmer: player_name,
   grid: base_grid,
   lookahead: false,
-  round: 0,
+  turn: 0,
   farm_points: [],
 };
 
-let create_farms_deck = () => {
+let create_farm_deck = () => {
   let rec aux = deck =>
     fun
     | 0 => deck
@@ -103,79 +103,77 @@ let create_road_deck = () => {
   );
 };
 
-let create_base_grid = () =>
-  Array.init(grid_rows, row =>
-    Array.init(grid_columns, col =>
+let create_base_grid = grid_contents =>
+  Array.init(grid_contents |> Array.length, row =>
+    Array.init(grid_contents[0] |> Array.length, col =>
       {row, col, content: grid_contents[row][col], road: None}
     )
   );
 
-let base_grid = create_base_grid();
+let find_content = (cell_content, grid) =>
+  grid
+  |> Array.to_list
+  |> List.map(row =>
+       row
+       |> Array.to_list
+       |> List.filter(cell => cell.content == cell_content)
+     )
+  |> List.concat
+  |> List.hd;
 
-let create_game = player_name =>
+let create_game = (player_name, base_grid, road_deck, farm_deck) =>
   {
     players: [create_player(player_name, base_grid)],
-    deck: create_road_deck(),
-    round: 0,
-    phase_deck: create_farms_deck(),
+    deck: road_deck,
+    turn: 0,
+    round_deck: farm_deck,
     stage: Begin,
     current_card: None,
     castles: {
-      purple: base_grid[6][0],
-      green: base_grid[0][5],
+      purple: find_content(Castle(Purple), base_grid),
+      green: find_content(Castle(Green), base_grid),
     },
     farms: [
-      base_grid[0][2],
-      base_grid[2][3],
-      base_grid[3][0],
-      base_grid[3][5],
-      base_grid[4][2],
-      base_grid[6][3],
+      find_content(Farm(A), base_grid),
+      find_content(Farm(B), base_grid),
+      find_content(Farm(C), base_grid),
+      find_content(Farm(D), base_grid),
+      find_content(Farm(E), base_grid),
+      find_content(Farm(F), base_grid),
     ],
-    history: [],
+    history: [Event(GameStarted)],
   }
   ->Rules.guide;
 
-let reducer = (game, action) =>
-  Actions.(
-    Rules.(
-      switch (action) {
-      | PeekFarm => peek_farm(game)->guide
-      | FlipFarm => flip_farm(game)->update_points->guide
-      | FlipRoad => flip_road(game)->guide
-      | DrawRoad(row, col) =>
-        draw_road(row, col, game)->update_points->process_phase->guide
-      }
-    )
-  );
+let reducer = game =>
+  fun
+  | PeekFarm => game |> Actions.peek_farm |> Rules.guide
+  | FlipFarm => game |> Actions.flip_farm |> Rules.guide
+  | FlipRoad => game |> Actions.flip_road |> Rules.guide
+  | DrawRoad(row, col) =>
+    game
+    |> Actions.draw_road(row, col)
+    |> Actions.end_round
+    |> Actions.end_game
+    |> Rules.guide;
 
 [@react.component]
 let make = () => {
-  let (game, dispatch) = React.useReducer(reducer, create_game("me"));
+  let (game, dispatch) =
+    React.useReducer(
+      reducer,
+      create_game(
+        "me",
+        create_base_grid(map_A_grid_contents),
+        create_road_deck(),
+        create_farm_deck(),
+      ),
+    );
 
   let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
 
-  <svg width="100vmin" height="100vmin" viewBox="-2 -2 102 102">
-    <defs>
-      <filter id="shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation="0.25"
-          floodColor="black"
-          floodOpacity="0.5"
-        />
-      </filter>
-      <filter id="text-shadow">
-        <feDropShadow
-          dx="0"
-          dy="0"
-          stdDeviation="0.2"
-          floodColor="black"
-          floodOpacity="0.2"
-        />
-      </filter>
-    </defs>
+  <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
+    Theme.filters
     <g>
       {(game.players |> List.hd).grid
        |> flatten_grid
@@ -185,17 +183,8 @@ let make = () => {
        |> ReasonReact.array}
     </g>
     <Deck game dispatch />
-    <PhaseDeck game dispatch />
+    <RoundDeck game dispatch />
     <Points game />
-    <Status
-      messages={
-        game.history
-        |> List.filter(
-             fun
-             | Action(_) => false
-             | Message(_, _) => true,
-           )
-      }
-    />
+    <Status history={game.history} />
   </svg>;
 };

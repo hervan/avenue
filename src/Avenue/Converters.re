@@ -82,47 +82,56 @@ let control_point_of_pos_side = (pos, side) =>
 
 let to_pos = cell => (cell.row, cell.col);
 
-let action_to_string =
+let suggest_action =
   fun
-  | PeekFarm => "peek farm"
-  | FlipFarm => "flip farm"
-  | FlipRoad => "flip road"
-  | DrawRoad(row, col) => {j|draw $row, $col|j};
+  | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
+  | FlipFarm => ["you must click the bottom deck to begin the next round"]
+  | FlipRoad => ["you must click the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["you must click an empty cell to draw the road card"];
 
 let describe_action =
   fun
-  | PeekFarm => "click the bottom deck to see the upcoming farm"
-  | FlipFarm => "click the bottom deck to begin next phase"
-  | FlipRoad => "click the top deck to flip a road card"
-  | DrawRoad(_, _) => "click an empty cell to draw the road card";
+  | PeekFarm => ["you clicked the bottom deck to peek at the upcoming farm"]
+  | FlipFarm => ["you clicked the bottom deck to begin the next round"]
+  | FlipRoad => ["you clicked the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["you clicked an empty cell to draw the road card"];
 
-let message_to_string =
+let describe_event =
   fun
-  | Impossible => "error"
-  | Mistake => "attention"
-  | Info => "info"
-  | Guide => "next:";
+  | GameStarted => [
+      "welcome to avenue!",
+      "try to draw paths connecting grapes to farms",
+    ]
+  | RoundStarted(farm) => [
+      {j|round $farm started! draw roads to connect grapes to farm $farm|j},
+    ]
+  | TurnSkipped => [
+      "you used your turn to peek at the next farm,",
+      "so you can't draw a road this turn",
+    ]
+  | RoundIsOver(farm) => [{j|round $farm is over!|j}]
+  | ScoredZero(farm) => [
+      {j|you don't have any grapes connected to farm $farm|j},
+      "so this round you take a -5 points penalty",
+    ]
+  | ScoredNotEnough(previous, points) => [
+      {j|you connected $points grapes this round|j},
+      {j|but last round you connected more grapes ($previous),|j},
+      "so this round you take a -5 points penalty",
+    ]
+  | GameIsOver => ["five rounds played, the game is over!"];
 
-let history_to_friendly_string =
+let string_of_history =
   fun
-  | Action(action) => "you chose to " ++ action->describe_action
-  | Message(Guide, description) => "you can now " ++ description
-  | Message(_, description) => description;
-
-let history_to_string =
-  fun
-  | Action(action) =>
-    action->action_to_string ++ ": " ++ action->describe_action
-  | Message(message, description) =>
-    message->message_to_string ++ ": " ++ description;
+  | Action(action) => action->describe_action
+  | Suggestion(action) => action->suggest_action
+  | Event(event) => event->describe_event;
 
 let history_to_color =
   fun
   | Action(_) => "blue"
-  | Message(Impossible, _) => "white"
-  | Message(Mistake, _) => "red"
-  | Message(Info, _) => "orange"
-  | Message(Guide, _) => "green";
+  | Suggestion(_) => "green"
+  | Event(_) => "orange";
 
 let int_of_yc =
   fun
@@ -131,3 +140,11 @@ let int_of_yc =
   | Two => 2
   | Three => 3
   | Four => 4;
+
+let add_yc =
+  fun
+  | Zero => One
+  | One => Two
+  | Two => Three
+  | Three => Four
+  | Four => Four;

@@ -29,8 +29,8 @@ type yellow_cards =
 
 type stage =
   | Begin
-  | Phase(farm, yellow_cards)
-  | PhaseEnd(farm)
+  | Round(farm, yellow_cards)
+  | RoundEnd(farm)
   | End(farm);
 
 type action =
@@ -69,34 +69,38 @@ type direction =
   | From(side)
   | Nowhere;
 
-type board = {
-  farmer: string,
-  grid,
-  lookahead: bool,
-  round: int,
-  farm_points: list((farm, int)),
-};
-
 type castles = {
   purple: cell,
   green: cell,
 };
 
-type message =
-  | Impossible
-  | Mistake
-  | Info
-  | Guide;
+type event =
+  | GameStarted
+  | RoundStarted(string)
+  | TurnSkipped
+  | RoundIsOver(string)
+  | ScoredZero(string)
+  | ScoredNotEnough(int, int)
+  | GameIsOver;
 
 type history_item =
   | Action(action)
-  | Message(message, string);
+  | Suggestion(action)
+  | Event(event);
+
+type board = {
+  farmer: string,
+  grid,
+  lookahead: bool,
+  turn: int,
+  farm_points: list((farm, int)),
+};
 
 type game = {
   players: list(board),
   deck: list(card),
-  round: int,
-  phase_deck: list(farm),
+  turn: int,
+  round_deck: list(farm),
   stage,
   current_card: option(card),
   castles,
