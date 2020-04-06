@@ -1,8 +1,5 @@
 open Types;
 open Game;
-open Converters;
-
-let random_farm = () => farm_of_int(Random.int(6));
 
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
