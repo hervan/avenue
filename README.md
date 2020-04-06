@@ -1,6 +1,10 @@
+![deploy](https://github.com/hervan/avenue/workflows/deploy/badge.svg)
+![build](https://github.com/hervan/avenue/workflows/build/badge.svg)
+
 # ReasonReact Template & Examples
 
 This is:
+
 - A template for your new ReasonReact project.
 - A collection of thin examples illustrating ReasonReact usage.
 - Extra helper documentation for ReasonReact (full ReasonReact docs [here](https://reasonml.github.io/reason-react/)).
@@ -25,19 +29,19 @@ Open a new web page to `http://localhost:8000/`. Change any `.re` file in `src` 
 # Features Used
 
 |                           | Blinking Greeting | Reducer from ReactJS Docs | Fetch Dog Pictures | Reason Using JS Using Reason |
-|---------------------------|-------------------|---------------------------|--------------------|------------------------------|
+| ------------------------- | ----------------- | ------------------------- | ------------------ | ---------------------------- |
 | No props                  |                   | ✓                         |                    |                              |
 | Has props                 |                   |                           |                    | ✓                            |
 | Children props            | ✓                 |                           |                    |                              |
 | No state                  |                   |                           |                    | ✓                            |
-| Has state                 | ✓                 |                           |  ✓                 |                              |
+| Has state                 | ✓                 |                           | ✓                  |                              |
 | Has state with useReducer |                   | ✓                         |                    |                              |
 | ReasonReact using ReactJS |                   |                           |                    | ✓                            |
 | ReactJS using ReasonReact |                   |                           |                    | ✓                            |
-| useEffect                 | ✓                 |                           |  ✓                 |                              |
+| useEffect                 | ✓                 |                           | ✓                  |                              |
 | Dom attribute             | ✓                 | ✓                         |                    | ✓                            |
-| Styling                   | ✓                 | ✓                         |  ✓                 | ✓                            |
-| React.array               |                   |                           |  ✓                 |                              |
+| Styling                   | ✓                 | ✓                         | ✓                  | ✓                            |
+| React.array               |                   |                           | ✓                  |                              |
 
 # Bundle for Production
 
