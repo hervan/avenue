@@ -176,7 +176,7 @@ let round_penalty =
         {
           farm_points: [
             (farm, points),
-            (_, previous_points),
+            (previous_farm, previous_points),
             ...previous_rounds,
           ],
         } as me,
@@ -188,7 +188,14 @@ let round_penalty =
     {
       ...game,
       players: [
-        {...me, farm_points: [(farm, (-5)), ...previous_rounds]},
+        {
+          ...me,
+          farm_points: [
+            (farm, (-5)),
+            (previous_farm, previous_points),
+            ...previous_rounds,
+          ],
+        },
         ...other_players,
       ],
     }
