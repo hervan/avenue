@@ -1,0 +1,28 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version:
+          - 12.x
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js ${{ matrix.node-version }}, ${{ github.ref }}
+        uses: actions/setup-node@master
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run build
+        env:
+          CI: true
+      - run: npm run deploy -- --token ${{ secrets.FIREBASE_TOKEN }}
