@@ -1,5 +1,4 @@
 open Types;
-open Game;
 
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
@@ -75,21 +74,24 @@ let can_end_game =
   | _ => false;
 
 let guide_peek_farm = game =>
-  game |> can_peek_farm ? game |> add_history(Suggestion(PeekFarm)) : game;
+  game |> can_peek_farm
+    ? game |> Game.add_history(Suggestion(PeekFarm)) : game;
 
 let guide_flip_farm = game =>
-  game |> can_flip_farm ? game |> add_history(Suggestion(FlipFarm)) : game;
+  game |> can_flip_farm
+    ? game |> Game.add_history(Suggestion(FlipFarm)) : game;
 
 let guide_flip_road = game =>
-  game |> can_flip_road ? game |> add_history(Suggestion(FlipRoad)) : game;
+  game |> can_flip_road
+    ? game |> Game.add_history(Suggestion(FlipRoad)) : game;
 
 let guide_draw_road = game =>
   game |> can_draw_road_somewhere
-    ? game |> add_history(Suggestion(DrawRoad(0, 0))) : game;
+    ? game |> Game.add_history(Suggestion(DrawRoad(0, 0))) : game;
 
 let guide = game =>
   game
-  |> clear_suggestions
+  |> Game.clear_suggestions
   |> guide_peek_farm
   |> guide_flip_farm
   |> guide_flip_road
