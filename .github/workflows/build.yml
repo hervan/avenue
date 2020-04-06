@@ -1,9 +1,9 @@
-name: avenue
+name: build
 
 on:
   push:
     branches:
-      - master
+      - *
 
 jobs:
   build:
@@ -16,14 +16,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - name: Use Node.js ${{ matrix.node-version }}, ${{ github.ref }}
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@master
         with:
           node-version: ${{ matrix.node-version }}
-
       - run: npm ci
       - run: npm run compile
-      - run: npm run build
+      - run: npm test
         env:
           CI: true
-      - run: npm run deploy -- --token ${{ secrets.FIREBASE_TOKEN }}
