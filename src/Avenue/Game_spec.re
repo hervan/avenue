@@ -4,6 +4,33 @@ open Expect;
 open Types;
 open Converters;
 
+let bare_minimum_game = {
+  players: [
+    {farmer: "", lookahead: false, grid: [||], turn: 0, farm_points: []},
+  ],
+  deck: [],
+  turn: 0,
+  round_deck: [],
+  stage: Begin,
+  current_card: None,
+  castles: {
+    purple: {
+      row: 0,
+      col: 0,
+      content: Empty,
+      road: None,
+    },
+    green: {
+      row: 0,
+      col: 0,
+      content: Empty,
+      road: None,
+    },
+  },
+  farms: [],
+  history: [],
+};
+
 let minimal_grid_contents = [|
   [|Castle(Purple), Farm(A), Empty, Farm(B)|],
   [|Farm(C), Empty, Grapes([Green, Green, Green, Purple]), Empty|],
@@ -25,12 +52,6 @@ let minimal_grid_without_empty =
 let road_deck = [];
 
 let farm_deck = [A, B, C, D, E, F];
-
-// describe("Game.round_penalty", () => {
-//   test("should count purple grapes from purple castle", () => {
-//     expect(1) |> toEqual(1)
-//   })
-// });
 
 describe("Game.advance_stage", () => {
   let game_yellow = {
@@ -199,5 +220,92 @@ describe("Game.recount_points", () => {
   test("should recount correct points for round B", () => {
     expect((game_round_b_recounted.players |> List.hd).farm_points)
     |> toEqual([(B, 4), (A, 4)])
+  });
+});
+
+describe("Game.round_penalty", () => {
+  test("should penalize if round points is zero", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {...bare_minimum_game.players |> List.hd, farm_points: [(A, 0)]},
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, (-5))]);
+  });
+
+  test(
+    "should penalize if round points is zero even if previous is negative", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {
+          ...bare_minimum_game.players |> List.hd,
+          farm_points: [(A, 0), (B, (-5))],
+        },
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, (-5)), (B, (-5))]);
+  });
+
+  test("should penalize if round points is lower than previous", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {
+          ...bare_minimum_game.players |> List.hd,
+          farm_points: [(A, 39), (B, 40)],
+        },
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, (-5)), (B, 40)]);
+  });
+
+  test("should not penalize first round more than zero", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {...bare_minimum_game.players |> List.hd, farm_points: [(A, 1)]},
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, 1)]);
+  });
+
+  test("should not penalize round score more than previous", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {
+          ...bare_minimum_game.players |> List.hd,
+          farm_points: [(A, 2), (B, 1)],
+        },
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, 2), (B, 1)]);
+  });
+
+  test("should penalize round score equal previous", () => {
+    let game = {
+      ...bare_minimum_game,
+      stage: Round(A, Zero),
+      players: [
+        {
+          ...bare_minimum_game.players |> List.hd,
+          farm_points: [(A, 1), (B, 1)],
+        },
+      ],
+    };
+    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    |> toEqual([(A, (-5)), (B, 1)]);
   });
 });

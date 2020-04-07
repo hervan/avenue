@@ -71,12 +71,14 @@ let create_player = (player_name, base_grid) => {
   farm_points: [],
 };
 
+let random_farm = () => farm_of_int(Random.int(6));
+
 let create_farm_deck = () => {
   let rec aux = deck =>
     fun
     | 0 => deck
     | n => {
-        let farm_card = Rules.random_farm();
+        let farm_card = random_farm();
         List.for_all(card => card != farm_card, deck)
           ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
       };
