@@ -11,13 +11,17 @@ let can_flip_farm = ({round_deck, stage}) =>
   | _ => false
   };
 
-let can_peek_farm = ({players, stage} as game) =>
+let can_peek_farm = ({players, stage, round_deck} as game) =>
   switch (stage) {
   | Round(_, Four) => false
   | Round(_, _) =>
-    switch (players) {
-    | [me, ..._] => !me.lookahead && me.turn < game.turn
-    | _ => false
+    switch (round_deck) {
+    | [_] => false
+    | _ =>
+      switch (players) {
+      | [me, ..._] => !me.lookahead && me.turn < game.turn
+      | _ => false
+      }
     }
   | _ => false
   };
