@@ -1,3 +1,17 @@
+let app_style = {j|
+  @viewport {
+    user-zoom: fixed;
+  }
+
+  @media (hover: none) {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: auto;
+    *::-webkit-scrollbar {
+      width: 0px;
+    }
+  }
+|j};
+
 let road_card_thickness = 0.05;
 
 let farm_card_thickness = 0.5;
