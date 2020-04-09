@@ -24,21 +24,27 @@ let flip_road_game = flip_farm_game |> Actions.flip_road;
 
 let peek_farm_game = flip_road_game |> Actions.peek_farm;
 
-let flip_road2_game = peek_farm_game |> Actions.flip_road;
+let draw_road_game = peek_farm_game |> Actions.draw_road(0, 0);
 
-let draw_road_game = flip_road2_game |> Actions.draw_road(0, 0);
+let flip_road2_game = draw_road_game |> Actions.flip_road;
 
-let flip_road3_game = draw_road_game |> Actions.flip_road;
+let draw_road2_game = flip_road2_game |> Actions.draw_road(0, 1);
 
-let draw_road3_game = flip_road3_game |> Actions.draw_road(0, 1);
+let flip_road3_game = draw_road2_game |> Actions.flip_road;
+
+let draw_road3_game = flip_road3_game |> Actions.draw_road(0, 2);
 
 let flip_road4_game = draw_road3_game |> Actions.flip_road;
 
-let draw_road4_game = flip_road4_game |> Actions.draw_road(0, 2);
+let draw_road4_game = flip_road4_game |> Actions.draw_road(0, 3);
 
 let end_round_game = draw_road4_game |> Actions.end_round;
 
 let ended_game = end_round_game |> Actions.end_game;
+
+let allow_peek_game = {...flip_road_game, round_deck: [B, C]};
+
+let poke_game = allow_peek_game |> Actions.peek_farm;
 
 describe("Actions.flip_farm", () => {
   test("should stage be round for top farm", () => {
@@ -72,24 +78,33 @@ describe("Actions.flip_road", () => {
 });
 
 describe("Actions.peek_farm", () => {
+  test("should not allow player to look ahead", () => {
+    expect((peek_farm_game.players |> List.hd).lookahead) |> toEqual(false)
+  });
+
+  test("should not skip player turn after trying to use peek", () => {
+    expect((peek_farm_game.players |> List.hd).turn)
+    |> toBeLessThan(peek_farm_game.turn)
+  });
+
   test("should allow player to look ahead", () => {
-    expect((peek_farm_game.players |> List.hd).lookahead) |> toEqual(true)
+    expect((poke_game.players |> List.hd).lookahead) |> toEqual(true)
   });
 
   test("should skip player turn after using", () => {
-    expect((peek_farm_game.players |> List.hd).turn) |> toEqual(1)
+    expect((poke_game.players |> List.hd).turn) |> toEqual(poke_game.turn)
   });
 });
 
 describe("Actions.draw_road", () => {
   test("should road be empty at 0, 0", () => {
-    expect((flip_road2_game.players |> List.hd).grid[0][0].road)
+    expect((peek_farm_game.players |> List.hd).grid[0][0].road)
     |> toEqual(None)
   });
 
   test("should road be drawn at 0, 0", () => {
     expect((draw_road_game.players |> List.hd).grid[0][0].road)
-    |> toEqual(Some(road_of_int(1)))
+    |> toEqual(Some(road_of_int(0)))
   });
 });
 
