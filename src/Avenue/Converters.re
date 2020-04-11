@@ -85,16 +85,16 @@ let to_pos = cell => (cell.row, cell.col);
 let suggest_action =
   fun
   | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
-  | FlipFarm => ["you must click the bottom deck to begin the next round"]
-  | FlipRoad => ["you must click the top deck to flip a road card"]
-  | DrawRoad(_, _) => ["you must click an empty cell to draw the road card"];
+  | FlipFarm => ["click the bottom deck to begin the next round"]
+  | FlipRoad => ["click the top deck to flip a road card"]
+  | DrawRoad(_, _) => ["click an empty cell to draw the current road"];
 
 let describe_action =
   fun
-  | PeekFarm => ["you clicked the bottom deck to peek at the upcoming farm"]
-  | FlipFarm => ["you clicked the bottom deck to begin the next round"]
-  | FlipRoad => ["you clicked the top deck to flip a road card"]
-  | DrawRoad(_, _) => ["you clicked an empty cell to draw the road card"];
+  | PeekFarm => ["you peeked at the upcoming farm"]
+  | FlipFarm => ["you flipped a farm to begin the next round"]
+  | FlipRoad => ["you flipped a road"]
+  | DrawRoad(row, col) => [{j|you drew the road in cell ($row, $col)|j}];
 
 let describe_event =
   fun
@@ -103,21 +103,22 @@ let describe_event =
       "try to draw paths connecting grapes to farms",
     ]
   | RoundStarted(farm) => [
-      {j|round $farm started! draw roads to connect grapes to farm $farm|j},
+      {j|round $farm started!|j},
+      {j|draw roads to connect grapes to farm $farm|j},
     ]
   | TurnSkipped => [
-      "you used your turn to peek at the next farm,",
-      "so you can't draw a road this turn",
+      "you used your turn to peek at the next farm",
+      "hence you won't draw a road this turn",
     ]
   | RoundIsOver(farm) => [{j|round $farm is over!|j}]
   | ScoredZero(farm) => [
       {j|you don't have any grapes connected to farm $farm|j},
-      "so this round you take a -5 points penalty",
+      "therefore, this round you take a -5 points penalty",
     ]
   | ScoredNotEnough(previous, points) => [
       {j|you connected $points grapes this round|j},
-      {j|but last round you connected more grapes ($previous),|j},
-      "so this round you take a -5 points penalty",
+      {j|last round you connected more grapes ($previous),|j},
+      "thus, you take a -5 points penalty this round",
     ]
   | GameIsOver => ["five rounds played, the game is over!"];
 
