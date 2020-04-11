@@ -20,7 +20,8 @@ let farm_of_int =
   | 2 => C
   | 3 => D
   | 4 => E
-  | _ => F;
+  | 5 => F
+  | _ => raise(Impossible("farms only exist from A to F"));
 
 let road_of_int =
   fun
@@ -29,12 +30,14 @@ let road_of_int =
   | 2 => (Right, Bottom)
   | 3 => (Left, Bottom)
   | 4 => (Left, Right)
-  | _ => (Top, Bottom);
+  | 5 => (Top, Bottom)
+  | _ => raise(Impossible("there are only six possible roads"));
 
 let card_color_of_int =
   fun
   | 0 => Yellow
-  | _ => Grey;
+  | 1 => Grey
+  | _ => raise(Impossible("there are only two colors of road cards"));
 
 let road_card_of_ints = (road, color) => (
   road_of_int(road),

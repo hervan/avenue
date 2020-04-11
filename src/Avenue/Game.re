@@ -147,9 +147,9 @@ let recount_points = ({players, farms, stage} as game) =>
             ],
           }
           : game
-      | _ => game
+      | [] => game
       }
-    | _ => game
+    | [] => game
     }
   | _ => game
   };

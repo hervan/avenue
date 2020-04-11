@@ -107,3 +107,5 @@ type game = {
   farms: list(cell),
   history: list(history_item),
 };
+
+exception Impossible(string);
