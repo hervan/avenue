@@ -33,11 +33,20 @@ type stage =
   | RoundEnd(farm)
   | End(farm);
 
-type action =
+type play_action =
   | PeekFarm
   | FlipFarm
   | FlipRoad
   | DrawRoad(int, int);
+
+type control_action =
+  | Start
+  | Restart
+  | Undo;
+
+type action =
+  | Play(play_action)
+  | Control(control_action);
 
 type cell_content =
   | Empty
@@ -62,19 +71,12 @@ type cell = {
 
 type grid = array(array(cell));
 
-type direction =
-  | Beginning
-  | Forward
-  | Backward
-  | From(side)
-  | Nowhere;
-
 type castles = {
   purple: cell,
   green: cell,
 };
 
-type event =
+type event_action =
   | GameStarted
   | RoundStarted(string)
   | TurnSkipped
@@ -83,10 +85,13 @@ type event =
   | ScoredNotEnough(int, int)
   | GameIsOver;
 
-type history_item =
-  | Action(action)
-  | Suggestion(action)
-  | Event(event);
+type log_entry =
+  | Play(play_action)
+  | Event(event_action);
+
+type suggestion =
+  | Play(play_action)
+  | Control(control_action);
 
 type board = {
   farmer: string,
@@ -105,5 +110,8 @@ type game = {
   current_card: option(card),
   castles,
   farms: list(cell),
-  history: list(history_item),
+  log: list(log_entry),
+  guide: list(suggestion),
 };
+
+exception Impossible(string);

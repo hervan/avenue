@@ -143,9 +143,10 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
       find_content(Farm(E), base_grid),
       find_content(Farm(F), base_grid),
     ],
-    history: [Event(GameStarted)],
+    log: [Event(GameStarted)],
+    guide: [],
   }
-  ->Rules.guide;
+  |> Rules.guide;
 
 let reducer = game =>
   fun
@@ -172,13 +173,12 @@ let make = () => {
       ),
     );
 
-  let flatten_grid = grid => grid |> Array.to_list |> Array.concat;
-
   <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
     Theme.filters
     <g>
       {(game.players |> List.hd).grid
-       |> flatten_grid
+       |> Array.to_list
+       |> Array.concat
        |> Array.mapi((i, cell) =>
             <Cell key={i |> string_of_int} cell dispatch />
           )
@@ -187,6 +187,6 @@ let make = () => {
     <Deck game dispatch />
     <RoundDeck game dispatch />
     <Points game />
-    <Status history={game.history} />
+    <Status game />
   </svg>;
 };

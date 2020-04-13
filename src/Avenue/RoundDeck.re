@@ -13,15 +13,13 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
       }
     | RoundEnd(_)
     | Begin => true
-    | End(_) => false
+    | _ => false
     };
   React.useEffect1(
     () => {
       switch (stage) {
       | End(_) => setRotation(_ => 90)
-      | RoundEnd(_)
-      | Begin
-      | Round(_, _) => ()
+      | _ => ()
       };
       None;
     },
@@ -47,7 +45,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
             500,
           );
         ();
-      | End(_) => ()
+      | _ => ()
       }
     }
     transform="translate(63 25)">
@@ -121,6 +119,8 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
           height="20"
           rx="2"
           fill={
+            // TODO this should reflect whether there's a current farm
+            // hence refactor to keep farm in an option property
             switch (stage) {
             | Round(_, _)
             | RoundEnd(_)

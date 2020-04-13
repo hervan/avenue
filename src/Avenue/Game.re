@@ -1,42 +1,26 @@
 open Types;
 open Converters;
 
-let rec clear_suggestions =
-  fun
-  | {history: [Suggestion(_), ...history]} as game =>
-    {...game, history} |> clear_suggestions
-  | game => game;
+// TODO refactor to remove catch-all patterns
 
-let add_history =
+let add_log = log_entry =>
   fun
-  | Suggestion(_) as history_item => (
-      fun
-      | {history} as game => {...game, history: [history_item, ...history]}
-    )
-  | history_item => (
-      fun
-      | game =>
-        game
-        |> clear_suggestions
-        |> (
-          fun
-          | {history} as game => {
-              ...game,
-              history: [history_item, ...history],
-            }
-        )
-    );
+  | {log} as game => {...game, log: [log_entry, ...log]};
+
+let add_suggestion = guide_entry =>
+  fun
+  | {guide} as game => {...game, guide: [guide_entry, ...guide]};
 
 let add_round_start_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_history(Event(RoundStarted(farm->string_of_farm)))
+    game |> add_log(Event(RoundStarted(farm->string_of_farm)))
   | game => game;
 
 let add_round_over_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_history(Event(RoundIsOver(farm->string_of_farm)))
+    game |> add_log(Event(RoundIsOver(farm->string_of_farm)))
   | game => game;
 
 let discard_top_farm = ({round_deck} as game) => {
@@ -147,9 +131,9 @@ let recount_points = ({players, farms, stage} as game) =>
             ],
           }
           : game
-      | _ => game
+      | [] => game
       }
-    | _ => game
+    | [] => game
     }
   | _ => game
   };
@@ -170,7 +154,7 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_history(Event(ScoredZero(farm->string_of_farm)))
+    |> add_log(Event(ScoredZero(farm->string_of_farm)))
   | {
       players: [
         {
@@ -199,5 +183,5 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_history(Event(ScoredNotEnough(previous_points, points)))
+    |> add_log(Event(ScoredNotEnough(previous_points, points)))
   | game => game;

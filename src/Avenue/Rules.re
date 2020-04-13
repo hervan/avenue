@@ -1,5 +1,7 @@
 open Types;
 
+// TODO refactor to remove catch-all patterns
+
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
   | Begin
@@ -16,11 +18,12 @@ let can_peek_farm = ({players, stage, round_deck} as game) =>
   | Round(_, Four) => false
   | Round(_, _) =>
     switch (round_deck) {
+    | []
     | [_] => false
-    | _ =>
+    | [_, ..._] =>
       switch (players) {
       | [me, ..._] => !me.lookahead && me.turn < game.turn
-      | _ => false
+      | [] => false
       }
     }
   | _ => false
@@ -77,25 +80,25 @@ let can_end_game =
   | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
   | _ => false;
 
+let guide_create_game = game =>
+  game |> can_peek_farm ? game |> Game.add_suggestion(Control(Start)) : game;
+
 let guide_peek_farm = game =>
-  game |> can_peek_farm
-    ? game |> Game.add_history(Suggestion(PeekFarm)) : game;
+  game |> can_peek_farm ? game |> Game.add_suggestion(Play(PeekFarm)) : game;
 
 let guide_flip_farm = game =>
-  game |> can_flip_farm
-    ? game |> Game.add_history(Suggestion(FlipFarm)) : game;
+  game |> can_flip_farm ? game |> Game.add_suggestion(Play(FlipFarm)) : game;
 
 let guide_flip_road = game =>
-  game |> can_flip_road
-    ? game |> Game.add_history(Suggestion(FlipRoad)) : game;
+  game |> can_flip_road ? game |> Game.add_suggestion(Play(FlipRoad)) : game;
 
 let guide_draw_road = game =>
   game |> can_draw_road_somewhere
-    ? game |> Game.add_history(Suggestion(DrawRoad(0, 0))) : game;
+    ? game |> Game.add_suggestion(Play(DrawRoad(0, 0))) : game;
 
 let guide = game =>
-  game
-  |> Game.clear_suggestions
+  {...game, guide: []}
+  |> guide_create_game
   |> guide_peek_farm
   |> guide_flip_farm
   |> guide_flip_road
