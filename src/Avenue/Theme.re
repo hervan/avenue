@@ -26,8 +26,12 @@ let text = fontSize =>
     (),
   );
 
+let quick_transition = property =>
+  ReactDOMRe.Style.make(~transition={j|$property 0.5s|j}, ());
+
 let log_text =
-  ReactDOMRe.Style.make(~fontSize="2.4px", ~fontFamily="Verdana", ());
+  ReactDOMRe.Style.make(~fontSize="2.4px", ~fontFamily="Verdana", ())
+  |> ReactDOMRe.Style.combine(quick_transition("transform"));
 
 let guide_text =
   log_text
@@ -38,9 +42,6 @@ let guide_text =
 let big_text =
   text("8px")
   |> ReactDOMRe.Style.combine(ReactDOMRe.Style.make(~fontWeight="bold", ()));
-
-let quick_transition = property =>
-  ReactDOMRe.Style.make(~transition={j|$property 0.5s|j}, ());
 
 let no_transition = ReactDOMRe.Style.make();
 

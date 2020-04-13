@@ -85,34 +85,29 @@ let control_point_of_pos_side = (pos, side) =>
 
 let to_pos = cell => (cell.row, cell.col);
 
-let suggest_play: play_action => list(string) =
+let suggest_play =
   fun
   | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
   | FlipFarm => ["click the bottom deck to begin the next round"]
   | FlipRoad => ["click the top deck to flip a road card"]
   | DrawRoad(_, _) => ["click an empty cell to draw the current road"];
 
-let suggest_control: control_action => list(string) =
-  fun
-  | Start => ["click start to begin the game"]
-  | Restart
-  | Undo => raise(Failure("not implemented"));
-
 let describe_play =
   fun
   | PeekFarm => ["you peeked at the upcoming farm"]
-  | FlipFarm => ["you flipped a farm to begin the next round"]
-  | FlipRoad => ["you flipped a road"]
-  | DrawRoad(row, col) => [{j|you drew the road in cell ($row, $col)|j}];
+  | FlipFarm => ["you flipped a farm card to begin the next round"]
+  | FlipRoad => ["you flipped a road card"]
+  | DrawRoad(row, col) => [{j|you drew a road in cell ($row, $col)|j}];
 
 let describe_event =
   fun
   | GameStarted => [
+      "the game has started",
       "welcome to avenue!",
-      "try to draw paths connecting grapes to farms",
+      "draw paths connecting grapes to farms to score points",
     ]
   | RoundStarted(farm) => [
-      {j|round $farm started!|j},
+      {j|round $farm started|j},
       {j|draw roads to connect grapes to farm $farm|j},
     ]
   | TurnSkipped => [
@@ -120,7 +115,9 @@ let describe_event =
       "hence you won't draw a road this turn",
     ]
   | RoundIsOver(farm) => [
-      {j|4 yellow road cards played, round $farm is over!|j},
+      {j|round $farm is over|j},
+      {j|this was triggered because 4 yellow|j},
+      {j|road cards were played this round|j},
     ]
   | ScoredZero(farm) => [
       {j|you don't have any grapes connected to farm $farm|j},
@@ -131,12 +128,15 @@ let describe_event =
       {j|last round you connected more grapes ($previous),|j},
       "thus, you take a -5 points penalty this round",
     ]
-  | GameIsOver => ["five rounds played, the game is over!"];
+  | GameIsOver => [
+      "the game is over!",
+      "after five rounds played the game comes to an end",
+    ];
 
-let string_of_guide: suggestion => list(string) =
+let string_of_suggestion =
   fun
   | Play(play_action) => play_action->suggest_play
-  | Control(control_action) => control_action->suggest_control;
+  | Control(_) => [];
 
 let string_of_log: log_entry => list(string) =
   fun

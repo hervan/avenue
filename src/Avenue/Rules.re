@@ -80,6 +80,9 @@ let can_end_game =
   | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
   | _ => false;
 
+let guide_create_game = game =>
+  game |> can_peek_farm ? game |> Game.add_suggestion(Control(Start)) : game;
+
 let guide_peek_farm = game =>
   game |> can_peek_farm ? game |> Game.add_suggestion(Play(PeekFarm)) : game;
 
@@ -95,6 +98,7 @@ let guide_draw_road = game =>
 
 let guide = game =>
   {...game, guide: []}
+  |> guide_create_game
   |> guide_peek_farm
   |> guide_flip_farm
   |> guide_flip_road
