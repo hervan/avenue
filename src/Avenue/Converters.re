@@ -104,7 +104,8 @@ let describe_event =
   | GameStarted => [
       "the game has started",
       "welcome to avenue!",
-      "draw paths connecting grapes to farms to score points",
+      "the goal of the game is to draw roads connecting",
+      "a farm to grapes, which will score you points",
     ]
   | RoundStarted(farm) => [
       {j|round $farm started|j},
@@ -138,15 +139,18 @@ let string_of_suggestion =
   | Play(play_action) => play_action->suggest_play
   | Control(_) => [];
 
-let string_of_log: log_entry => list(string) =
+let string_of_log: log_entry => (list(string), list(string)) =
   fun
-  | Play(play_action) => play_action->describe_play
-  | Event(event_action) => event_action->describe_event;
+  | (Play(action), events) => (
+      describe_play(action),
+      events |> List.map(event => event->describe_event) |> List.concat,
+    )
+  | (Control(_), _) => raise(Failure("control shouldn't be described"));
 
-let color_of_log: log_entry => string =
+let color_of_log =
   fun
   | Play(_) => "blue"
-  | Event(_) => "orange";
+  | Control(_) => "red";
 
 let int_of_yc =
   fun
