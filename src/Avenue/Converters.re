@@ -85,14 +85,20 @@ let control_point_of_pos_side = (pos, side) =>
 
 let to_pos = cell => (cell.row, cell.col);
 
-let suggest_action =
+let suggest_play: play_action => list(string) =
   fun
   | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
   | FlipFarm => ["click the bottom deck to begin the next round"]
   | FlipRoad => ["click the top deck to flip a road card"]
   | DrawRoad(_, _) => ["click an empty cell to draw the current road"];
 
-let describe_action =
+let suggest_control: control_action => list(string) =
+  fun
+  | Start => ["click start to begin the game"]
+  | Restart
+  | Undo => raise(Failure("not implemented"));
+
+let describe_play =
   fun
   | PeekFarm => ["you peeked at the upcoming farm"]
   | FlipFarm => ["you flipped a farm to begin the next round"]
@@ -113,7 +119,9 @@ let describe_event =
       "you used your turn to peek at the next farm",
       "hence you won't draw a road this turn",
     ]
-  | RoundIsOver(farm) => [{j|round $farm is over!|j}]
+  | RoundIsOver(farm) => [
+      {j|4 yellow road cards played, round $farm is over!|j},
+    ]
   | ScoredZero(farm) => [
       {j|you don't have any grapes connected to farm $farm|j},
       "therefore, this round you take a -5 points penalty",
@@ -125,16 +133,19 @@ let describe_event =
     ]
   | GameIsOver => ["five rounds played, the game is over!"];
 
-let string_of_history =
+let string_of_guide: suggestion => list(string) =
   fun
-  | Action(action) => action->describe_action
-  | Suggestion(action) => action->suggest_action
-  | Event(event) => event->describe_event;
+  | Play(play_action) => play_action->suggest_play
+  | Control(control_action) => control_action->suggest_control;
 
-let history_to_color =
+let string_of_log: log_entry => list(string) =
   fun
-  | Action(_) => "blue"
-  | Suggestion(_) => "green"
+  | Play(play_action) => play_action->describe_play
+  | Event(event_action) => event_action->describe_event;
+
+let color_of_log: log_entry => string =
+  fun
+  | Play(_) => "blue"
   | Event(_) => "orange";
 
 let int_of_yc =

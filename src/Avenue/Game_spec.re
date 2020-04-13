@@ -28,7 +28,8 @@ let bare_minimum_game = {
     },
   },
   farms: [],
-  history: [],
+  log: [],
+  guide: [],
 };
 
 let minimal_grid_contents = [|
