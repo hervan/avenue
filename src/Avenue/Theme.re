@@ -27,12 +27,13 @@ let text = fontSize =>
   );
 
 let log_text =
-  ReactDOMRe.Style.make(
-    ~fontSize="2.4px",
-    ~fontFamily="Verdana",
-    ~filter="url(#text-shadow)",
-    (),
-  );
+  ReactDOMRe.Style.make(~fontSize="2.4px", ~fontFamily="Verdana", ());
+
+let guide_text =
+  log_text
+  |> ReactDOMRe.Style.combine(
+       ReactDOMRe.Style.make(~filter="url(#text-background)", ()),
+     );
 
 let big_text =
   text("8px")
@@ -85,5 +86,9 @@ let filters =
         floodColor="black"
         floodOpacity="0.5"
       />
+    </filter>
+    <filter x="0" y="0" width="1" height="1" id="text-background">
+      <feFlood floodColor="lightgreen" />
+      <feComposite in_="SourceGraphic" operator="xor" />
     </filter>
   </defs>;
