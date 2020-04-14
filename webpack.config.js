@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
+const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
 
 module.exports = {
   entry: ["./src/Index.bs.js"],
@@ -21,13 +22,8 @@ module.exports = {
       description: "SVG implementation of flip and write game Avenue",
       background_color: "lightgreen",
       crossorigin: "use-credentials", //can be null, use-credentials or anonymous
-      icons: [
-        {
-          src: path.resolve("src/assets/icon.svg"),
-          sizes: [96, 128, 192, 256, 384, 512, 1024],
-        },
-      ],
     }),
+    new FaviconsWebpackPlugin("./src/assets/icon.svg"),
   ],
   output: {
     path: path.join(__dirname, "bundleOutput"),

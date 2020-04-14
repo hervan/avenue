@@ -1,4 +1,8 @@
 let app_style = {j|
+  body {
+    position: fixed;
+  }
+
   @viewport {
     user-zoom: fixed;
   }
