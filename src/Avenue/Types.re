@@ -28,6 +28,7 @@ type yellow_cards =
   | Four;
 
 type stage =
+  | Created
   | Begin
   | Round(farm, yellow_cards)
   | RoundEnd(farm)

@@ -143,9 +143,10 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
       find_content(Farm(E), base_grid),
       find_content(Farm(F), base_grid),
     ],
-    log: [Event(GameStarted)],
+    log: [],
     guide: [],
   }
+  |> Actions.start_game
   |> Rules.guide;
 
 let reducer = game =>

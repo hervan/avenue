@@ -2,6 +2,12 @@ open Types;
 
 // TODO refactor to remove catch-all patterns
 
+let can_start_game = ({stage}) =>
+  switch (stage) {
+  | Created => true
+  | _ => false
+  };
+
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
   | Begin
