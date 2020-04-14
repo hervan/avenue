@@ -1,6 +1,5 @@
 open Jest;
 open Expect;
-
 open Types;
 
 let map_A_grid = Avenue.create_base_grid(Avenue.map_A_grid_contents);
