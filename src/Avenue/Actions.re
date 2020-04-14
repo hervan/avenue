@@ -3,7 +3,10 @@ open Game;
 
 let start_game = game =>
   game->Rules.can_start_game
-    ? game |> add_action(Control(Start)) |> add_event(GameStarted) : game;
+    ? {...game, stage: Begin}
+      |> add_action(Control(Start))
+      |> add_event(GameStarted)
+    : game;
 
 let flip_farm = game =>
   game->Rules.can_flip_farm

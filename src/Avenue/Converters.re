@@ -90,7 +90,7 @@ let suggest_play =
   | PeekFarm => "or click the bottom deck to peek at the upcoming farm"
   | FlipFarm => "click the bottom deck to begin the next round"
   | FlipRoad => "click the top deck to flip a road card"
-  | DrawRoad(_, _) => "click an empty cell to draw the current road";
+  | DrawRoad(_, _) => "click an empty cell to draw the face-up road";
 
 let describe_play =
   fun
@@ -107,16 +107,16 @@ let suggest_control =
 
 let describe_control =
   fun
-  | Start => "the game has started"
+  | Start => "welcome to avenue!"
   | Restart => "the game was restarted"
   | Undo => "the last action was undone";
 
 let describe_event =
   fun
   | GameStarted => [
-      "welcome to avenue!",
       "the goal of the game is to draw roads connecting",
-      "a farm to grapes, which will score you points",
+      "farms to grapes, which will score you points.",
+      {js|these tips in green ⤵ should help you through your first game|js},
     ]
   | RoundStarted(farm) => [
       {j|round $farm started|j},
@@ -135,14 +135,17 @@ let describe_event =
       "you take a -5 points penalty this round",
       {j|because you don't have any grapes connected to farm $farm|j},
     ]
-  | ScoredNotEnough(previous, points) => [
-      "you take a -5 points penalty this round",
-      {j|because you connected $points grapes this round|j},
-      {j|but last round you connected more grapes ($previous)|j},
-    ]
+  | ScoredNotEnough(previous, points) => {
+      let s = points == 1 ? "" : "s";
+      [
+        "you take a -5 points penalty this round",
+        {j|because you connected $points grape$s this round|j},
+        {j|but last round you connected more grapes ($previous)|j},
+      ];
+    }
   | GameIsOver => [
       "the game is over!",
-      "after five rounds played the game comes to an end",
+      "after five rounds are played, the game comes to an end",
     ];
 
 let describe_action =
@@ -169,15 +172,7 @@ let color_of_action =
 
 let short_list_of_log_entry =
   fun
-  | (action, events) =>
-    [
-      (action->color_of_action, action->describe_action),
-      ...events
-         |> List.rev
-         |> List.map(describe_event)
-         |> List.map(event => ("orange", event |> List.hd)),
-    ]
-    |> List.rev;
+  | (action, _) => [(action->color_of_action, action->describe_action)];
 
 let int_of_yc =
   fun
