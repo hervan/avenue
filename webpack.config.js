@@ -10,6 +10,10 @@ module.exports = {
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: "avenue",
+      meta: {
+        viewport:
+          "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no",
+      },
     }),
     new WebpackPwaManifest({
       name: "Avenue",
@@ -17,21 +21,12 @@ module.exports = {
       description: "SVG implementation of flip and write game Avenue",
       background_color: "lightgreen",
       crossorigin: "use-credentials", //can be null, use-credentials or anonymous
-      // icons: [
-      //   {
-      //     src: path.resolve("src/assets/icon.png"),
-      //     sizes: [96, 128, 192, 256, 384, 512], // multiple sizes
-      //   },
-      //   {
-      //     src: path.resolve("src/assets/large-icon.png"),
-      //     size: "1024x1024", // you can also use the specifications pattern
-      //   },
-      //   {
-      //     src: path.resolve("src/assets/maskable-icon.png"),
-      //     size: "1024x1024",
-      //     purpose: "maskable",
-      //   },
-      // ],
+      icons: [
+        {
+          src: path.resolve("src/assets/icon.svg"),
+          sizes: [96, 128, 192, 256, 384, 512, 1024],
+        },
+      ],
     }),
   ],
   output: {
