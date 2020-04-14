@@ -4,21 +4,18 @@ open Converters;
 
 [@react.component]
 let make = (~game as {guide, log}) => {
-  let last_log_entry = log |> List.hd;
-  let last_log_entry_lines = last_log_entry->string_of_log;
-  let guide_entries =
-    guide
-    |> List.fold_left(
-         (acc, guide_entry) =>
-           List.concat([acc, guide_entry->string_of_suggestion]),
-         [],
-       );
+  let last_log_entry =
+    switch (log) {
+    | [] => []
+    | [last_log, ..._] => last_log |> list_of_log_entry
+    };
+  let guide_entries = guide |> List.map(suggest_action);
   let previous_log_entries =
-    log
-    |> List.tl
-    |> List.map(log_entry =>
-         (log_entry->color_of_log, log_entry->string_of_log |> List.hd)
-       );
+    switch (log) {
+    | [] => []
+    | [_, ...previous_log] =>
+      previous_log |> List.map(short_list_of_log_entry) |> List.concat
+    };
 
   <g>
     <clipPath id="status-panel-clip">
@@ -28,20 +25,19 @@ let make = (~game as {guide, log}) => {
       transform="translate(0 70)"
       fillOpacity="1"
       clipPath="url(#status-panel-clip)">
-      {last_log_entry_lines
+      {last_log_entry
        |> List.mapi((i, log_line) =>
             <text
               key={
                 i == 0
                   ? log->List.length |> string_of_int
-                  : "hl"
-                    ++ (last_log_entry_lines->List.length - i |> string_of_int)
+                  : "hl" ++ (last_log_entry->List.length - i |> string_of_int)
               }
               style=Theme.log_text
               x="0"
               y="5"
               transform={"translate(0 " ++ (i * 3 |> string_of_int) ++ ")"}
-              fill={last_log_entry->color_of_log}
+              fill={i == 0 ? "blue" : "orange"}
               fillOpacity="1">
               log_line->str
             </text>
@@ -56,9 +52,7 @@ let make = (~game as {guide, log}) => {
               y="5"
               transform={
                 "translate(0 "
-                ++ (
-                  3 * (i + last_log_entry_lines->List.length) |> string_of_int
-                )
+                ++ (3 * (i + last_log_entry->List.length) |> string_of_int)
                 ++ ")"
               }
               fill="white"
@@ -80,7 +74,7 @@ let make = (~game as {guide, log}) => {
                   3
                   * (
                     i
-                    + last_log_entry_lines->List.length
+                    + last_log_entry->List.length
                     + guide_entries->List.length
                   )
                   |> string_of_int
