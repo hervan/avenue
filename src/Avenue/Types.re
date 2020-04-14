@@ -28,6 +28,7 @@ type yellow_cards =
   | Four;
 
 type stage =
+  | Created
   | Begin
   | Round(farm, yellow_cards)
   | RoundEnd(farm)
@@ -85,13 +86,7 @@ type event_action =
   | ScoredNotEnough(int, int)
   | GameIsOver;
 
-type log_entry =
-  | Play(play_action)
-  | Event(event_action);
-
-type suggestion =
-  | Play(play_action)
-  | Control(control_action);
+type log_entry = (action, list(event_action));
 
 type board = {
   farmer: string,
@@ -111,7 +106,7 @@ type game = {
   castles,
   farms: list(cell),
   log: list(log_entry),
-  guide: list(suggestion),
+  guide: list(action),
 };
 
 exception Impossible(string);

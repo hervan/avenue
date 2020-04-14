@@ -3,9 +3,22 @@ open Converters;
 
 // TODO refactor to remove catch-all patterns
 
-let add_log = log_entry =>
+let add_action = action =>
   fun
-  | {log} as game => {...game, log: [log_entry, ...log]};
+  | {log} as game => {...game, log: [(action, []), ...log]};
+
+let add_event = event =>
+  fun
+  | {log: [(last_action, events), ...previous_actions]} as game => {
+      ...game,
+      log: [(last_action, [event, ...events]), ...previous_actions],
+    }
+  | {log: []} =>
+    raise(
+      Impossible(
+        "an event must only occur as a consequence of another action",
+      ),
+    );
 
 let add_suggestion = guide_entry =>
   fun
@@ -14,13 +27,13 @@ let add_suggestion = guide_entry =>
 let add_round_start_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_log(Event(RoundStarted(farm->string_of_farm)))
+    game |> add_event(RoundStarted(farm->string_of_farm))
   | game => game;
 
 let add_round_over_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_log(Event(RoundIsOver(farm->string_of_farm)))
+    game |> add_event(RoundIsOver(farm->string_of_farm))
   | game => game;
 
 let discard_top_farm = ({round_deck} as game) => {
@@ -154,7 +167,7 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_log(Event(ScoredZero(farm->string_of_farm)))
+    |> add_event(ScoredZero(farm->string_of_farm))
   | {
       players: [
         {
@@ -183,5 +196,5 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_log(Event(ScoredNotEnough(previous_points, points)))
+    |> add_event(ScoredNotEnough(previous_points, points))
   | game => game;

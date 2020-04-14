@@ -87,32 +87,44 @@ let to_pos = cell => (cell.row, cell.col);
 
 let suggest_play =
   fun
-  | PeekFarm => ["or click the bottom deck to peek at the upcoming farm"]
-  | FlipFarm => ["click the bottom deck to begin the next round"]
-  | FlipRoad => ["click the top deck to flip a road card"]
-  | DrawRoad(_, _) => ["click an empty cell to draw the current road"];
+  | PeekFarm => "or click the bottom deck to peek at the upcoming farm"
+  | FlipFarm => "click the bottom deck to begin the next round"
+  | FlipRoad => "click the top deck to flip a road card"
+  | DrawRoad(_, _) => "click an empty cell to draw the face-up road";
 
 let describe_play =
   fun
-  | PeekFarm => ["you peeked at the upcoming farm"]
-  | FlipFarm => ["you flipped a farm card to begin the next round"]
-  | FlipRoad => ["you flipped a road card"]
-  | DrawRoad(row, col) => [{j|you drew a road in cell ($row, $col)|j}];
+  | PeekFarm => "you peeked at the upcoming farm"
+  | FlipFarm => "you flipped a farm card to begin the next round"
+  | FlipRoad => "you flipped a road card"
+  | DrawRoad(row, col) => {j|you drew a road in cell ($row, $col)|j};
+
+let suggest_control =
+  fun
+  | Start => "click start to begin the game"
+  | Restart => "click restart to start a new game"
+  | Undo => "click undo to revert the last action";
+
+let describe_control =
+  fun
+  | Start => "welcome to avenue!"
+  | Restart => "the game was restarted"
+  | Undo => "the last action was undone";
 
 let describe_event =
   fun
   | GameStarted => [
-      "the game has started",
-      "welcome to avenue!",
-      "draw paths connecting grapes to farms to score points",
+      "the goal of the game is to draw roads connecting",
+      "farms to grapes, which will score you points.",
+      {js|these tips in green ⤵ should help you through your first game|js},
     ]
   | RoundStarted(farm) => [
       {j|round $farm started|j},
       {j|draw roads to connect grapes to farm $farm|j},
     ]
   | TurnSkipped => [
-      "you used your turn to peek at the next farm",
-      "hence you won't draw a road this turn",
+      "you skip drawing a road this turn",
+      "because you chose to peek at the next farm",
     ]
   | RoundIsOver(farm) => [
       {j|round $farm is over|j},
@@ -120,33 +132,47 @@ let describe_event =
       {j|road cards were played this round|j},
     ]
   | ScoredZero(farm) => [
-      {j|you don't have any grapes connected to farm $farm|j},
-      "therefore, this round you take a -5 points penalty",
+      "you take a -5 points penalty this round",
+      {j|because you don't have any grapes connected to farm $farm|j},
     ]
-  | ScoredNotEnough(previous, points) => [
-      {j|you connected $points grapes this round|j},
-      {j|last round you connected more grapes ($previous),|j},
-      "thus, you take a -5 points penalty this round",
-    ]
+  | ScoredNotEnough(previous, points) => {
+      let s = points == 1 ? "" : "s";
+      [
+        "you take a -5 points penalty this round",
+        {j|because you connected $points grape$s this round|j},
+        {j|but last round you connected more grapes ($previous)|j},
+      ];
+    }
   | GameIsOver => [
       "the game is over!",
-      "after five rounds played the game comes to an end",
+      "after five rounds are played, the game comes to an end",
     ];
 
-let string_of_suggestion =
+let describe_action =
   fun
-  | Play(play_action) => play_action->suggest_play
-  | Control(_) => [];
+  | Play(action) => action->describe_play
+  | Control(action) => action->describe_control;
 
-let string_of_log: log_entry => list(string) =
+let suggest_action =
   fun
-  | Play(play_action) => play_action->describe_play
-  | Event(event_action) => event_action->describe_event;
+  | Play(action) => action->suggest_play
+  | Control(action) => action->suggest_control;
 
-let color_of_log: log_entry => string =
+let list_of_log_entry =
+  fun
+  | (action, events) => [
+      action->describe_action,
+      ...events |> List.rev |> List.map(describe_event) |> List.concat,
+    ];
+
+let color_of_action =
   fun
   | Play(_) => "blue"
-  | Event(_) => "orange";
+  | Control(_) => "red";
+
+let short_list_of_log_entry =
+  fun
+  | (action, _) => [(action->color_of_action, action->describe_action)];
 
 let int_of_yc =
   fun

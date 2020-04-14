@@ -1,36 +1,37 @@
 open Jest;
 open Expect;
-
 open Types;
 open Converters;
 
-let bare_minimum_game = {
-  players: [
-    {farmer: "", lookahead: false, grid: [||], turn: 0, farm_points: []},
-  ],
-  deck: [],
-  turn: 0,
-  round_deck: [],
-  stage: Begin,
-  current_card: None,
-  castles: {
-    purple: {
-      row: 0,
-      col: 0,
-      content: Empty,
-      road: None,
+let bare_minimum_game =
+  {
+    players: [
+      {farmer: "", lookahead: false, grid: [||], turn: 0, farm_points: []},
+    ],
+    deck: [],
+    turn: 0,
+    round_deck: [],
+    stage: Created,
+    current_card: None,
+    castles: {
+      purple: {
+        row: 0,
+        col: 0,
+        content: Empty,
+        road: None,
+      },
+      green: {
+        row: 0,
+        col: 0,
+        content: Empty,
+        road: None,
+      },
     },
-    green: {
-      row: 0,
-      col: 0,
-      content: Empty,
-      road: None,
-    },
-  },
-  farms: [],
-  log: [],
-  guide: [],
-};
+    farms: [],
+    log: [],
+    guide: [],
+  }
+  |> Actions.start_game;
 
 let minimal_grid_contents = [|
   [|Castle(Purple), Farm(A), Empty, Farm(B)|],

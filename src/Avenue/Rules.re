@@ -2,6 +2,12 @@ open Types;
 
 // TODO refactor to remove catch-all patterns
 
+let can_start_game = ({stage}) =>
+  switch (stage) {
+  | Created => true
+  | _ => false
+  };
+
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
   | Begin
@@ -80,14 +86,15 @@ let can_end_game =
   | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
   | _ => false;
 
-let guide_create_game = game =>
-  game |> can_peek_farm ? game |> Game.add_suggestion(Control(Start)) : game;
-
-let guide_peek_farm = game =>
-  game |> can_peek_farm ? game |> Game.add_suggestion(Play(PeekFarm)) : game;
+let guide_start_game = game =>
+  game |> can_start_game
+    ? game |> Game.add_suggestion(Control(Start)) : game;
 
 let guide_flip_farm = game =>
   game |> can_flip_farm ? game |> Game.add_suggestion(Play(FlipFarm)) : game;
+
+let guide_peek_farm = game =>
+  game |> can_peek_farm ? game |> Game.add_suggestion(Play(PeekFarm)) : game;
 
 let guide_flip_road = game =>
   game |> can_flip_road ? game |> Game.add_suggestion(Play(FlipRoad)) : game;
@@ -98,7 +105,7 @@ let guide_draw_road = game =>
 
 let guide = game =>
   {...game, guide: []}
-  |> guide_create_game
+  |> guide_start_game
   |> guide_peek_farm
   |> guide_flip_farm
   |> guide_flip_road

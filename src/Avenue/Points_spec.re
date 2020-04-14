@@ -1,6 +1,5 @@
 open Jest;
 open Expect;
-
 open Types;
 
 describe("Points.count_grapes_cell", () => {
