@@ -1,7 +1,6 @@
 open Jest;
 open Expect;
 open Types;
-open Converters;
 
 let game =
   Avenue.(
@@ -9,10 +8,10 @@ let game =
       "",
       create_base_grid(map_A_grid_contents),
       [
-        (road_of_int(0), Yellow),
-        (road_of_int(1), Yellow),
-        (road_of_int(2), Yellow),
-        (road_of_int(3), Yellow),
+        (Road.of_int(0), Yellow),
+        (Road.of_int(1), Yellow),
+        (Road.of_int(2), Yellow),
+        (Road.of_int(3), Yellow),
       ],
       [A, B],
     )
@@ -59,15 +58,15 @@ describe("Actions.flip_farm", () => {
 describe("Actions.flip_road", () => {
   test("should current card be the top card", () => {
     expect(flip_road_game.current_card)
-    |> toEqual(Some((road_of_int(0), Yellow)))
+    |> toEqual(Some((Road.of_int(0), Road.Card.Yellow)))
   });
 
   test("should road deck be left with rest of deck", () => {
     expect(flip_road_game.deck)
     |> toEqual([
-         (road_of_int(1), Yellow),
-         (road_of_int(2), Yellow),
-         (road_of_int(3), Yellow),
+         (Road.of_int(1), Road.Card.Yellow),
+         (Road.of_int(2), Road.Card.Yellow),
+         (Road.of_int(3), Road.Card.Yellow),
        ])
   });
 
@@ -104,7 +103,7 @@ describe("Actions.draw_road", () => {
 
   test("should road be drawn at 0, 0", () => {
     expect((draw_road_game.players |> List.hd).grid[0][0].road)
-    |> toEqual(Some(road_of_int(0)))
+    |> toEqual(Some(Road.of_int(0)))
   });
 });
 

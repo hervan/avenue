@@ -1,5 +1,4 @@
 open Types;
-open Converters;
 
 let grid_columns = 6;
 let grid_rows = 7;
@@ -95,7 +94,7 @@ let create_road_deck = () => {
           ? aux(deck, available_cards)
           : {
             available_cards[road][color] = available_cards[road][color] - 1;
-            aux([road_card_of_ints(road, color), ...deck], available_cards);
+            aux([Road.card_of_ints(road, color), ...deck], available_cards);
           };
   };
   Random.self_init();

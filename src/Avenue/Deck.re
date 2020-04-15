@@ -1,6 +1,5 @@
 open Common;
 open Types;
-open Converters;
 
 [@react.component]
 let make = (~game as {deck, current_card}, ~dispatch) => {
@@ -92,7 +91,7 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
            width="15"
            height="20"
            rx="2"
-           fill={color->string_of_card_color}
+           fill={color->Road.string_of_card_color}
            stroke="white"
            strokeWidth="1"
            style=Theme.road_shadow

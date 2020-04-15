@@ -1,16 +1,6 @@
-type side =
-  | Top
-  | Right
-  | Bottom
-  | Left;
-
 type grape_color =
   | Purple
   | Green;
-
-type card_color =
-  | Grey
-  | Yellow;
 
 type yellow_cards =
   | Zero
@@ -50,19 +40,11 @@ type cell_content =
   | Castle(grape_color)
   | Farm(Farm.t);
 
-type road = (side, side);
-
-type road_orientation =
-  | Forward
-  | Backward;
-
-type card = (road, card_color);
-
 type cell = {
   row: int,
   col: int,
   content: cell_content,
-  road: option(road),
+  road: option(Road.t),
 };
 
 type grid = array(array(cell));
@@ -93,11 +75,11 @@ type board = {
 
 type game = {
   players: list(board),
-  deck: list(card),
+  deck: list(Road.Card.t),
   turn: int,
   round_deck: list(Farm.t),
   stage,
-  current_card: option(card),
+  current_card: option(Road.Card.t),
   castles,
   farms: list(cell),
   log: list(log_entry),

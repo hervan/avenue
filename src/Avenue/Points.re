@@ -38,7 +38,9 @@ let within_boundaries = (grid, row, col) =>
 
 let goes_to = (grid, {row, col}) =>
   fun
-  | Top when within_boundaries(grid, row - 1, col) => [grid[row - 1][col]]
+  | Road.Top when within_boundaries(grid, row - 1, col) => [
+      grid[row - 1][col],
+    ]
   | Right when within_boundaries(grid, row, col + 1) => [grid[row][col + 1]]
   | Bottom when within_boundaries(grid, row + 1, col) => [grid[row + 1][col]]
   | Left when within_boundaries(grid, row, col - 1) => [grid[row][col - 1]]

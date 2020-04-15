@@ -1,4 +1,81 @@
-open Converters;
+open Common;
+
+type side =
+  | Top
+  | Right
+  | Bottom
+  | Left;
+
+type road_t = (side, side);
+
+module Card = {
+  type color =
+    | Grey
+    | Yellow;
+
+  type t = (road_t, color);
+
+  let color_of_int =
+    fun
+    | 0 => Yellow
+    | 1 => Grey
+    | _ => raise(Impossible("there are only two colors of road cards"));
+};
+
+type t = road_t;
+
+type orientation =
+  | Forward
+  | Backward;
+
+let of_int =
+  fun
+  | 0 => (Top, Left)
+  | 1 => (Top, Right)
+  | 2 => (Right, Bottom)
+  | 3 => (Left, Bottom)
+  | 4 => (Left, Right)
+  | 5 => (Top, Bottom)
+  | _ => raise(Impossible("there are only six possible roads"));
+
+let card_of_ints = (road, color) => (
+  of_int(road),
+  Card.color_of_int(color),
+);
+
+let string_of_card_color =
+  fun
+  | Card.Grey => "lightgrey"
+  | Yellow => "yellow";
+
+let point_of_side =
+  fun
+  | Top => (5., 0.)
+  | Right => (10., 5.)
+  | Bottom => (5., 10.)
+  | Left => (0., 5.);
+
+let control_point_of_pos_side = (pos, side) =>
+  (
+    switch (pos) {
+    | None => (0., 0.)
+    | Some((row, col)) => (
+        5. *. ((col |> float_of_int) /. 5. -. 0.5),
+        5. *. ((row |> float_of_int) /. 6. -. 0.5),
+      )
+    }
+  )
+  |> (
+    ((x, y)) =>
+      switch (side) {
+      | Top => (x +. 5., y +. 5.)
+      | Right => (y +. 5., -. x +. 5.)
+      | Bottom => (-. x +. 5., -. y +. 5.)
+      | Left => (-. y +. 5., x +. 5.)
+      }
+  );
+
+let string_of_point = ((x, y)) => {j|$x $y|j};
 
 [@react.component]
 let make = (~road as (entry, exit), ~pos) => {
