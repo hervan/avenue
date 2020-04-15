@@ -11,15 +11,17 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
       | [{lookahead}, ..._] => lookahead
       | [] => false
       }
-    | RoundEnd(_)
-    | Begin => true
-    | _ => false
+    | Flow(RoundEnd)
+    | Flow(Begin) => true
+    | Flow(Created)
+    | Flow(End) => false
     };
   React.useEffect1(
     () => {
       switch (stage) {
-      | End(_) => setRotation(_ => 90)
-      | _ => ()
+      | Flow(End) => setRotation(_ => 90)
+      | Flow(_)
+      | Round(_, _) => ()
       };
       None;
     },
@@ -33,8 +35,8 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
         setRotation(_ => 90);
         let _ = Js.Global.setTimeout(() => setRotation(_ => 0), 500);
         ();
-      | Begin
-      | RoundEnd(_) =>
+      | Flow(Begin)
+      | Flow(RoundEnd) =>
         setRotation(_ => 90);
         let _ =
           Js.Global.setTimeout(
@@ -45,7 +47,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
             500,
           );
         ();
-      | _ => ()
+      | Flow(_) => ()
       }
     }
     transform="translate(63 25)">
@@ -119,13 +121,9 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
           height="20"
           rx="2"
           fill={
-            // TODO this should reflect whether there's a current farm
-            // hence refactor to keep farm in an option property
             switch (stage) {
-            | Round(_, _)
-            | RoundEnd(_)
-            | End(_) => "yellow"
-            | _ => "cornflowerblue"
+            | Round(_, _) => "yellow"
+            | Flow(_) => "cornflowerblue"
             }
           }
           stroke="white"
@@ -133,9 +131,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
           style=Theme.shadow
         />
         {switch (stage) {
-         | Round(farm, _)
-         | RoundEnd(farm)
-         | End(farm) =>
+         | Round(farm, _) =>
            <g transform="translate(4.5 12.5)" strokeWidth="0.1">
              <text
                strokeWidth={
@@ -147,7 +143,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
                {farm->string_of_farm->str}
              </text>
            </g>
-         | _ => React.null
+         | Flow(_) => React.null
          }}
       </g>
     </g>

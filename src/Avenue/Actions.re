@@ -3,7 +3,7 @@ open Game;
 
 let start_game = game =>
   game->Rules.can_start_game
-    ? {...game, stage: Begin}
+    ? {...game, stage: Flow(Begin)}
       |> add_action(Control(Start))
       |> add_event(GameStarted)
     : game;

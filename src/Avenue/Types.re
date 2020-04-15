@@ -27,12 +27,15 @@ type yellow_cards =
   | Three
   | Four;
 
-type stage =
+type flow_stage =
   | Created
   | Begin
+  | RoundEnd
+  | End;
+
+type stage =
   | Round(farm, yellow_cards)
-  | RoundEnd(farm)
-  | End(farm);
+  | Flow(flow_stage);
 
 type play_action =
   | PeekFarm

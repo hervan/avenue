@@ -129,7 +129,7 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
     deck: road_deck,
     turn: 0,
     round_deck: farm_deck,
-    stage: Created,
+    stage: Flow(Created),
     current_card: None,
     castles: {
       purple: find_content(Castle(Purple), base_grid),

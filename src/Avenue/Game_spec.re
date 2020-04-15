@@ -11,7 +11,7 @@ let bare_minimum_game =
     deck: [],
     turn: 0,
     round_deck: [],
-    stage: Created,
+    stage: Flow(Created),
     current_card: None,
     castles: {
       purple: {
@@ -90,7 +90,7 @@ describe("Game.advance_stage", () => {
   let game_end = game_end_e |> Game.advance_stage;
 
   test("should begin game with Begin stage", () => {
-    expect(game_yellow.stage) |> toEqual(Begin)
+    expect(game_yellow.stage) |> toEqual(Flow(Begin))
   });
 
   test("should advance game to farm A, 0 yellow cards stage", () => {
@@ -123,7 +123,7 @@ describe("Game.advance_stage", () => {
   });
 
   test("should advance game to round end A stage", () => {
-    expect(game_round_end_a.stage) |> toEqual(RoundEnd(A))
+    expect(game_round_end_a.stage) |> toEqual(Flow(RoundEnd))
   });
 
   test("should advance game to round B, 0 yellow cards stage", () => {
@@ -139,15 +139,15 @@ describe("Game.advance_stage", () => {
   });
 
   test("should advance game to round end E stage", () => {
-    expect(game_round_end_e.stage) |> toEqual(RoundEnd(E))
+    expect(game_round_end_e.stage) |> toEqual(Flow(RoundEnd))
   });
 
   test("should advance game to end E stage", () => {
-    expect(game_end_e.stage) |> toEqual(End(E))
+    expect(game_end_e.stage) |> toEqual(Flow(End))
   });
 
   test("should keep the game in end E stage", () => {
-    expect(game_end.stage) |> toEqual(End(E))
+    expect(game_end.stage) |> toEqual(Flow(End))
   });
 });
 

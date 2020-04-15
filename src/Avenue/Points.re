@@ -5,7 +5,7 @@ let filter_grapes = grape =>
   fun
   | {content: Castle(color)} => grape == color
   | {content: Farm(_)} => true
-  | _ => false;
+  | {content: Grapes(_) | Empty} => false;
 
 let count_grapes_cell = initial_cell =>
   fun
@@ -13,7 +13,9 @@ let count_grapes_cell = initial_cell =>
     grapes
     |> List.filter(grape => filter_grapes(grape, initial_cell))
     |> List.length
-  | _ => 0;
+  | Castle(_)
+  | Farm(_)
+  | Empty => 0;
 
 let same_cell = (c1, c2) => c1.row == c2.row && c1.col == c2.col;
 
@@ -39,7 +41,10 @@ let goes_to = (grid, {row, col}) =>
   | Right when within_boundaries(grid, row, col + 1) => [grid[row][col + 1]]
   | Bottom when within_boundaries(grid, row + 1, col) => [grid[row + 1][col]]
   | Left when within_boundaries(grid, row, col - 1) => [grid[row][col - 1]]
-  | _ => [];
+  | Top
+  | Right
+  | Bottom
+  | Left => [];
 
 let goes_to_list = grid =>
   fun
@@ -88,7 +93,7 @@ let make = (~game as {players} as game) =>
     let yc =
       switch (game.stage) {
       | Round(_, yc) => yc
-      | _ => Zero
+      | Flow(_) => Zero
       };
     <g transform="translate(62 50)">
       {farm_points->List.rev

@@ -1,8 +1,6 @@
 open Types;
 open Converters;
 
-// TODO refactor to remove catch-all patterns
-
 let add_action = action =>
   fun
   | {log} as game => {...game, log: [(action, []), ...log]};
@@ -104,14 +102,14 @@ let set_stage = (stage, game) => {...game, stage};
 
 let advance_stage =
   fun
-  | {stage: Begin, round_deck: [next_farm, ..._]} as game
-  | {stage: RoundEnd(_), round_deck: [next_farm, _, ..._]} as game =>
+  | {stage: Flow(Begin), round_deck: [next_farm, ..._]} as game
+  | {stage: Flow(RoundEnd), round_deck: [next_farm, _, ..._]} as game =>
     game |> set_stage(Round(next_farm, Zero))
-  | {stage: Round(farm, Four)} as game => game |> set_stage(RoundEnd(farm))
+  | {stage: Round(_, Four)} as game => game |> set_stage(Flow(RoundEnd))
   | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game =>
     game |> set_stage(Round(farm, yc->add_yc))
-  | {stage: RoundEnd(farm), round_deck: _} as game =>
-    game |> set_stage(End(farm))
+  | {stage: Flow(RoundEnd), round_deck: _} as game =>
+    game |> set_stage(Flow(End))
   | game => game;
 
 let recount_points = ({players, farms, stage} as game) =>
@@ -148,7 +146,7 @@ let recount_points = ({players, farms, stage} as game) =>
       }
     | [] => game
     }
-  | _ => game
+  | Flow(_) => game
   };
 
 let round_penalty =

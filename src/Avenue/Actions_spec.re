@@ -110,12 +110,12 @@ describe("Actions.draw_road", () => {
 
 describe("Actions.end_round", () => {
   test("should stage be end of round", () => {
-    expect(end_round_game.stage) |> toEqual(RoundEnd(A))
+    expect(end_round_game.stage) |> toEqual(Flow(RoundEnd))
   })
 });
 
 describe("Actions.end_game", () => {
   test("should stage be end of game", () => {
-    expect(ended_game.stage) |> toEqual(End(A))
+    expect(ended_game.stage) |> toEqual(Flow(End))
   })
 });

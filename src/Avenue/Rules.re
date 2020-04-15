@@ -1,22 +1,24 @@
 open Types;
 
-// TODO refactor to remove catch-all patterns
-
 let can_start_game = ({stage}) =>
   switch (stage) {
-  | Created => true
-  | _ => false
+  | Flow(Created) => true
+  | Round(_, _)
+  | Flow(_) => false
   };
 
 let can_flip_farm = ({round_deck, stage}) =>
   switch (stage) {
-  | Begin
-  | RoundEnd(_) =>
+  | Flow(Begin)
+  | Flow(RoundEnd) =>
     switch (round_deck) {
     | [_, _, ..._] => true
-    | _ => false
+    | [_]
+    | [] => false
     }
-  | _ => false
+  | Flow(Created)
+  | Round(_, _)
+  | Flow(End) => false
   };
 
 let can_peek_farm = ({players, stage, round_deck} as game) =>
@@ -32,7 +34,7 @@ let can_peek_farm = ({players, stage, round_deck} as game) =>
       | [] => false
       }
     }
-  | _ => false
+  | Flow(_) => false
   };
 
 let can_flip_road = ({players, deck, stage} as game) =>
@@ -42,11 +44,11 @@ let can_flip_road = ({players, deck, stage} as game) =>
     | [_, ..._] =>
       switch (players) {
       | [me, ..._] => me.turn == game.turn
-      | _ => false
+      | [] => false
       }
-    | _ => false
+    | [] => false
     }
-  | _ => false
+  | Flow(_) => false
   };
 
 let can_draw_road = (row, col, {players, stage, current_card} as game) =>
@@ -59,7 +61,7 @@ let can_draw_road = (row, col, {players, stage, current_card} as game) =>
         turn < game.turn && grid[row][col].road == None
       | [] => false
       }
-    | _ => false
+    | Flow(_) => false
     }
   | None => false
   };
@@ -74,17 +76,18 @@ let can_draw_road_somewhere =
          |> Array.to_list
          |> List.exists(cell => can_draw_road(cell.row, cell.col, game))
        )
-  | _ => false;
+  | {players: []} => false;
 
 let can_end_round =
   fun
   | {players: [me, ..._], stage: Round(_, Four), turn} => me.turn == turn
-  | _ => false;
+  | {players: []}
+  | {stage: Round(_, Zero | One | Two | Three) | Flow(_)} => false;
 
 let can_end_game =
   fun
-  | {stage: RoundEnd(_), round_deck} => round_deck->List.length == 1
-  | _ => false;
+  | {stage: Flow(RoundEnd), round_deck} => round_deck->List.length == 1
+  | {stage: Flow(_) | Round(_, _)} => false;
 
 let guide_start_game = game =>
   game |> can_start_game
