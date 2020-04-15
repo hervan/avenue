@@ -32,8 +32,8 @@ type action =
 
 type cell_content =
   | Empty
-  | Grapes(list(Grape.color))
-  | Castle(Grape.color)
+  | Grapes(list(Grape.t))
+  | Castle(Grape.t)
   | Farm(Farm.t);
 
 type cell = {
