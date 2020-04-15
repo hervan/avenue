@@ -53,7 +53,7 @@ let minimal_grid_without_empty =
 
 let road_deck = [];
 
-let farm_deck = [A, B, C, D, E, F];
+let farm_deck = Farm.[A, B, C, D, E, F];
 
 describe("Game.advance_stage", () => {
   let game_yellow = {
@@ -98,7 +98,7 @@ describe("Game.advance_stage", () => {
   });
 
   test("should remove top farm card from deck", () => {
-    expect(game_a_0.round_deck |> List.hd) |> toEqual(B)
+    expect(game_a_0.round_deck |> List.hd) |> toEqual(Farm.B)
   });
 
   test("should advance game to farm A, 1 yellow card stage", () => {
@@ -211,17 +211,17 @@ describe("Game.recount_points", () => {
 
   test("should have correct points for round A", () => {
     expect((game_round_a.players |> List.hd).farm_points)
-    |> toEqual([(A, 4)])
+    |> toEqual([(Farm.A, 4)])
   });
 
   test("should have correct points for round B", () => {
     expect((game_round_b.players |> List.hd).farm_points)
-    |> toEqual([(B, 0), (A, 4)])
+    |> toEqual([(Farm.B, 0), (A, 4)])
   });
 
   test("should recount correct points for round B", () => {
     expect((game_round_b_recounted.players |> List.hd).farm_points)
-    |> toEqual([(B, 4), (A, 4)])
+    |> toEqual([(Farm.B, 4), (A, 4)])
   });
 });
 
@@ -235,7 +235,7 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, (-5))]);
+    |> toEqual([(Farm.A, (-5))]);
   });
 
   test(
@@ -251,7 +251,7 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, (-5)), (B, (-5))]);
+    |> toEqual([(Farm.A, (-5)), (B, (-5))]);
   });
 
   test("should penalize if round points is lower than previous", () => {
@@ -266,7 +266,7 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, (-5)), (B, 40)]);
+    |> toEqual([(Farm.A, (-5)), (B, 40)]);
   });
 
   test("should not penalize first round more than zero", () => {
@@ -278,7 +278,7 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, 1)]);
+    |> toEqual([(Farm.A, 1)]);
   });
 
   test("should not penalize round score more than previous", () => {
@@ -293,7 +293,7 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, 2), (B, 1)]);
+    |> toEqual([(Farm.A, 2), (B, 1)]);
   });
 
   test("should penalize round score equal previous", () => {
@@ -308,6 +308,6 @@ describe("Game.round_penalty", () => {
       ],
     };
     expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(A, (-5)), (B, 1)]);
+    |> toEqual([(Farm.A, (-5)), (B, 1)]);
   });
 });

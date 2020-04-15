@@ -1,3 +1,4 @@
+open Common;
 open Types;
 open Converters;
 
@@ -25,13 +26,13 @@ let add_suggestion = guide_entry =>
 let add_round_start_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_event(RoundStarted(farm->string_of_farm))
+    game |> add_event(RoundStarted(farm->Farm.string_of_farm))
   | game => game;
 
 let add_round_over_event =
   fun
   | {stage: Round(farm, _)} as game =>
-    game |> add_event(RoundIsOver(farm->string_of_farm))
+    game |> add_event(RoundIsOver(farm->Farm.string_of_farm))
   | game => game;
 
 let discard_top_farm = ({round_deck} as game) => {
@@ -165,7 +166,7 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_event(ScoredZero(farm->string_of_farm))
+    |> add_event(ScoredZero(farm->Farm.string_of_farm))
   | {
       players: [
         {

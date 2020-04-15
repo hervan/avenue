@@ -1,6 +1,5 @@
 open Common;
 open Types;
-open Converters;
 
 [@react.component]
 let make = (~game as {players, round_deck, stage}, ~dispatch) => {
@@ -91,7 +90,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
                      fillOpacity="1"
                      fill="cornflowerblue"
                      style=Theme.big_text>
-                     {farm->string_of_farm->str}
+                     {farm->Farm.string_of_farm->str}
                    </text>
                  </g>
                : React.null}
@@ -141,7 +140,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
                fillOpacity="1"
                fill="cornflowerblue"
                style=Theme.big_text>
-               {farm->string_of_farm->str}
+               {farm->Farm.string_of_farm->str}
              </text>
            </g>
          | Flow(_) => React.null

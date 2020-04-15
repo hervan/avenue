@@ -71,7 +71,7 @@ let create_player = (player_name, base_grid) => {
   farm_points: [],
 };
 
-let random_farm = () => farm_of_int(Random.int(6));
+let random_farm = () => Farm.farm_of_int(Random.int(6));
 
 let create_farm_deck = () => {
   let rec aux = deck =>

@@ -52,7 +52,7 @@ describe("Actions.flip_farm", () => {
   });
 
   test("should farm deck be removed from top card", () => {
-    expect(flip_farm_game.round_deck) |> toEqual([B])
+    expect(flip_farm_game.round_deck) |> toEqual([Farm.B])
   });
 });
 

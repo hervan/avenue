@@ -1,11 +1,3 @@
-type farm =
-  | A
-  | B
-  | C
-  | D
-  | E
-  | F;
-
 type side =
   | Top
   | Right
@@ -34,7 +26,7 @@ type flow_stage =
   | End;
 
 type stage =
-  | Round(farm, yellow_cards)
+  | Round(Farm.t, yellow_cards)
   | Flow(flow_stage);
 
 type play_action =
@@ -56,7 +48,7 @@ type cell_content =
   | Empty
   | Grapes(list(grape_color))
   | Castle(grape_color)
-  | Farm(farm);
+  | Farm(Farm.t);
 
 type road = (side, side);
 
@@ -96,14 +88,14 @@ type board = {
   grid,
   lookahead: bool,
   turn: int,
-  farm_points: list((farm, int)),
+  farm_points: list((Farm.t, int)),
 };
 
 type game = {
   players: list(board),
   deck: list(card),
   turn: int,
-  round_deck: list(farm),
+  round_deck: list(Farm.t),
   stage,
   current_card: option(card),
   castles,
@@ -111,5 +103,3 @@ type game = {
   log: list(log_entry),
   guide: list(action),
 };
-
-exception Impossible(string);
