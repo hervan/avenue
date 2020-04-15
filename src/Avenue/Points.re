@@ -157,7 +157,7 @@ let make = (~game as {players} as game) =>
       <g transform={"translate(0, " ++ (5. *. 2.8)->Js.Float.toString ++ ")"}>
         <rect width="7" height="2.7" fill="lightgreen" rx="0.5" />
         <g transform="translate(0.5 2.4)">
-          <g transform="scale(0.35)"> <Castle color=Green /> </g>
+          <g transform="scale(0.35)"> <Castle color=Grape.Green /> </g>
           <text
             dx="3.3"
             x="3"
@@ -171,7 +171,7 @@ let make = (~game as {players} as game) =>
       <g transform={"translate(0, " ++ (6. *. 2.8)->Js.Float.toString ++ ")"}>
         <rect width="7" height="2.7" fill="thistle" rx="0.5" />
         <g transform="translate(0.5 2.4)">
-          <g transform="scale(0.35)"> <Castle color=Purple /> </g>
+          <g transform="scale(0.35)"> <Castle color=Grape.Purple /> </g>
           <text
             dx="3.3"
             x="3"

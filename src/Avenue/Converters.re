@@ -1,10 +1,5 @@
 open Types;
 
-let string_of_grape_color =
-  fun
-  | Purple => "purple"
-  | Green => "green";
-
 let to_pos = cell => (cell.row, cell.col);
 
 let suggest_play =

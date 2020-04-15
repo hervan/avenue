@@ -1,7 +1,3 @@
-type grape_color =
-  | Purple
-  | Green;
-
 type yellow_cards =
   | Zero
   | One
@@ -36,8 +32,8 @@ type action =
 
 type cell_content =
   | Empty
-  | Grapes(list(grape_color))
-  | Castle(grape_color)
+  | Grapes(list(Grape.color))
+  | Castle(Grape.color)
   | Farm(Farm.t);
 
 type cell = {
