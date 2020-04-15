@@ -1,7 +1,5 @@
 open Types;
 
-let to_pos = cell => (cell.row, cell.col);
-
 let suggest_play =
   fun
   | PeekFarm => "or click the bottom deck to peek at the upcoming farm"

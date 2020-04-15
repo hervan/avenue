@@ -5,7 +5,7 @@ let grid_rows = 7;
 
 let map_A_grid_contents = [|
   [|
-    Grapes([Green, Green, Green, Purple]),
+    Cell.Content.Grapes([Green, Green, Green, Purple]),
     Grapes([Purple]),
     Farm(A),
     Grapes([Green, Green]),
@@ -107,7 +107,7 @@ let create_road_deck = () => {
 let create_base_grid = grid_contents =>
   Array.init(grid_contents |> Array.length, row =>
     Array.init(grid_contents[0] |> Array.length, col =>
-      {row, col, content: grid_contents[row][col], road: None}
+      {Cell.row, col, content: grid_contents[row][col], road: None}
     )
   );
 
@@ -117,7 +117,7 @@ let find_content = (cell_content, grid) =>
   |> List.map(row =>
        row
        |> Array.to_list
-       |> List.filter(cell => cell.content == cell_content)
+       |> List.filter(({Cell.content}) => content == cell_content)
      )
   |> List.concat
   |> List.hd;

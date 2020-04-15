@@ -4,13 +4,13 @@ open Converters;
 
 let filter_grapes = grape =>
   fun
-  | {content: Castle(color)} => grape == color
+  | {Cell.content: Castle(color)} => grape == color
   | {content: Farm(_)} => true
   | {content: Grapes(_) | Empty} => false;
 
 let count_grapes_cell = initial_cell =>
   fun
-  | Grapes(grapes) =>
+  | Cell.Content.Grapes(grapes) =>
     grapes
     |> List.filter(grape => filter_grapes(grape, initial_cell))
     |> List.length
@@ -18,7 +18,9 @@ let count_grapes_cell = initial_cell =>
   | Farm(_)
   | Empty => 0;
 
-let same_cell = (c1, c2) => c1.row == c2.row && c1.col == c2.col;
+let same_cell =
+    ({Cell.row: row1, Cell.col: col1}, {Cell.row: row2, Cell.col: col2}) =>
+  row1 == row2 && col1 == col2;
 
 let path_taken = (path, cell) =>
   List.exists(cell_ => cell_ |> same_cell(cell), path);
@@ -26,7 +28,8 @@ let path_taken = (path, cell) =>
 let count_grapes_path = (path, initial_cell) =>
   path
   |> List.fold_left(
-       (acc, cell) => acc + count_grapes_cell(initial_cell, cell.content),
+       (acc, {Cell.content}) =>
+         acc + count_grapes_cell(initial_cell, content),
        0,
      );
 
@@ -36,7 +39,7 @@ let within_boundaries = (grid, row, col) =>
   && row < (grid |> Array.length)
   && col < (grid[0] |> Array.length);
 
-let goes_to = (grid, {row, col}) =>
+let goes_to = (grid, {Cell.row, col}) =>
   fun
   | Road.Top when within_boundaries(grid, row - 1, col) => [
       grid[row - 1][col],
@@ -51,7 +54,7 @@ let goes_to = (grid, {row, col}) =>
 
 let goes_to_list = grid =>
   fun
-  | {road: None} => []
+  | {Cell.road: None} => []
   | {road: Some((entry, exit))} as cell =>
     List.append(goes_to(grid, cell, entry), goes_to(grid, cell, exit));
 
@@ -87,8 +90,9 @@ let make = (~game as {players} as game) =>
   switch (players) {
   | [] => React.null
   | [{grid, farm_points}, ..._] =>
-    let purple_points = count_points(game.castles.purple |> to_pos, grid);
-    let green_points = count_points(game.castles.green |> to_pos, grid);
+    let purple_points =
+      count_points(game.castles.purple |> Cell.to_pos, grid);
+    let green_points = count_points(game.castles.green |> Cell.to_pos, grid);
     let total_points =
       (farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
       + purple_points

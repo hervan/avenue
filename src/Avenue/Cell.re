@@ -1,7 +1,12 @@
 open Common;
-open Types;
 
 module Content = {
+  type t =
+    | Empty
+    | Grapes(list(Grape.t))
+    | Castle(Grape.t)
+    | Farm(Farm.t);
+
   [@react.component]
   let make = (~content) =>
     switch (content) {
@@ -15,10 +20,21 @@ module Content = {
     };
 };
 
+type t = {
+  row: int,
+  col: int,
+  content: Content.t,
+  road: option(Road.t),
+};
+
+let to_pos = (cell: t) => (cell.row, cell.col);
+
+type grid = array(array(t));
+
 [@react.component]
 let make = (~cell, ~dispatch) =>
+  // onClick={_evt => dispatch(Avenue.DrawRoad(cell.row, cell.col))}
   <g
-    onClick={_evt => dispatch(DrawRoad(cell.row, cell.col))}
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int

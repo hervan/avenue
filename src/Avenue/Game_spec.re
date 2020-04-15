@@ -33,7 +33,7 @@ let bare_minimum_game =
   |> Actions.start_game;
 
 let minimal_grid_contents = [|
-  [|Castle(Purple), Farm(A), Empty, Farm(B)|],
+  [|Cell.Content.Castle(Purple), Farm(A), Empty, Farm(B)|],
   [|Farm(C), Empty, Grapes([Green, Green, Green, Purple]), Empty|],
   [|Empty, Grapes([Green, Purple, Purple, Purple]), Empty, Farm(D)|],
   [|Farm(E), Empty, Farm(F), Castle(Green)|],
@@ -42,7 +42,7 @@ let minimal_grid_contents = [|
 let minimal_grid = Avenue.create_base_grid(minimal_grid_contents);
 
 let minimal_grid_contents_without_empty = [|
-  [|Castle(Purple), Farm(A), Farm(B)|],
+  [|Cell.Content.Castle(Purple), Farm(A), Farm(B)|],
   [|Farm(C), Grapes([Green, Green, Green, Purple]), Farm(D)|],
   [|Farm(E), Farm(F), Castle(Green)|],
 |];

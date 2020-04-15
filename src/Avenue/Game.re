@@ -89,7 +89,7 @@ let draw_road_on_grid_cell = (row, col) =>
                  i == row
                    ? grid_row
                      |> Array.mapi((j, cell) =>
-                          j == col ? {...cell, road: Some(road)} : cell
+                          j == col ? {...cell, Cell.road: Some(road)} : cell
                         )
                    : grid_row
                ),
@@ -131,8 +131,10 @@ let recount_points = ({players, farms, stage} as game) =>
                     farm,
                     Points.count_points(
                       farms
-                      |> List.find(cell => cell.content == Farm(farm))
-                      |> to_pos,
+                      |> List.find(({Cell.content}) =>
+                           content == Farm(farm)
+                         )
+                      |> Cell.to_pos,
                       grid,
                     ),
                   ),

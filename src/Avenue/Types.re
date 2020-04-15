@@ -30,24 +30,9 @@ type action =
   | Play(play_action)
   | Control(control_action);
 
-type cell_content =
-  | Empty
-  | Grapes(list(Grape.t))
-  | Castle(Grape.t)
-  | Farm(Farm.t);
-
-type cell = {
-  row: int,
-  col: int,
-  content: cell_content,
-  road: option(Road.t),
-};
-
-type grid = array(array(cell));
-
 type castles = {
-  purple: cell,
-  green: cell,
+  purple: Cell.t,
+  green: Cell.t,
 };
 
 type event_action =
@@ -63,7 +48,7 @@ type log_entry = (action, list(event_action));
 
 type board = {
   farmer: string,
-  grid,
+  grid: Cell.grid,
   lookahead: bool,
   turn: int,
   farm_points: list((Farm.t, int)),
@@ -77,7 +62,7 @@ type game = {
   stage,
   current_card: option(Road.Card.t),
   castles,
-  farms: list(cell),
+  farms: list(Cell.t),
   log: list(log_entry),
   guide: list(action),
 };

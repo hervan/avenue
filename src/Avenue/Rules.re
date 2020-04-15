@@ -74,7 +74,9 @@ let can_draw_road_somewhere =
     |> List.exists(grid_row =>
          grid_row
          |> Array.to_list
-         |> List.exists(cell => can_draw_road(cell.row, cell.col, game))
+         |> List.exists(({Cell.row, Cell.col}) =>
+              can_draw_road(row, col, game)
+            )
        )
   | {players: []} => false;
 
