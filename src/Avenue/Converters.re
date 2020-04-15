@@ -1,9 +1,5 @@
 open Types;
 
-let str = React.string;
-
-let arr = list => list |> Array.of_list |> ReasonReact.array;
-
 let string_of_farm =
   fun
   | A => "A"
