@@ -33,8 +33,8 @@ type grid = array(array(t));
 
 [@react.component]
 let make = (~cell, ~dispatch) =>
-  // onClick={_evt => dispatch(Avenue.DrawRoad(cell.row, cell.col))}
   <g
+    onClick={_evt => dispatch(cell.row, cell.col)}
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int

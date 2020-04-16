@@ -180,7 +180,11 @@ let make = () => {
        |> Array.to_list
        |> Array.concat
        |> Array.mapi((i, cell) =>
-            <Cell key={i |> string_of_int} cell dispatch />
+            <Cell
+              key={i |> string_of_int}
+              cell
+              dispatch={(row, col) => dispatch(DrawRoad(row, col))}
+            />
           )
        |> ReasonReact.array}
     </g>
