@@ -148,6 +148,28 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
   |> Actions.start_game
   |> Rules.guide;
 
+// TODO create reducers for parts of game state (namely log, but also anywhere else creating dependency cycles)
+// actions can potentially replace existing game update functions in Game module
+// this should decentralize state from game type
+// root reducer should look like
+// reduce game action = {
+//   players: reduce_players players action
+//   deck: reduce_deck deck action
+//   turn: reduce_turn turn action
+//   round_deck: reduce_round_deck round_deck action
+//   stage: reduce_stage stage action
+//   current_card: reduce_current_card current_card action
+//   castles: reduce_castles castles action
+//   farms: reduce_farms farms action
+//   log: reduce_log log action
+//   guide: reduce_guide guide action
+// }
+// with this, keep components with all logic related to it;
+// consider using submodules for different types of related components:
+// in Farm.re
+// module SVG { let make ... }
+// which will be <Farm.SVG />
+// but only in case it still causes conflicts or dependency cycles
 let reducer = game =>
   fun
   | PeekFarm => game |> Actions.peek_farm |> Rules.guide
