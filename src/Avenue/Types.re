@@ -41,7 +41,7 @@ type event_action =
   | TurnSkipped
   | RoundIsOver(string)
   | ScoredZero(string)
-  | ScoredNotEnough(int, int)
+  | ScoredNotEnough(int, string, int)
   | GameIsOver;
 
 type log_entry = (action, list(event_action));

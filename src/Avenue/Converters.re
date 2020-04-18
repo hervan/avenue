@@ -50,11 +50,11 @@ let describe_event =
       "you take a -5 points penalty this round",
       {j|because you don't have any grapes connected to farm $farm|j},
     ]
-  | ScoredNotEnough(previous, points) => {
+  | ScoredNotEnough(previous, farm, points) => {
       let s = points == 1 ? "" : "s";
       [
         "you take a -5 points penalty this round",
-        {j|because you connected $points grape$s this round|j},
+        {j|because you connected $points grape$s to farm $farm|j},
         {j|but last round you connected more grapes ($previous)|j},
       ];
     }

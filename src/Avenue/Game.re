@@ -197,5 +197,7 @@ let round_penalty =
         ...other_players,
       ],
     }
-    |> add_event(ScoredNotEnough(previous_points, points))
+    |> add_event(
+         ScoredNotEnough(previous_points, farm->Farm.string_of_farm, points),
+       )
   | game => game;
