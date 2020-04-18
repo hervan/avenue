@@ -39,7 +39,7 @@ let minimal_grid_contents = [|
   [|Farm(E), Empty, Farm(F), Castle(Green)|],
 |];
 
-let minimal_grid = Avenue.create_base_grid(minimal_grid_contents);
+let minimal_grid = Game.create_base_grid(minimal_grid_contents);
 
 let minimal_grid_contents_without_empty = [|
   [|Cell.Content.Castle(Purple), Farm(A), Farm(B)|],
@@ -48,45 +48,49 @@ let minimal_grid_contents_without_empty = [|
 |];
 
 let minimal_grid_without_empty =
-  Avenue.create_base_grid(minimal_grid_contents_without_empty);
+  Game.create_base_grid(minimal_grid_contents_without_empty);
 
 let road_deck = [];
 
 let farm_deck = Farm.[A, B, C, D, E, F];
 
-describe("Game.advance_stage", () => {
+describe("Avenue.advance_stage", () => {
   let game_yellow = {
-    ...Avenue.create_game("me", minimal_grid, road_deck, farm_deck),
+    ...Game.create_game("me", minimal_grid, road_deck, farm_deck),
     current_card: Some((Road.of_int(0), Yellow)),
   };
-  let game_a_0 = game_yellow |> Game.advance_stage |> Game.discard_top_farm;
-  let game_a_1 = game_a_0 |> Game.advance_stage;
+  let game_a_0 =
+    game_yellow |> Avenue.advance_stage |> Avenue.discard_top_farm;
+  let game_a_1 = game_a_0 |> Avenue.advance_stage;
   let game_a_1_grey = {
     ...game_a_1,
     current_card: Some((Road.of_int(0), Grey)),
   };
-  let game_a_1_yet = game_a_1_grey |> Game.advance_stage;
+  let game_a_1_yet = game_a_1_grey |> Avenue.advance_stage;
   let game_a_4 =
-    game_a_1 |> Game.advance_stage |> Game.advance_stage |> Game.advance_stage;
-  let game_round_end_a = game_a_4 |> Game.advance_stage;
+    game_a_1
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage;
+  let game_round_end_a = game_a_4 |> Avenue.advance_stage;
   let game_b_0 =
-    game_round_end_a |> Game.advance_stage |> Game.discard_top_farm;
+    game_round_end_a |> Avenue.advance_stage |> Avenue.discard_top_farm;
   let game_e_0 =
     game_round_end_a
-    |> Game.discard_top_farm
-    |> Game.discard_top_farm
-    |> Game.discard_top_farm
-    |> Game.advance_stage
-    |> Game.discard_top_farm;
+    |> Avenue.discard_top_farm
+    |> Avenue.discard_top_farm
+    |> Avenue.discard_top_farm
+    |> Avenue.advance_stage
+    |> Avenue.discard_top_farm;
   let game_e_4 =
     game_e_0
-    |> Game.advance_stage
-    |> Game.advance_stage
-    |> Game.advance_stage
-    |> Game.advance_stage;
-  let game_round_end_e = game_e_4 |> Game.advance_stage;
-  let game_end_e = game_round_end_e |> Game.advance_stage;
-  let game_end = game_end_e |> Game.advance_stage;
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage;
+  let game_round_end_e = game_e_4 |> Avenue.advance_stage;
+  let game_end_e = game_round_end_e |> Avenue.advance_stage;
+  let game_end = game_end_e |> Avenue.advance_stage;
 
   test("should begin game with Begin stage", () => {
     expect(game_yellow.stage) |> toEqual(Flow(Begin))
@@ -150,7 +154,7 @@ describe("Game.advance_stage", () => {
   });
 });
 
-describe("Game.recount_points", () => {
+describe("Avenue.recount_points", () => {
   let connected_grid = minimal_grid_without_empty;
   connected_grid[0][1] = {
     ...connected_grid[0][1],
@@ -186,7 +190,7 @@ describe("Game.recount_points", () => {
   };
 
   let base_game =
-    Avenue.create_game("me", connected_grid, road_deck, farm_deck);
+    Game.create_game("me", connected_grid, road_deck, farm_deck);
 
   let game_round_a =
     {
@@ -194,7 +198,7 @@ describe("Game.recount_points", () => {
       stage: Round(A, Zero),
       players: [{...base_game.players |> List.hd, farm_points: [(A, 0)]}],
     }
-    |> Game.recount_points;
+    |> Avenue.recount_points;
 
   let me_round_a = game_round_a.players |> List.hd;
 
@@ -206,7 +210,7 @@ describe("Game.recount_points", () => {
     ],
   };
 
-  let game_round_b_recounted = game_round_b |> Game.recount_points;
+  let game_round_b_recounted = game_round_b |> Avenue.recount_points;
 
   test("should have correct points for round A", () => {
     expect((game_round_a.players |> List.hd).farm_points)
@@ -224,7 +228,7 @@ describe("Game.recount_points", () => {
   });
 });
 
-describe("Game.round_penalty", () => {
+describe("Avenue.round_penalty", () => {
   test("should penalize if round points is zero", () => {
     let game = {
       ...bare_minimum_game,
@@ -233,7 +237,7 @@ describe("Game.round_penalty", () => {
         {...bare_minimum_game.players |> List.hd, farm_points: [(A, 0)]},
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, (-5))]);
   });
 
@@ -249,7 +253,7 @@ describe("Game.round_penalty", () => {
         },
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, (-5)), (B, (-5))]);
   });
 
@@ -264,7 +268,7 @@ describe("Game.round_penalty", () => {
         },
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, (-5)), (B, 40)]);
   });
 
@@ -276,7 +280,7 @@ describe("Game.round_penalty", () => {
         {...bare_minimum_game.players |> List.hd, farm_points: [(A, 1)]},
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, 1)]);
   });
 
@@ -291,7 +295,7 @@ describe("Game.round_penalty", () => {
         },
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, 2), (B, 1)]);
   });
 
@@ -306,7 +310,7 @@ describe("Game.round_penalty", () => {
         },
       ],
     };
-    expect(((game |> Game.round_penalty).players |> List.hd).farm_points)
+    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
     |> toEqual([(Farm.A, (-5)), (B, 1)]);
   });
 });

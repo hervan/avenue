@@ -3,7 +3,7 @@ open Expect;
 open Types;
 
 let game =
-  Avenue.(
+  Game.(
     create_game(
       "",
       create_base_grid(map_A_grid_contents),

@@ -1,5 +1,5 @@
 open Types;
-open Game;
+open Avenue;
 
 let start_game = game =>
   game->Rules.can_start_game

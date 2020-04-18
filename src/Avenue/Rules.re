@@ -93,20 +93,23 @@ let can_end_game =
 
 let guide_start_game = game =>
   game |> can_start_game
-    ? game |> Game.add_suggestion(Control(Start)) : game;
+    ? game |> Avenue.add_suggestion(Control(Start)) : game;
 
 let guide_flip_farm = game =>
-  game |> can_flip_farm ? game |> Game.add_suggestion(Play(FlipFarm)) : game;
+  game |> can_flip_farm
+    ? game |> Avenue.add_suggestion(Play(FlipFarm)) : game;
 
 let guide_peek_farm = game =>
-  game |> can_peek_farm ? game |> Game.add_suggestion(Play(PeekFarm)) : game;
+  game |> can_peek_farm
+    ? game |> Avenue.add_suggestion(Play(PeekFarm)) : game;
 
 let guide_flip_road = game =>
-  game |> can_flip_road ? game |> Game.add_suggestion(Play(FlipRoad)) : game;
+  game |> can_flip_road
+    ? game |> Avenue.add_suggestion(Play(FlipRoad)) : game;
 
 let guide_draw_road = game =>
   game |> can_draw_road_somewhere
-    ? game |> Game.add_suggestion(Play(DrawRoad(0, 0))) : game;
+    ? game |> Avenue.add_suggestion(Play(DrawRoad(0, 0))) : game;
 
 let guide = game =>
   {...game, guide: []}
