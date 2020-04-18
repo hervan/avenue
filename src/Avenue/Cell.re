@@ -15,7 +15,7 @@ module Content = {
       grapes
       |> List.mapi((i, grape) => <Grape key={i |> string_of_int} grape i />)
       |> arr
-    | Castle(color) => <g transform="translate(2 8)"> <Castle color /> </g>
+    | Castle(grape) => <g transform="translate(2 8)"> <Castle grape /> </g>
     | Farm(farm) => <g transform="translate(5 9)"> <Farm farm /> </g>
     };
 };
