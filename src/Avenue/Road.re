@@ -6,29 +6,15 @@ type side =
   | Bottom
   | Left;
 
-type road_t = (side, side);
+type t = (side, side);
 
-module Card = {
-  type color =
-    | Grey
-    | Yellow;
-
-  type t = (road_t, color);
-
-  let color_of_int =
-    fun
-    | 0 => Yellow
-    | 1 => Grey
-    | _ => raise(Impossible("there are only two colors of road cards"));
-};
-
-type t = road_t;
+type road_t = t;
 
 type orientation =
   | Forward
   | Backward;
 
-let of_int =
+let road_of_int =
   fun
   | 0 => (Top, Left)
   | 1 => (Top, Right)
@@ -37,16 +23,6 @@ let of_int =
   | 4 => (Left, Right)
   | 5 => (Top, Bottom)
   | _ => raise(Impossible("there are only six possible roads"));
-
-let card_of_ints = (road, color) => (
-  of_int(road),
-  Card.color_of_int(color),
-);
-
-let string_of_card_color =
-  fun
-  | Card.Grey => "lightgrey"
-  | Yellow => "yellow";
 
 let point_of_side =
   fun
@@ -76,6 +52,30 @@ let control_point_of_pos_side = (pos, side) =>
   );
 
 let string_of_point = ((x, y)) => {j|$x $y|j};
+
+module Card = {
+  type color =
+    | Grey
+    | Yellow;
+
+  type t = (road_t, color);
+
+  let color_of_int =
+    fun
+    | 0 => Yellow
+    | 1 => Grey
+    | _ => raise(Impossible("there are only two colors of road cards"));
+
+  let card_of_ints = (road, color) => (
+    road_of_int(road),
+    color_of_int(color),
+  );
+
+  let string_of_color =
+    fun
+    | Grey => "lightgrey"
+    | Yellow => "yellow";
+};
 
 [@react.component]
 let make = (~road as (entry, exit), ~pos) => {

@@ -91,7 +91,7 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
            width="15"
            height="20"
            rx="2"
-           fill={color->Road.string_of_card_color}
+           fill={color->Road.Card.string_of_color}
            stroke="white"
            strokeWidth="1"
            style=Theme.road_shadow

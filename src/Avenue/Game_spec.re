@@ -57,14 +57,14 @@ let farm_deck = Farm.[A, B, C, D, E, F];
 describe("Avenue.advance_stage", () => {
   let game_yellow = {
     ...Game.create_game("me", minimal_grid, road_deck, farm_deck),
-    current_card: Some((Road.of_int(0), Yellow)),
+    current_card: Some((Road.road_of_int(0), Yellow)),
   };
   let game_a_0 =
     game_yellow |> Avenue.advance_stage |> Avenue.discard_top_farm;
   let game_a_1 = game_a_0 |> Avenue.advance_stage;
   let game_a_1_grey = {
     ...game_a_1,
-    current_card: Some((Road.of_int(0), Grey)),
+    current_card: Some((Road.road_of_int(0), Grey)),
   };
   let game_a_1_yet = game_a_1_grey |> Avenue.advance_stage;
   let game_a_4 =
@@ -114,7 +114,7 @@ describe("Avenue.advance_stage", () => {
 
   test("should current card be grey", () => {
     expect(game_a_1_grey.current_card)
-    |> toEqual(Some((Road.of_int(0), Road.Card.Grey)))
+    |> toEqual(Some((Road.road_of_int(0), Road.Card.Grey)))
   });
 
   test("should keep the game in farm A, 1 yellow card stage", () => {
@@ -158,35 +158,35 @@ describe("Avenue.recount_points", () => {
   let connected_grid = minimal_grid_without_empty;
   connected_grid[0][1] = {
     ...connected_grid[0][1],
-    road: Some(Road.of_int(2)),
+    road: Some(Road.road_of_int(2)),
   };
   connected_grid[0][2] = {
     ...connected_grid[0][2],
-    road: Some(Road.of_int(3)),
+    road: Some(Road.road_of_int(3)),
   };
   connected_grid[1][0] = {
     ...connected_grid[1][0],
-    road: Some(Road.of_int(2)),
+    road: Some(Road.road_of_int(2)),
   };
   connected_grid[1][1] = {
     ...connected_grid[1][1],
-    road: Some(Road.of_int(0)),
+    road: Some(Road.road_of_int(0)),
   };
   connected_grid[1][2] = {
     ...connected_grid[1][2],
-    road: Some(Road.of_int(5)),
+    road: Some(Road.road_of_int(5)),
   };
   connected_grid[2][0] = {
     ...connected_grid[2][0],
-    road: Some(Road.of_int(1)),
+    road: Some(Road.road_of_int(1)),
   };
   connected_grid[2][1] = {
     ...connected_grid[2][1],
-    road: Some(Road.of_int(4)),
+    road: Some(Road.road_of_int(4)),
   };
   connected_grid[2][2] = {
     ...connected_grid[2][2],
-    road: Some(Road.of_int(0)),
+    road: Some(Road.road_of_int(0)),
   };
 
   let base_game =
