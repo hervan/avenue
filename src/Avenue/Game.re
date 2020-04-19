@@ -213,8 +213,8 @@ let make = () => {
           )
        |> ReasonReact.array}
     </g>
-    <Deck game dispatch />
-    <RoundDeck game dispatch />
+    <RoadDeck game dispatch />
+    <FarmDeck game dispatch />
     <Points game />
     <Status game />
   </svg>;
