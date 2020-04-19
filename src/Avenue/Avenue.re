@@ -1,6 +1,5 @@
 open Common;
 open Types;
-open Converters;
 
 let add_action = action =>
   fun
@@ -108,7 +107,7 @@ let advance_stage =
     game |> set_stage(Round(next_farm, Zero))
   | {stage: Round(_, Four)} as game => game |> set_stage(Flow(RoundEnd))
   | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game =>
-    game |> set_stage(Round(farm, yc->add_yc))
+    game |> set_stage(Round(farm, yc->Stage.add_yc))
   | {stage: Flow(RoundEnd), round_deck: _} as game =>
     game |> set_stage(Flow(End))
   | game => game;

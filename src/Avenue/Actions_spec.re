@@ -47,7 +47,7 @@ let poke_game = allow_peek_game |> Actions.peek_farm;
 
 describe("Actions.flip_farm", () => {
   test("should stage be round for top farm", () => {
-    expect(flip_farm_game.stage) |> toEqual(Round(A, Zero))
+    expect(flip_farm_game.stage) |> toEqual(Stage.Round(A, Zero))
   });
 
   test("should farm deck be removed from top card", () => {
@@ -109,12 +109,12 @@ describe("Actions.draw_road", () => {
 
 describe("Actions.end_round", () => {
   test("should stage be end of round", () => {
-    expect(end_round_game.stage) |> toEqual(Flow(RoundEnd))
+    expect(end_round_game.stage) |> toEqual(Stage.Flow(RoundEnd))
   })
 });
 
 describe("Actions.end_game", () => {
   test("should stage be end of game", () => {
-    expect(ended_game.stage) |> toEqual(Flow(End))
+    expect(ended_game.stage) |> toEqual(Stage.Flow(End))
   })
 });

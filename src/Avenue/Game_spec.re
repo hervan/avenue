@@ -93,11 +93,11 @@ describe("Avenue.advance_stage", () => {
   let game_end = game_end_e |> Avenue.advance_stage;
 
   test("should begin game with Begin stage", () => {
-    expect(game_yellow.stage) |> toEqual(Flow(Begin))
+    expect(game_yellow.stage) |> toEqual(Stage.Flow(Begin))
   });
 
   test("should advance game to farm A, 0 yellow cards stage", () => {
-    expect(game_a_0.stage) |> toEqual(Round(A, Zero))
+    expect(game_a_0.stage) |> toEqual(Stage.Round(A, Zero))
   });
 
   test("should remove top farm card from deck", () => {
@@ -105,11 +105,11 @@ describe("Avenue.advance_stage", () => {
   });
 
   test("should advance game to farm A, 1 yellow card stage", () => {
-    expect(game_a_1.stage) |> toEqual(Round(A, One))
+    expect(game_a_1.stage) |> toEqual(Stage.Round(A, One))
   });
 
   test("should game be in farm A, 1 yellow card stage", () => {
-    expect(game_a_1_grey.stage) |> toEqual(Round(A, One))
+    expect(game_a_1_grey.stage) |> toEqual(Stage.Round(A, One))
   });
 
   test("should current card be grey", () => {
@@ -118,39 +118,39 @@ describe("Avenue.advance_stage", () => {
   });
 
   test("should keep the game in farm A, 1 yellow card stage", () => {
-    expect(game_a_1_yet.stage) |> toEqual(Round(A, One))
+    expect(game_a_1_yet.stage) |> toEqual(Stage.Round(A, One))
   });
 
   test("should advance game to farm A, 4 yellow card stage", () => {
-    expect(game_a_4.stage) |> toEqual(Round(A, Four))
+    expect(game_a_4.stage) |> toEqual(Stage.Round(A, Four))
   });
 
   test("should advance game to round end A stage", () => {
-    expect(game_round_end_a.stage) |> toEqual(Flow(RoundEnd))
+    expect(game_round_end_a.stage) |> toEqual(Stage.Flow(RoundEnd))
   });
 
   test("should advance game to round B, 0 yellow cards stage", () => {
-    expect(game_b_0.stage) |> toEqual(Round(B, Zero))
+    expect(game_b_0.stage) |> toEqual(Stage.Round(B, Zero))
   });
 
   test("should advance game to round E, 0 yellow cards stage", () => {
-    expect(game_e_0.stage) |> toEqual(Round(E, Zero))
+    expect(game_e_0.stage) |> toEqual(Stage.Round(E, Zero))
   });
 
   test("should advance game to round E, 4 yellow cards stage", () => {
-    expect(game_e_4.stage) |> toEqual(Round(E, Four))
+    expect(game_e_4.stage) |> toEqual(Stage.Round(E, Four))
   });
 
   test("should advance game to round end E stage", () => {
-    expect(game_round_end_e.stage) |> toEqual(Flow(RoundEnd))
+    expect(game_round_end_e.stage) |> toEqual(Stage.Flow(RoundEnd))
   });
 
   test("should advance game to end E stage", () => {
-    expect(game_end_e.stage) |> toEqual(Flow(End))
+    expect(game_end_e.stage) |> toEqual(Stage.Flow(End))
   });
 
   test("should keep the game in end E stage", () => {
-    expect(game_end.stage) |> toEqual(Flow(End))
+    expect(game_end.stage) |> toEqual(Stage.Flow(End))
   });
 });
 

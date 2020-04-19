@@ -88,19 +88,3 @@ let color_of_action =
 let short_list_of_log_entry =
   fun
   | (action, _) => [(action->color_of_action, action->describe_action)];
-
-let int_of_yc =
-  fun
-  | Zero => 0
-  | One => 1
-  | Two => 2
-  | Three => 3
-  | Four => 4;
-
-let add_yc =
-  fun
-  | Zero => One
-  | One => Two
-  | Two => Three
-  | Three => Four
-  | Four => Four;

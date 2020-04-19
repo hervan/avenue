@@ -1,20 +1,3 @@
-type yellow_cards =
-  | Zero
-  | One
-  | Two
-  | Three
-  | Four;
-
-type flow_stage =
-  | Created
-  | Begin
-  | RoundEnd
-  | End;
-
-type stage =
-  | Round(Farm.t, yellow_cards)
-  | Flow(flow_stage);
-
 type play_action =
   | PeekFarm
   | FlipFarm
@@ -53,6 +36,8 @@ type board = {
   turn: int,
   farm_points: list((Farm.t, int)),
 };
+
+type stage = Stage.t;
 
 type game = {
   players: list(board),
