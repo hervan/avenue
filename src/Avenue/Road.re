@@ -8,8 +8,6 @@ type side =
 
 type t = (side, side);
 
-type road_t = t;
-
 type orientation =
   | Forward
   | Backward;
@@ -52,6 +50,9 @@ let control_point_of_pos_side = (pos, side) =>
   );
 
 let string_of_point = ((x, y)) => {j|$x $y|j};
+
+// don't know how refer to a parent module type, came up with this
+type road_t = t;
 
 module Card = {
   type color =
