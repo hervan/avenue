@@ -1,16 +1,21 @@
 open Jest;
 open Expect;
-open Types;
 
-let bare_minimum_game =
-  {
-    players: [
-      {farmer: "", lookahead: false, grid: [||], turn: 0, farm_points: []},
-    ],
-    deck: [],
+let bare_minimum_game = {
+  Game.avenue: {
     turn: 0,
-    round_deck: [],
-    stage: Flow(Created),
+    active_player: {
+      farmer: "",
+      turn: 0,
+      lookahead: false,
+      grid: [||],
+      current_round_points: None,
+      previous_round_points: [],
+    },
+    other_players: [],
+    road_deck: [],
+    farm_deck: [],
+    stage: Flow(Begin),
     current_card: None,
     castles: {
       purple: {
@@ -27,10 +32,10 @@ let bare_minimum_game =
       },
     },
     farms: [],
-    log: [],
-    guide: [],
-  }
-  |> Actions.start_game;
+  },
+  log: [],
+  guide: [],
+};
 
 let minimal_grid_contents = [|
   [|Cell.Content.Castle(Purple), Farm(A), Empty, Farm(B)|],
@@ -55,8 +60,9 @@ let road_deck = [];
 let farm_deck = Farm.[A, B, C, D, E, F];
 
 describe("Avenue.advance_stage", () => {
+  let base_game = Game.create_game("me", minimal_grid, road_deck, farm_deck);
   let game_yellow = {
-    ...Game.create_game("me", minimal_grid, road_deck, farm_deck),
+    ...base_game.avenue,
     current_card: Some((Road.road_of_int(0), Yellow)),
   };
   let game_a_0 =
@@ -101,7 +107,7 @@ describe("Avenue.advance_stage", () => {
   });
 
   test("should remove top farm card from deck", () => {
-    expect(game_a_0.round_deck |> List.hd) |> toEqual(Farm.B)
+    expect(game_a_0.farm_deck |> List.hd) |> toEqual(Farm.B)
   });
 
   test("should advance game to farm A, 1 yellow card stage", () => {
@@ -194,37 +200,56 @@ describe("Avenue.recount_points", () => {
 
   let game_round_a =
     {
-      ...base_game,
+      ...base_game.avenue,
       stage: Round(A, Zero),
-      players: [{...base_game.players |> List.hd, farm_points: [(A, 0)]}],
+      active_player: {
+        ...base_game.avenue.active_player,
+        current_round_points: Some((A, 0)),
+        previous_round_points: [],
+      },
     }
     |> Avenue.recount_points;
 
-  let me_round_a = game_round_a.players |> List.hd;
+  let previous_round_points_round_b =
+    switch (game_round_a.active_player.current_round_points) {
+    | Some(points) => [
+        points,
+        ...game_round_a.active_player.previous_round_points,
+      ]
+    | None => game_round_a.active_player.previous_round_points
+    };
 
   let game_round_b = {
     ...game_round_a,
     stage: Round(B, Zero),
-    players: [
-      {...me_round_a, farm_points: [(B, 0), ...me_round_a.farm_points]},
-    ],
+    active_player: {
+      ...game_round_a.active_player,
+      current_round_points: Some((B, 0)),
+      previous_round_points: previous_round_points_round_b,
+    },
   };
 
   let game_round_b_recounted = game_round_b |> Avenue.recount_points;
 
   test("should have correct points for round A", () => {
-    expect((game_round_a.players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, 4)])
+    expect(game_round_a.active_player.current_round_points)
+    |> toEqual(Some((Farm.A, 4)))
   });
 
   test("should have correct points for round B", () => {
-    expect((game_round_b.players |> List.hd).farm_points)
-    |> toEqual([(Farm.B, 0), (A, 4)])
+    expect((
+      game_round_b.active_player.current_round_points,
+      game_round_b.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.B, 0)), [(Farm.A, 4)]))
   });
 
   test("should recount correct points for round B", () => {
-    expect((game_round_b_recounted.players |> List.hd).farm_points)
-    |> toEqual([(Farm.B, 4), (A, 4)])
+    expect((
+      game_round_b_recounted.active_player.current_round_points,
+      game_round_b_recounted.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.B, 4)), [(Farm.A, 4)]))
   });
 });
 
@@ -232,85 +257,114 @@ describe("Avenue.round_penalty", () => {
   test("should penalize if round points is zero", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {...bare_minimum_game.players |> List.hd, farm_points: [(A, 0)]},
-      ],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 0)),
+        },
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, (-5))]);
+    expect((game |> Game.end_round).avenue.active_player.current_round_points)
+    |> toEqual(Some((Farm.A, (-5))));
   });
-
   test(
     "should penalize if round points is zero even if previous is negative", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {
-          ...bare_minimum_game.players |> List.hd,
-          farm_points: [(A, 0), (B, (-5))],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 0)),
+          previous_round_points: [(B, (-5))],
         },
-      ],
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, (-5)), (B, (-5))]);
+    expect((
+      (game |> Game.end_round).avenue.active_player.current_round_points,
+      (game |> Game.end_round).avenue.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, (-5))]));
   });
-
   test("should penalize if round points is lower than previous", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {
-          ...bare_minimum_game.players |> List.hd,
-          farm_points: [(A, 39), (B, 40)],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 39)),
+          previous_round_points: [(B, 40)],
         },
-      ],
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, (-5)), (B, 40)]);
+    expect((
+      (game |> Game.end_round).avenue.active_player.current_round_points,
+      (game |> Game.end_round).avenue.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, 40)]));
   });
-
   test("should not penalize first round more than zero", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {...bare_minimum_game.players |> List.hd, farm_points: [(A, 1)]},
-      ],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 1)),
+        },
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, 1)]);
+    expect((game |> Game.end_round).avenue.active_player.current_round_points)
+    |> toEqual(Some((Farm.A, 1)));
   });
-
   test("should not penalize round score more than previous", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {
-          ...bare_minimum_game.players |> List.hd,
-          farm_points: [(A, 2), (B, 1)],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 2)),
+          previous_round_points: [(B, 1)],
         },
-      ],
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, 2), (B, 1)]);
+    expect((
+      (game |> Game.end_round).avenue.active_player.current_round_points,
+      (game |> Game.end_round).avenue.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.A, 2)), [(Farm.B, 1)]));
   });
-
   test("should penalize round score equal previous", () => {
     let game = {
       ...bare_minimum_game,
-      stage: Round(A, Zero),
-      players: [
-        {
-          ...bare_minimum_game.players |> List.hd,
-          farm_points: [(A, 1), (B, 1)],
+      avenue: {
+        ...bare_minimum_game.avenue,
+        stage: Round(A, Four),
+        active_player: {
+          ...bare_minimum_game.avenue.active_player,
+          current_round_points: Some((A, 1)),
+          previous_round_points: [(B, 1)],
         },
-      ],
+      },
+      log: [(PeekFarm, [])],
     };
-    expect(((game |> Avenue.round_penalty).players |> List.hd).farm_points)
-    |> toEqual([(Farm.A, (-5)), (B, 1)]);
+    expect((
+      (game |> Game.end_round).avenue.active_player.current_round_points,
+      (game |> Game.end_round).avenue.active_player.previous_round_points,
+    ))
+    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, 1)]));
   });
 });

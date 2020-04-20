@@ -1,202 +1,149 @@
-open Common;
-open Types;
+type t = {
+  turn: int,
+  active_player: Player.t,
+  other_players: list(Player.t),
+  road_deck: list(Road.Card.t),
+  farm_deck: list(Farm.t),
+  stage: Stage.t,
+  current_card: option(Road.Card.t),
+  castles: Cell.castles,
+  farms: list(Cell.t),
+};
 
-let add_action = action =>
-  fun
-  | {log} as game => {...game, log: [(action, []), ...log]};
+type action =
+  | PeekFarm
+  | FlipFarm
+  | FlipRoad
+  | DrawRoad(int, int);
 
-let add_event = event =>
-  fun
-  | {log: [(last_action, events), ...previous_actions]} as game => {
-      ...game,
-      log: [(last_action, [event, ...events]), ...previous_actions],
+let next_stage = ({stage, farm_deck, current_card}: t) => {
+  switch (stage, current_card) {
+  | (Flow(Begin | RoundEnd), _) =>
+    switch (farm_deck) {
+    | [_] => Stage.Flow(End)
+    | [next_farm, ..._] => Round(next_farm, Zero)
+    | [] => stage
     }
-  | {log: []} =>
-    raise(
-      Impossible(
-        "an event must only occur as a consequence of another action",
-      ),
-    );
+  | (Round(_, Four), _) => Flow(RoundEnd)
+  | (Round(farm, yc), Some((_, Yellow))) => Round(farm, yc->Stage.add_yc)
+  | (Round(_, _), Some((_, Grey)))
+  | (Round(_, _), None)
+  | (Flow(End), _) => stage
+  };
+};
 
-let add_suggestion = guide_entry =>
-  fun
-  | {guide} as game => {...game, guide: [guide_entry, ...guide]};
+let advance_stage = t => {...t, stage: next_stage(t)};
 
-let add_round_start_event =
-  fun
-  | {stage: Round(farm, _)} as game =>
-    game |> add_event(RoundStarted(farm->Farm.string_of_farm))
-  | game => game;
-
-let add_round_over_event =
-  fun
-  | {stage: Round(farm, _)} as game =>
-    game |> add_event(RoundIsOver(farm->Farm.string_of_farm))
-  | game => game;
-
-let discard_top_farm = ({round_deck} as game) => {
-  ...game,
-  round_deck: round_deck |> List.tl,
+let discard_top_farm = ({farm_deck} as t) => {
+  ...t,
+  farm_deck: farm_deck |> List.tl,
 };
 
 let add_players_round_points =
   fun
-  | {stage: Round(farm, Zero), players} as game => {
-      ...game,
-      players:
-        players
-        |> List.map(player =>
-             {...player, farm_points: [(farm, 0), ...player.farm_points]}
-           ),
+  | {stage: Round(farm, Zero), active_player, other_players} as t => {
+      ...t,
+      active_player: active_player |> Player.add_round_points(farm),
+      other_players:
+        other_players |> List.map(Player.add_round_points(farm)),
     }
-  | game => game;
+  | t => t;
 
-let reset_players_lookahead = ({players} as game) => {
-  ...game,
-  players: players |> List.map(player => {...player, lookahead: false}),
+let reset_players_lookahead = ({active_player, other_players} as t) => {
+  ...t,
+  active_player: {
+    ...active_player,
+    lookahead: false,
+  },
+  other_players:
+    other_players
+    |> List.map((player: Player.t) => {...player, lookahead: false}),
 };
 
-let enable_player_lookahead = ({players} as game) => {
-  ...game,
-  players: [{...players |> List.hd, lookahead: true}, ...players |> List.tl],
+let enable_player_lookahead = ({active_player} as t) => {
+  ...t,
+  active_player: {
+    ...active_player,
+    lookahead: true,
+  },
 };
 
-let advance_player_turn = ({players, turn} as game) => {
-  ...game,
-  players: [{...players |> List.hd, turn}, ...players |> List.tl],
+let advance_player_turn = ({active_player, turn} as t) => {
+  ...t,
+  active_player: {
+    ...active_player,
+    turn,
+  },
 };
 
-let set_current_road = ({deck} as game) => {
+let set_current_road = ({road_deck} as game) => {
   ...game,
-  current_card: Some(deck |> List.hd),
+  current_card: Some(road_deck |> List.hd),
 };
 
-let discard_top_road = ({deck} as game) => {...game, deck: deck |> List.tl};
+let discard_top_road = ({road_deck} as game) => {
+  ...game,
+  road_deck: road_deck |> List.tl,
+};
 
 let advance_game_turn = ({turn} as game) => {...game, turn: turn + 1};
 
+let set_stage = (stage, game) => {...game, stage};
+
 let draw_road_on_grid_cell = (row, col) =>
   fun
-  | {players, current_card: Some((road, _))} as game => {
+  | {active_player, current_card: Some((road, _))} as game => {
       ...game,
-      players: [
-        {
-          ...players |> List.hd,
-          grid:
-            (players |> List.hd).grid
-            |> Array.mapi((i, grid_row) =>
-                 i == row
-                   ? grid_row
-                     |> Array.mapi((j, cell) =>
-                          j == col ? {...cell, Cell.road: Some(road)} : cell
-                        )
-                   : grid_row
-               ),
-        },
-        ...players |> List.tl,
-      ],
+      active_player: {
+        ...active_player,
+        grid:
+          active_player.grid
+          |> Array.mapi((i, grid_row) =>
+               i == row
+                 ? grid_row
+                   |> Array.mapi((j, cell) =>
+                        j == col ? {...cell, Cell.road: Some(road)} : cell
+                      )
+                 : grid_row
+             ),
+      },
     }
   | {current_card: None} as game => game;
 
-let set_stage = (stage, game) => {...game, stage};
-
-let advance_stage =
-  fun
-  | {stage: Flow(Begin), round_deck: [next_farm, ..._]} as game
-  | {stage: Flow(RoundEnd), round_deck: [next_farm, _, ..._]} as game =>
-    game |> set_stage(Round(next_farm, Zero))
-  | {stage: Round(_, Four)} as game => game |> set_stage(Flow(RoundEnd))
-  | {stage: Round(farm, yc), current_card: Some((_, Yellow))} as game =>
-    game |> set_stage(Round(farm, yc->Stage.add_yc))
-  | {stage: Flow(RoundEnd), round_deck: _} as game =>
-    game |> set_stage(Flow(End))
-  | game => game;
-
-let recount_points = ({players, farms, stage} as game) =>
-  switch (stage) {
-  | Round(farm_card, _) =>
-    switch (players) {
-    | [{farm_points, grid} as me, ...other_players] =>
-      switch (farm_points) {
-      | [(farm, _), ...previous_points] =>
-        farm == farm_card
-          ? {
-            ...game,
-            players: [
-              {
-                ...me,
-                farm_points: [
-                  (
-                    farm,
-                    Points.count_points(
-                      farms
-                      |> List.find(({Cell.content}) =>
-                           content == Farm(farm)
-                         )
-                      |> Cell.to_pos,
-                      grid,
-                    ),
-                  ),
-                  ...previous_points,
-                ],
-              },
-              ...other_players,
-            ],
-          }
-          : game
-      | [] => game
-      }
-    | [] => game
-    }
-  | Flow(_) => game
-  };
-
-let round_penalty =
+let keep_round_points =
   fun
   | {
-      players: [
-        {farm_points: [(farm, 0), ...previous_rounds]} as me,
-        ...other_players,
-      ],
-      stage: Round(_, _),
-    } as game =>
-    {
-      ...game,
-      players: [
-        {...me, farm_points: [(farm, (-5)), ...previous_rounds]},
-        ...other_players,
-      ],
+      active_player:
+        {previous_round_points, current_round_points: Some(points)} as active_player,
+    } as t => {
+      ...t,
+      active_player: {
+        ...active_player,
+        previous_round_points: [points, ...previous_round_points],
+      },
     }
-    |> add_event(ScoredZero(farm->Farm.string_of_farm))
+  | {active_player: {current_round_points: None}} as t => t;
+
+let recount_points =
+  fun
   | {
-      players: [
-        {
-          farm_points: [
-            (farm, points),
-            (previous_farm, previous_points),
-            ...previous_rounds,
-          ],
-        } as me,
-        ...other_players,
-      ],
-      stage: Round(_, _),
-    } as game
-      when points <= previous_points =>
-    {
-      ...game,
-      players: [
-        {
-          ...me,
-          farm_points: [
-            (farm, (-5)),
-            (previous_farm, previous_points),
-            ...previous_rounds,
-          ],
-        },
-        ...other_players,
-      ],
+      active_player:
+        {grid, current_round_points: Some((farm, _))} as active_player,
+      farms,
+    } as t => {
+      ...t,
+      active_player: {
+        ...active_player,
+        current_round_points:
+          Some((
+            farm,
+            Points.count_points(
+              farms
+              |> List.find(({Cell.content}) => content == Farm(farm))
+              |> Cell.to_pos,
+              grid,
+            ),
+          )),
+      },
     }
-    |> add_event(
-         ScoredNotEnough(previous_points, farm->Farm.string_of_farm, points),
-       )
-  | game => game;
+  | {active_player: {current_round_points: None}} as t => t;

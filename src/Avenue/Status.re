@@ -1,15 +1,75 @@
 open Common;
-open Types;
-open Converters;
+
+type t = (Avenue.action, list(Stage.event));
+
+let add_action = (action: Avenue.action, log: list(t)) => [
+  (action, []),
+  ...log,
+];
+
+let add_event = (event: Stage.event) =>
+  fun
+  | [(last_action, events), ...previous_actions] => [
+      (last_action, [event, ...events]),
+      ...previous_actions,
+    ]
+  | [] =>
+    raise(
+      Impossible(
+        "an event must only occur as a consequence of another action",
+      ),
+    );
+
+let add_suggestion = (entry, guide) => [entry, ...guide];
+
+let add_round_start_event = farm =>
+  add_event(Stage.RoundStarted(farm->Farm.string_of_farm));
+
+let add_round_over_event = farm =>
+  add_event(Stage.RoundIsOver(farm->Farm.string_of_farm));
+
+let list_of_log_entry =
+  fun
+  | (action, events) => [
+      action->Rules.describe_play,
+      ...events |> List.rev |> List.map(Stage.describe_event) |> List.concat,
+    ];
+
+let short_list_of_log_entry =
+  fun
+  | (play, _) => [play->Rules.describe_play];
+
+let guide_flip_farm = (avenue, guide) =>
+  Rules.can_flip_farm(avenue)
+    ? guide |> add_suggestion(Avenue.FlipFarm) : guide;
+
+let guide_peek_farm = (avenue, guide) =>
+  Rules.can_peek_farm(avenue)
+    ? guide |> add_suggestion(Avenue.PeekFarm) : guide;
+
+let guide_flip_road = (avenue, guide) =>
+  Rules.can_flip_road(avenue)
+    ? guide |> add_suggestion(Avenue.FlipRoad) : guide;
+
+let guide_draw_road = (avenue, guide) =>
+  Rules.can_draw_road_somewhere(avenue)
+    ? guide |> add_suggestion(Avenue.DrawRoad(0, 0)) : guide;
+
+let guide = avenue =>
+  []
+  |> guide_peek_farm(avenue)
+  |> guide_flip_farm(avenue)
+  |> guide_flip_road(avenue)
+  |> guide_draw_road(avenue);
 
 [@react.component]
-let make = (~game as {guide, log}) => {
+let make = (~guide, ~log) => {
   let last_log_entry =
     switch (log) {
     | [] => []
     | [last_log, ..._] => last_log |> list_of_log_entry
     };
-  let guide_entries = guide |> List.map(suggest_action);
+  let guide_entries = guide |> List.map(Rules.suggest_play);
   let previous_log_entries =
     switch (log) {
     | [] => []
@@ -62,7 +122,7 @@ let make = (~game as {guide, log}) => {
           )
        |> arr}
       {previous_log_entries
-       |> List.mapi((i, (entry_color, entry_line)) =>
+       |> List.mapi((i, entry_line) =>
             <text
               key={previous_log_entries->List.length - i |> string_of_int}
               style=Theme.log_text
@@ -81,7 +141,7 @@ let make = (~game as {guide, log}) => {
                 )
                 ++ ")"
               }
-              fill=entry_color
+              fill="blue"
               fillOpacity={
                 max(0., 1. /. (i + 2 |> float_of_int)) |> Js.Float.toString
               }>

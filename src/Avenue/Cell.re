@@ -27,6 +27,11 @@ type t = {
   road: option(Road.t),
 };
 
+type castles = {
+  purple: t,
+  green: t,
+};
+
 let to_pos = (cell: t) => (cell.row, cell.col);
 
 type grid = array(array(t));

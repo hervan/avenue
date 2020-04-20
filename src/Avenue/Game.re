@@ -1,4 +1,13 @@
-open Types;
+type t = {
+  avenue: Avenue.t,
+  log: list(Status.t),
+  guide: list(Avenue.action),
+};
+
+type action =
+  | Start
+  | Restart
+  | Undo;
 
 let grid_columns = 6;
 let grid_rows = 7;
@@ -63,39 +72,40 @@ let map_A_grid_contents = [|
 |];
 
 let create_player = (player_name, base_grid) => {
-  farmer: player_name,
+  Player.farmer: player_name,
+  turn: 0,
   grid: base_grid,
   lookahead: false,
-  turn: 0,
-  farm_points: [],
+  current_round_points: None,
+  previous_round_points: [],
 };
 
 let random_farm = () => Farm.farm_of_int(Random.int(6));
 
 let create_farm_deck = () => {
-  let rec aux = deck =>
+  let rec aux = farm_deck =>
     fun
-    | 0 => deck
+    | 0 => farm_deck
     | n => {
         let farm_card = random_farm();
-        List.for_all(card => card != farm_card, deck)
-          ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
+        List.for_all(card => card != farm_card, farm_deck)
+          ? aux([farm_card, ...farm_deck], n - 1) : aux(farm_deck, n);
       };
   Random.self_init();
   aux([], 6);
 };
 
 let create_road_deck = () => {
-  let rec aux = (deck, available_cards) => {
+  let rec aux = (road_deck, available_cards) => {
     let (road, color) = (Random.int(6), Random.int(2));
-    List.length(deck) == grid_columns * grid_rows
-      ? deck
+    List.length(road_deck) == grid_columns * grid_rows
+      ? road_deck
       : available_cards[road][color] == 0
-          ? aux(deck, available_cards)
+          ? aux(road_deck, available_cards)
           : {
             available_cards[road][color] = available_cards[road][color] - 1;
             aux(
-              [Road.Card.card_of_ints(road, color), ...deck],
+              [Road.Card.card_of_ints(road, color), ...road_deck],
               available_cards,
             );
           };
@@ -125,13 +135,158 @@ let find_content = (cell_content, grid) =>
   |> List.concat
   |> List.hd;
 
-let create_game = (player_name, base_grid, road_deck, farm_deck) =>
-  {
-    players: [create_player(player_name, base_grid)],
-    deck: road_deck,
+let flip_farm = ({avenue: {farm_deck} as avenue, log} as t) =>
+  avenue->Rules.can_flip_farm
+    ? {
+      ...t,
+      avenue:
+        avenue
+        |> Avenue.advance_stage
+        |> Avenue.discard_top_farm
+        |> Avenue.keep_round_points
+        |> Avenue.add_players_round_points
+        |> Avenue.reset_players_lookahead
+        |> Avenue.recount_points,
+      log:
+        log
+        |> Status.add_action(Avenue.FlipFarm)
+        |> Status.add_round_start_event(farm_deck |> List.hd),
+    }
+    : t;
+
+let peek_farm = ({avenue, log} as t) =>
+  avenue->Rules.can_peek_farm
+    ? {
+      ...t,
+      avenue:
+        avenue |> Avenue.enable_player_lookahead |> Avenue.advance_player_turn,
+      log:
+        log |> Status.add_action(PeekFarm) |> Status.add_event(TurnSkipped),
+    }
+    : t;
+
+let flip_road = ({avenue, log} as t) =>
+  avenue->Rules.can_flip_road
+    ? {
+      ...t,
+      avenue:
+        avenue
+        |> Avenue.set_current_road
+        |> Avenue.discard_top_road
+        |> Avenue.advance_stage
+        |> Avenue.advance_game_turn,
+      log: log |> Status.add_action(FlipRoad),
+    }
+    : t;
+
+let draw_road = (row, col, {avenue, log} as t) =>
+  avenue |> Rules.can_draw_road(row, col)
+    ? {
+      ...t,
+      avenue:
+        avenue
+        |> Avenue.draw_road_on_grid_cell(row, col)
+        |> Avenue.advance_player_turn
+        |> Avenue.recount_points,
+      log: log |> Status.add_action(DrawRoad(row, col)),
+    }
+    : t;
+
+let score_zero_penalty =
+  fun
+  | {
+      avenue:
+        {
+          active_player:
+            {current_round_points: Some((farm, _))} as active_player,
+        } as avenue,
+      log,
+    } as t =>
+    avenue->Rules.has_scored_zero
+      ? {
+        ...t,
+        avenue: {
+          ...avenue,
+          active_player: {
+            ...active_player,
+            current_round_points: Some((farm, (-5))),
+          },
+        },
+        log: log |> Status.add_event(ScoredZero(farm->Farm.string_of_farm)),
+      }
+      : t
+  | {avenue: {active_player: {current_round_points: None}}} as t => t;
+
+let score_less_penalty =
+  fun
+  | {
+      avenue:
+        {
+          active_player:
+            {
+              current_round_points: Some((farm, points)),
+              previous_round_points,
+            } as active_player,
+        } as avenue,
+      log,
+    } as t =>
+    avenue->Rules.has_scored_less
+      ? {
+        ...t,
+        avenue: {
+          ...avenue,
+          active_player: {
+            ...active_player,
+            current_round_points: Some((farm, (-5))),
+          },
+        },
+        log:
+          log
+          |> Status.add_event(
+               ScoredNotEnough(
+                 points,
+                 farm->Farm.string_of_farm,
+                 switch (previous_round_points |> List.hd) {
+                 | (_, previous) => previous
+                 },
+               ),
+             ),
+      }
+      : t
+  | {avenue: {active_player: {current_round_points: None}}} as t => t;
+
+let end_round =
+  fun
+  | {avenue: {stage: Round(farm, _)} as avenue, log} as t =>
+    avenue->Rules.can_end_round
+      ? {
+          ...t,
+          avenue: avenue |> Avenue.advance_stage,
+          log: log |> Status.add_round_over_event(farm),
+        }
+        |> score_zero_penalty
+        |> score_less_penalty
+      : t
+  | {avenue: {stage: Flow(_)}} as t => t;
+
+let end_game = ({avenue, log} as t) => {
+  avenue->Rules.can_end_game
+    ? {
+      ...t,
+      avenue: avenue |> Avenue.advance_stage,
+      log: log |> Status.add_event(GameIsOver),
+    }
+    : t;
+};
+
+let create_game = (player_name, base_grid, road_deck, farm_deck) => {
+  let avenue: Avenue.t = {
     turn: 0,
-    round_deck: farm_deck,
-    stage: Flow(Created),
+    active_player: create_player(player_name, base_grid),
+    other_players: [],
+    road_deck,
+    farm_deck,
+    stage: Flow(Begin),
     current_card: None,
     castles: {
       purple: find_content(Castle(Purple), base_grid),
@@ -145,21 +300,21 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
       find_content(Farm(E), base_grid),
       find_content(Farm(F), base_grid),
     ],
-    log: [],
-    guide: [],
-  }
-  |> Actions.start_game
-  |> Rules.guide;
+  };
+  {avenue, log: [], guide: avenue |> Status.guide};
+};
+
+let guide = ({avenue} as t) => {...t, guide: avenue |> Status.guide};
 
 // TODO create reducers for parts of game state (namely log, but also anywhere else creating dependency cycles)
 // actions can potentially replace existing game update functions in Avenue module
 // this should decentralize state from game type
 // root reducer should look like
 // reduce game action = {
-//   players: reduce_players players action
-//   deck: reduce_deck deck action
 //   turn: reduce_turn turn action
-//   round_deck: reduce_round_deck round_deck action
+//   players: reduce_players players action
+//   road_deck: reduce_road_deck road_deck action
+//   farm_deck: reduce_farm_deck farm_deck action
 //   stage: reduce_stage stage action
 //   current_card: reduce_current_card current_card action
 //   castles: reduce_castles castles action
@@ -175,15 +330,11 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) =>
 // but only in case it still causes conflicts or dependency cycles
 let reducer = game =>
   fun
-  | PeekFarm => game |> Actions.peek_farm |> Rules.guide
-  | FlipFarm => game |> Actions.flip_farm |> Rules.guide
-  | FlipRoad => game |> Actions.flip_road |> Rules.guide
+  | Avenue.PeekFarm => game |> peek_farm |> guide
+  | FlipFarm => game |> flip_farm |> guide
+  | FlipRoad => game |> flip_road |> guide
   | DrawRoad(row, col) =>
-    game
-    |> Actions.draw_road(row, col)
-    |> Actions.end_round
-    |> Actions.end_game
-    |> Rules.guide;
+    game |> draw_road(row, col) |> end_round |> end_game |> guide;
 
 [@react.component]
 let make = () => {
@@ -201,7 +352,7 @@ let make = () => {
   <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
     Theme.filters
     <g>
-      {(game.players |> List.hd).grid
+      {game.avenue.active_player.grid
        |> Array.to_list
        |> Array.concat
        |> Array.mapi((i, cell) =>
@@ -213,9 +364,23 @@ let make = () => {
           )
        |> ReasonReact.array}
     </g>
-    <RoadDeck game dispatch />
-    <FarmDeck game dispatch />
-    <Points game />
-    <Status game />
+    <RoadDeck
+      road_deck={game.avenue.road_deck}
+      current_card={game.avenue.current_card}
+      dispatch
+    />
+    <FarmDeck
+      active_player={game.avenue.active_player}
+      farm_deck={game.avenue.farm_deck}
+      stage={game.avenue.stage}
+      dispatch
+    />
+    <Points
+      stage={game.avenue.stage}
+      player={game.avenue.active_player}
+      castles={game.avenue.castles}
+      farm_deck={game.avenue.farm_deck}
+    />
+    <Status guide={game.guide} log={game.log} />
   </svg>;
 };

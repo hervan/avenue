@@ -1,8 +1,7 @@
 open Common;
-open Types;
 
 [@react.component]
-let make = (~game as {deck, current_card}, ~dispatch) => {
+let make = (~road_deck, ~current_card, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);
   React.useEffect1(
     _ => {
@@ -21,14 +20,14 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
       let _ =
         Js.Global.setTimeout(
           _ => {
-            dispatch(FlipRoad);
+            dispatch(Avenue.FlipRoad);
             setRotation(_ => 0);
           },
           500,
         );
       ();
     }}>
-    {deck
+    {road_deck
      |> List.mapi((i, _) =>
           <rect
             key={i |> string_of_int}
@@ -58,12 +57,12 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
          <rect
            x={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            width="15"
@@ -80,12 +79,12 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
          <rect
            x={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            width="15"
@@ -102,14 +101,14 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
              ++ (
                2.5
                +. Theme.road_card_thickness
-               *. (List.length(deck) |> float_of_int)
+               *. (List.length(road_deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ " "
              ++ (
                5.0
                +. Theme.road_card_thickness
-               *. (List.length(deck) |> float_of_int)
+               *. (List.length(road_deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ ")"

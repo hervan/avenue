@@ -1,5 +1,4 @@
 open Common;
-open Types;
 
 let filter_grapes = grape =>
   fun
@@ -85,170 +84,179 @@ let count_points = ((row, col), grid) =>
   ->count_grapes_path(grid[row][col]);
 
 [@react.component]
-let make = (~game as {players} as game) =>
-  switch (players) {
-  | [] => React.null
-  | [{grid, farm_points}, ..._] =>
-    let purple_points =
-      count_points(game.castles.purple |> Cell.to_pos, grid);
-    let green_points = count_points(game.castles.green |> Cell.to_pos, grid);
-    let total_points =
-      (farm_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
-      + purple_points
-      + green_points;
-    let yc =
-      switch (game.stage) {
-      | Round(_, yc) => yc
-      | Flow(_) => Zero
-      };
-    <g transform="translate(62 50)">
-      {farm_points->List.rev
-       |> List.mapi((i, (farm, points)) =>
-            <g
-              key={i->string_of_int}
-              transform={
-                "translate(0, "
-                ++ (i->float_of_int *. 2.8)->Js.Float.toString
-                ++ ")"
-              }>
-              <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
-              <g transform="translate(0.5 2.4)">
-                <g transform="scale(0.5)"> <Farm farm /> </g>
-                <text
-                  dx="3.3"
-                  x="3"
-                  textAnchor="end"
-                  fill={
-                    points <= 0
-                    || i > 0
-                    && points
-                    <= (
-                         List.nth_opt(
-                           farm_points,
-                           List.length(farm_points) - 1 - i,
-                         )
-                         |> (
-                           fun
-                           | Some((_farm, previous_points)) => previous_points
-                           | None => 0
-                         )
+let make =
+    (
+      ~stage: Stage.t,
+      ~player as
+        {grid, previous_round_points, current_round_points}: Player.t,
+      ~castles: Cell.castles,
+      ~farm_deck,
+    ) => {
+  let round_points =
+    switch (current_round_points) {
+    | Some(current_round_points) => [
+        current_round_points,
+        ...previous_round_points,
+      ]
+    | None => previous_round_points
+    };
+  let purple_points = count_points(castles.purple |> Cell.to_pos, grid);
+  let green_points = count_points(castles.green |> Cell.to_pos, grid);
+  let total_points =
+    (round_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
+    + purple_points
+    + green_points;
+  let yc =
+    switch (stage) {
+    | Round(_, yc) => yc
+    | Flow(_) => Zero
+    };
+  <g transform="translate(62 50)">
+    {round_points->List.rev
+     |> List.mapi((i, (farm, points)) =>
+          <g
+            key={i->string_of_int}
+            transform={
+              "translate(0, "
+              ++ (i->float_of_int *. 2.8)->Js.Float.toString
+              ++ ")"
+            }>
+            <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
+            <g transform="translate(0.5 2.4)">
+              <g transform="scale(0.5)"> <Farm farm /> </g>
+              <text
+                dx="3.3"
+                x="3"
+                textAnchor="end"
+                fill={
+                  points <= 0
+                  || i > 0
+                  && points
+                  <= (
+                       List.nth_opt(
+                         round_points,
+                         List.length(round_points) - 1 - i,
                        )
-                      ? "red" : "forestgreen"
-                  }
-                  style={Theme.text("2.8px")}>
-                  {points->string_of_int->str}
-                </text>
-              </g>
+                       |> (
+                         fun
+                         | Some((_farm, previous_points)) => previous_points
+                         | None => 0
+                       )
+                     )
+                    ? "red" : "forestgreen"
+                }
+                style={Theme.text("2.8px")}>
+                {points->string_of_int->str}
+              </text>
             </g>
-          )
-       |> arr}
-      {game.round_deck
-       |> List.tl
-       |> List.mapi((i, _) =>
-            <g
-              key={(i + List.length(farm_points))->string_of_int}
-              transform={
-                "translate(0, "
-                ++ ((i + List.length(farm_points))->float_of_int *. 2.8)
-                   ->Js.Float.toString
-                ++ ")"
-              }>
-              <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
-            </g>
-          )
-       |> arr}
-      <g transform={"translate(0, " ++ (5. *. 2.8)->Js.Float.toString ++ ")"}>
-        <rect width="7" height="2.7" fill="lightgreen" rx="0.5" />
-        <g transform="translate(0.5 2.4)">
-          <g transform="scale(0.35)"> <Castle grape=Grape.Green /> </g>
-          <text
-            dx="3.3"
-            x="3"
-            textAnchor="end"
-            fill="white"
-            style={Theme.text("2.8px")}>
-            {green_points->string_of_int->str}
-          </text>
-        </g>
-      </g>
-      <g transform={"translate(0, " ++ (6. *. 2.8)->Js.Float.toString ++ ")"}>
-        <rect width="7" height="2.7" fill="thistle" rx="0.5" />
-        <g transform="translate(0.5 2.4)">
-          <g transform="scale(0.35)"> <Castle grape=Grape.Purple /> </g>
-          <text
-            dx="3.3"
-            x="3"
-            textAnchor="end"
-            fill="white"
-            style={Theme.text("2.8px")}>
-            {purple_points->string_of_int->str}
-          </text>
-        </g>
-      </g>
-      <g transform="translate(14 5.5)">
-        <circle
-          key="face"
-          cx="0"
-          cy="0"
-          r="5"
-          fill="white"
-          stroke="lightgray"
-          strokeWidth="0.1"
-        />
-        <path
-          key="hands"
-          d={
-            yc == Zero ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"
-          }
-          stroke="lightgray"
-          strokeWidth="0.25"
-          style={Theme.quick_transition("d")}
-        />
-        <path
-          key="timer"
-          d={
-            " M 0 0"
-            ++ (
-              Stage.int_of_yc(yc) >= 1
-                ? " M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
-                : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              Stage.int_of_yc(yc) >= 2
-                ? " M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
-                : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              Stage.int_of_yc(yc) >= 3
-                ? " M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
-                : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ (
-              Stage.int_of_yc(yc) == 4
-                ? " M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-                : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
-            )
-            ++ " Z"
-          }
-          fill="yellow"
-          stroke="lightgray"
-          strokeWidth={Stage.int_of_yc(yc) > 0 ? "0.1" : "0"}
-          style={Theme.quick_transition("d")}
-        />
-      </g>
-      <g transform="translate(9 12)">
-        <rect width="10" height="7" fill="cornflowerblue" rx="1" />
-        <text style={Theme.text("2px")} dy="2" x="5" textAnchor="middle">
-          "total"->str
-        </text>
+          </g>
+        )
+     |> arr}
+    {farm_deck
+     |> List.tl
+     |> List.mapi((i, _) =>
+          <g
+            key={(i + List.length(round_points))->string_of_int}
+            transform={
+              "translate(0, "
+              ++ ((i + List.length(round_points))->float_of_int *. 2.8)
+                 ->Js.Float.toString
+              ++ ")"
+            }>
+            <rect width="7" height="2.7" fill="lightgrey" rx="0.5" />
+          </g>
+        )
+     |> arr}
+    <g transform={"translate(0, " ++ (5. *. 2.8)->Js.Float.toString ++ ")"}>
+      <rect width="7" height="2.7" fill="lightgreen" rx="0.5" />
+      <g transform="translate(0.5 2.4)">
+        <g transform="scale(0.35)"> <Castle grape=Grape.Green /> </g>
         <text
-          x="5"
-          dy="6"
-          textAnchor="middle"
+          dx="3.3"
+          x="3"
+          textAnchor="end"
           fill="white"
-          style={Theme.text("4px")}>
-          {total_points->string_of_int->str}
+          style={Theme.text("2.8px")}>
+          {green_points->string_of_int->str}
         </text>
       </g>
-    </g>;
-  };
+    </g>
+    <g transform={"translate(0, " ++ (6. *. 2.8)->Js.Float.toString ++ ")"}>
+      <rect width="7" height="2.7" fill="thistle" rx="0.5" />
+      <g transform="translate(0.5 2.4)">
+        <g transform="scale(0.35)"> <Castle grape=Grape.Purple /> </g>
+        <text
+          dx="3.3"
+          x="3"
+          textAnchor="end"
+          fill="white"
+          style={Theme.text("2.8px")}>
+          {purple_points->string_of_int->str}
+        </text>
+      </g>
+    </g>
+    <g transform="translate(14 5.5)">
+      <circle
+        key="face"
+        cx="0"
+        cy="0"
+        r="5"
+        fill="white"
+        stroke="lightgray"
+        strokeWidth="0.1"
+      />
+      <path
+        key="hands"
+        d={yc == Zero ? " M 0 0 v -4 v 4 h 3 h -3" : " M 0 0 v 0 v 0 h 0 h 0"}
+        stroke="lightgray"
+        strokeWidth="0.25"
+        style={Theme.quick_transition("d")}
+      />
+      <path
+        key="timer"
+        d={
+          " M 0 0"
+          ++ (
+            Stage.int_of_yc(yc) >= 1
+              ? " M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
+              : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+          )
+          ++ (
+            Stage.int_of_yc(yc) >= 2
+              ? " M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
+              : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+          )
+          ++ (
+            Stage.int_of_yc(yc) >= 3
+              ? " M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
+              : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+          )
+          ++ (
+            Stage.int_of_yc(yc) == 4
+              ? " M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+              : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
+          )
+          ++ " Z"
+        }
+        fill="yellow"
+        stroke="lightgray"
+        strokeWidth={Stage.int_of_yc(yc) > 0 ? "0.1" : "0"}
+        style={Theme.quick_transition("d")}
+      />
+    </g>
+    <g transform="translate(9 12)">
+      <rect width="10" height="7" fill="cornflowerblue" rx="1" />
+      <text style={Theme.text("2px")} dy="2" x="5" textAnchor="middle">
+        "total"->str
+      </text>
+      <text
+        x="5"
+        dy="6"
+        textAnchor="middle"
+        fill="white"
+        style={Theme.text("4px")}>
+        {total_points->string_of_int->str}
+      </text>
+    </g>
+  </g>;
+};
