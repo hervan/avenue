@@ -35,29 +35,31 @@ let can_flip_road = ({stage, road_deck, active_player, turn}: Avenue.t) =>
   | Flow(_) => false
   };
 
-let can_draw_road = (row, col, {active_player: {grid}}: Avenue.t) =>
-  grid[row][col].road == None;
-
-let can_draw_road_somewhere =
-    ({current_card, stage, active_player, turn} as avenue: Avenue.t) =>
+let can_draw_road =
+    (
+      row,
+      col,
+      {current_card, stage, active_player: {grid} as active_player, turn}: Avenue.t,
+    ) =>
   switch (current_card) {
   | Some((_, _)) =>
     switch (stage) {
-    | Round(_, _) =>
-      active_player.turn < turn
-      && active_player.grid
-      |> Array.to_list
-      |> List.exists(grid_row =>
-           grid_row
-           |> Array.to_list
-           |> List.exists(({Cell.row, Cell.col}) =>
-                can_draw_road(row, col, avenue)
-              )
-         )
+    | Round(_, _) => active_player.turn < turn && grid[row][col].road == None
     | Flow(_) => false
     }
   | None => false
   };
+
+let can_draw_road_somewhere = ({active_player} as avenue: Avenue.t) =>
+  active_player.grid
+  |> Array.to_list
+  |> List.exists(grid_row =>
+       grid_row
+       |> Array.to_list
+       |> List.exists(({Cell.row, Cell.col}) =>
+            can_draw_road(row, col, avenue)
+          )
+     );
 
 let has_scored_zero =
   fun
