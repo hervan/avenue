@@ -1,5 +1,4 @@
 ![deploy](https://github.com/hervan/avenue/workflows/deploy/badge.svg)
-![build](https://github.com/hervan/avenue/workflows/build/badge.svg)
 
 # ReasonReact Template & Examples
 
