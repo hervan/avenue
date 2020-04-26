@@ -56,7 +56,7 @@ describe("Player.recount_points", () => {
 
   let player_round_a =
     {
-      ...base_game.active_player,
+      ...base_game.me,
       current_round_points: Some((A, 0)),
       previous_round_points: [],
     }

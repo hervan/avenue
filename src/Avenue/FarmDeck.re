@@ -2,12 +2,7 @@ open Common;
 
 [@react.component]
 let make =
-    (
-      ~active_player as {lookahead}: Player.t,
-      ~farm_deck,
-      ~stage: Stage.t,
-      ~dispatch,
-    ) => {
+    (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 0);
   let can_peek =
     switch (stage) {
