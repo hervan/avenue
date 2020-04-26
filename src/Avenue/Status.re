@@ -85,6 +85,20 @@ let make = (~guide, ~log) => {
       transform="translate(0 70)"
       fillOpacity="1"
       clipPath="url(#status-panel-clip)">
+      {guide_entries
+       |> List.mapi((i, guide_entry) =>
+            <text
+              key={"d" ++ (guide_entries->List.length - i |> string_of_int)}
+              style=Theme.guide_text
+              x="0"
+              y="5"
+              transform={"translate(0 " ++ (i * 3 |> string_of_int) ++ ")"}
+              fill="white"
+              fillOpacity="1">
+              guide_entry->str
+            </text>
+          )
+       |> arr}
       {last_log_entry
        |> List.mapi((i, log_line) =>
             <text
@@ -96,28 +110,15 @@ let make = (~guide, ~log) => {
               style=Theme.log_text
               x="0"
               y="5"
-              transform={"translate(0 " ++ (i * 3 |> string_of_int) ++ ")"}
-              fill={i == 0 ? "blue" : "orange"}
-              fillOpacity="1">
-              log_line->str
-            </text>
-          )
-       |> arr}
-      {guide_entries
-       |> List.mapi((i, guide_entry) =>
-            <text
-              key={"d" ++ (guide_entries->List.length - i |> string_of_int)}
-              style=Theme.guide_text
-              x="0"
-              y="5"
               transform={
                 "translate(0 "
-                ++ (3 * (i + last_log_entry->List.length) |> string_of_int)
+                ++ (3 * (i + guide_entries->List.length) |> string_of_int)
                 ++ ")"
               }
-              fill="white"
+              fill={i == 0 ? "blue" : "orange"}
               fillOpacity="1">
-              guide_entry->str
+              {i == 0 ? (log->List.length |> string_of_int) ++ ". " : ""}->str
+              log_line->str
             </text>
           )
        |> arr}
@@ -145,6 +146,11 @@ let make = (~guide, ~log) => {
               fillOpacity={
                 max(0., 1. /. (i + 2 |> float_of_int)) |> Js.Float.toString
               }>
+              {(
+                 (previous_log_entries->List.length - i |> string_of_int)
+                 ++ ". "
+               )
+               ->str}
               entry_line->str
             </text>
           )
