@@ -5,7 +5,7 @@
 type t = {
   avenue: Avenue.t,
   me: Player.t,
-  other_players: list(Player.t),
+  players: list(Player.t),
   log: list(Status.t),
   guide: list(Avenue.action),
 };
@@ -288,13 +288,7 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) => {
     ],
   };
   let me = create_player(player_name, base_grid);
-  {
-    avenue,
-    log: [],
-    guide: avenue |> Status.guide(me),
-    me,
-    other_players: [],
-  };
+  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
 };
 
 let guide = ({me, avenue} as t) => {

@@ -10,7 +10,7 @@ let bare_minimum_game = {
     current_round_points: None,
     previous_round_points: [],
   },
-  other_players: [],
+  players: [],
   Game.avenue: {
     turn: 0,
     road_deck: [],
