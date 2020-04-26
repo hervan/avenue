@@ -40,7 +40,7 @@ let setup = (player_name, base_grid, road_deck, farm_deck) => {
 };
 
 let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
-  avenue->Rules.can_flip_farm
+  avenue->Avenue.Rules.can_flip_farm
     ? {
       ...t,
       avenue: avenue |> Avenue.advance_stage |> Avenue.discard_top_farm,
@@ -58,7 +58,7 @@ let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
     : t;
 
 let peek_farm = ({me, avenue, log} as t) =>
-  avenue |> Rules.can_peek_farm(me)
+  avenue |> Avenue.Rules.can_peek_farm(me)
     ? {
       ...t,
       me: me |> Player.enable_lookahead |> Player.advance_turn(avenue.turn),
@@ -68,7 +68,7 @@ let peek_farm = ({me, avenue, log} as t) =>
     : t;
 
 let flip_road = ({me, avenue, log} as t) =>
-  avenue |> Rules.can_flip_road(me)
+  avenue |> Avenue.Rules.can_flip_road(me)
     ? {
       ...t,
       avenue:
@@ -84,7 +84,7 @@ let flip_road = ({me, avenue, log} as t) =>
 let draw_road = (row, col) =>
   fun
   | {me, avenue: {turn, current_card: Some((road, _))} as avenue, log} as t =>
-    avenue |> Rules.can_draw_road(me, row, col)
+    avenue |> Avenue.Rules.can_draw_road(me, row, col)
       ? {
         ...t,
         me:
@@ -100,7 +100,7 @@ let draw_road = (row, col) =>
 let score_zero_penalty =
   fun
   | {me: {current_round_points: Some((farm, _))} as me, log} as t =>
-    me->Rules.has_scored_zero
+    me->Avenue.Rules.has_scored_zero
       ? {
         ...t,
         me: {
@@ -119,7 +119,7 @@ let score_less_penalty =
         {current_round_points: Some((farm, points)), previous_round_points} as me,
       log,
     } as t =>
-    me->Rules.has_scored_less
+    me->Avenue.Rules.has_scored_less
       ? {
         ...t,
         me: {
@@ -144,7 +144,7 @@ let score_less_penalty =
 let end_round =
   fun
   | {me, avenue: {stage: Round(farm, _)} as avenue, log} as t =>
-    avenue |> Rules.can_end_round(me)
+    avenue |> Avenue.Rules.can_end_round(me)
       ? {
           ...t,
           avenue: avenue |> Avenue.advance_stage,
@@ -156,7 +156,7 @@ let end_round =
   | {avenue: {stage: Flow(_)}} as t => t;
 
 let end_game = ({avenue, log} as t) => {
-  avenue->Rules.can_end_game
+  avenue->Avenue.Rules.can_end_game
     ? {
       ...t,
       avenue: avenue |> Avenue.advance_stage,

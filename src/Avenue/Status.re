@@ -31,28 +31,28 @@ let add_round_over_event = farm =>
 let list_of_log_entry =
   fun
   | (action, events) => [
-      action->Rules.describe_play,
+      action->Avenue.Rules.describe_play,
       ...events |> List.rev |> List.map(Stage.describe_event) |> List.concat,
     ];
 
 let short_list_of_log_entry =
   fun
-  | (play, _) => [play->Rules.describe_play];
+  | (play, _) => [play->Avenue.Rules.describe_play];
 
 let guide_flip_farm = (avenue, guide) =>
-  Rules.can_flip_farm(avenue)
+  Avenue.Rules.can_flip_farm(avenue)
     ? guide |> add_suggestion(Avenue.FlipFarm) : guide;
 
 let guide_peek_farm = (player, avenue, guide) =>
-  Rules.can_peek_farm(player, avenue)
+  Avenue.Rules.can_peek_farm(player, avenue)
     ? guide |> add_suggestion(Avenue.PeekFarm) : guide;
 
 let guide_flip_road = (player, avenue, guide) =>
-  Rules.can_flip_road(player, avenue)
+  Avenue.Rules.can_flip_road(player, avenue)
     ? guide |> add_suggestion(Avenue.FlipRoad) : guide;
 
 let guide_draw_road = (player, avenue, guide) =>
-  Rules.can_draw_road_somewhere(player, avenue)
+  Avenue.Rules.can_draw_road_somewhere(player, avenue)
     ? guide |> add_suggestion(Avenue.DrawRoad(0, 0)) : guide;
 
 let guide = (player, avenue) =>
@@ -69,7 +69,7 @@ let make = (~guide, ~log) => {
     | [] => []
     | [last_log, ..._] => last_log |> list_of_log_entry
     };
-  let guide_entries = guide |> List.map(Rules.suggest_play);
+  let guide_entries = guide |> List.map(Avenue.Rules.suggest_play);
   let previous_log_entries =
     switch (log) {
     | [] => []
