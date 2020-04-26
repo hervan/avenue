@@ -9,7 +9,6 @@ let setup = () => {
         List.for_all(card => card != farm_card, farm_deck)
           ? aux([farm_card, ...farm_deck], n - 1) : aux(farm_deck, n);
       };
-  Random.self_init();
   aux([], 6);
 };
 

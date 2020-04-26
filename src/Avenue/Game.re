@@ -176,6 +176,23 @@ let reducer = game =>
 
 [@react.component]
 let make = () => {
+  let url = ReasonReactRouter.useUrl();
+  let seed_from_url =
+    switch (url.path->List.nth_opt(0)) {
+    | Some(seed) => seed->int_of_string_opt
+    | None => None
+    };
+  let seed =
+    switch (seed_from_url) {
+    | Some(seed) => seed
+    | None =>
+      Random.self_init();
+      let seed = Random.bits();
+      ReasonReactRouter.replace({j|/$seed|j});
+      seed;
+    };
+  Random.init(seed);
+
   let (game, dispatch) =
     React.useReducer(
       reducer,
