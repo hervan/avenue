@@ -16,7 +16,7 @@ let app_style = {j|
   }
 |j};
 
-let road_card_thickness = 0.05;
+let road_card_thickness = 0.075;
 
 let farm_card_thickness = 0.5;
 
