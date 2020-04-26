@@ -213,7 +213,7 @@ let make = () => {
       ),
     );
 
-  <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
+  <svg width="99vmin" height="99vmin" viewBox="-1 -1 101 101">
     Theme.filters
     <g>
       {game.me.grid
