@@ -43,24 +43,24 @@ let guide_flip_farm = (avenue, guide) =>
   Rules.can_flip_farm(avenue)
     ? guide |> add_suggestion(Avenue.FlipFarm) : guide;
 
-let guide_peek_farm = (avenue, guide) =>
-  Rules.can_peek_farm(avenue)
+let guide_peek_farm = (player, avenue, guide) =>
+  Rules.can_peek_farm(player, avenue)
     ? guide |> add_suggestion(Avenue.PeekFarm) : guide;
 
-let guide_flip_road = (avenue, guide) =>
-  Rules.can_flip_road(avenue)
+let guide_flip_road = (player, avenue, guide) =>
+  Rules.can_flip_road(player, avenue)
     ? guide |> add_suggestion(Avenue.FlipRoad) : guide;
 
-let guide_draw_road = (avenue, guide) =>
-  Rules.can_draw_road_somewhere(avenue)
+let guide_draw_road = (player, avenue, guide) =>
+  Rules.can_draw_road_somewhere(player, avenue)
     ? guide |> add_suggestion(Avenue.DrawRoad(0, 0)) : guide;
 
-let guide = avenue =>
+let guide = (player, avenue) =>
   []
-  |> guide_peek_farm(avenue)
+  |> guide_peek_farm(player, avenue)
   |> guide_flip_farm(avenue)
-  |> guide_flip_road(avenue)
-  |> guide_draw_road(avenue);
+  |> guide_flip_road(player, avenue)
+  |> guide_draw_road(player, avenue);
 
 [@react.component]
 let make = (~guide, ~log) => {

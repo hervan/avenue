@@ -87,19 +87,11 @@ let count_points = ((row, col), grid) =>
 let make =
     (
       ~stage: Stage.t,
-      ~player as
-        {grid, previous_round_points, current_round_points}: Player.t,
+      ~grid,
+      ~round_points,
       ~castles: Cell.castles,
       ~farm_deck,
     ) => {
-  let round_points =
-    switch (current_round_points) {
-    | Some(current_round_points) => [
-        current_round_points,
-        ...previous_round_points,
-      ]
-    | None => previous_round_points
-    };
   let purple_points = count_points(castles.purple |> Cell.to_pos, grid);
   let green_points = count_points(castles.green |> Cell.to_pos, grid);
   let total_points =

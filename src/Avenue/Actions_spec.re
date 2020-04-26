@@ -77,38 +77,36 @@ describe("Actions.flip_road", () => {
 
   test("should game turn be greater than player turn", () => {
     expect(flip_road_game.avenue.turn)
-    |> toBeGreaterThan(flip_road_game.avenue.active_player.turn)
+    |> toBeGreaterThan(flip_road_game.active_player.turn)
   });
 });
 
 describe("Actions.peek_farm", () => {
   test("should not allow player to look ahead", () => {
-    expect(peek_farm_game.avenue.active_player.lookahead) |> toEqual(false)
+    expect(peek_farm_game.active_player.lookahead) |> toEqual(false)
   });
 
   test("should not skip player turn after trying to use peek", () => {
-    expect(peek_farm_game.avenue.active_player.turn)
+    expect(peek_farm_game.active_player.turn)
     |> toBeLessThan(peek_farm_game.avenue.turn)
   });
 
   test("should allow player to look ahead", () => {
-    expect(poke_game.avenue.active_player.lookahead) |> toEqual(true)
+    expect(poke_game.active_player.lookahead) |> toEqual(true)
   });
 
   test("should skip player turn after using", () => {
-    expect(poke_game.avenue.active_player.turn)
-    |> toEqual(poke_game.avenue.turn)
+    expect(poke_game.active_player.turn) |> toEqual(poke_game.avenue.turn)
   });
 });
 
 describe("Actions.draw_road", () => {
   test("should road be empty at 0, 0", () => {
-    expect(peek_farm_game.avenue.active_player.grid[0][0].road)
-    |> toEqual(None)
+    expect(peek_farm_game.active_player.grid[0][0].road) |> toEqual(None)
   });
 
   test("should road be drawn at 0, 0", () => {
-    expect(draw_road_game.avenue.active_player.grid[0][0].road)
+    expect(draw_road_game.active_player.grid[0][0].road)
     |> toEqual(Some(Road.road_of_int(0)))
   });
 });

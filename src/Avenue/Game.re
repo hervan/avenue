@@ -1,5 +1,11 @@
+// TODO: PARENT MODULE SHOULD BE OF THE RETURNING TYPE
+// so, either return type should be t,
+// or only parameter (apart from core types) should be t
+
 type t = {
   avenue: Avenue.t,
+  active_player: Player.t,
+  other_players: list(Player.t),
   log: list(Status.t),
   guide: list(Avenue.action),
 };
@@ -135,18 +141,17 @@ let find_content = (cell_content, grid) =>
   |> List.concat
   |> List.hd;
 
-let flip_farm = ({avenue: {farm_deck} as avenue, log} as t) =>
+let flip_farm = ({active_player, avenue: {farm_deck} as avenue, log} as t) =>
   avenue->Rules.can_flip_farm
     ? {
       ...t,
-      avenue:
-        avenue
-        |> Avenue.advance_stage
-        |> Avenue.discard_top_farm
-        |> Avenue.keep_round_points
-        |> Avenue.add_players_round_points
-        |> Avenue.reset_players_lookahead
-        |> Avenue.recount_points,
+      avenue: avenue |> Avenue.advance_stage |> Avenue.discard_top_farm,
+      active_player:
+        active_player
+        |> Player.keep_round_points
+        |> Player.add_round_points(farm_deck->List.nth(0))
+        |> Player.reset_lookahead
+        |> Player.recount_points(avenue.farms),
       log:
         log
         |> Status.add_action(Avenue.FlipFarm)
@@ -154,19 +159,21 @@ let flip_farm = ({avenue: {farm_deck} as avenue, log} as t) =>
     }
     : t;
 
-let peek_farm = ({avenue, log} as t) =>
-  avenue->Rules.can_peek_farm
+let peek_farm = ({active_player, avenue, log} as t) =>
+  avenue |> Rules.can_peek_farm(active_player)
     ? {
       ...t,
-      avenue:
-        avenue |> Avenue.enable_player_lookahead |> Avenue.advance_player_turn,
+      active_player:
+        active_player
+        |> Player.enable_lookahead
+        |> Player.advance_turn(avenue.turn),
       log:
         log |> Status.add_action(PeekFarm) |> Status.add_event(TurnSkipped),
     }
     : t;
 
-let flip_road = ({avenue, log} as t) =>
-  avenue->Rules.can_flip_road
+let flip_road = ({active_player, avenue, log} as t) =>
+  avenue |> Rules.can_flip_road(active_player)
     ? {
       ...t,
       avenue:
@@ -179,66 +186,57 @@ let flip_road = ({avenue, log} as t) =>
     }
     : t;
 
-let draw_road = (row, col, {avenue, log} as t) =>
-  avenue |> Rules.can_draw_road(row, col)
-    ? {
-      ...t,
-      avenue:
-        avenue
-        |> Avenue.draw_road_on_grid_cell(row, col)
-        |> Avenue.advance_player_turn
-        |> Avenue.recount_points,
-      log: log |> Status.add_action(DrawRoad(row, col)),
-    }
-    : t;
+let draw_road = (row, col) =>
+  fun
+  | {
+      active_player,
+      avenue: {turn, current_card: Some((road, _))} as avenue,
+      log,
+    } as t =>
+    avenue |> Rules.can_draw_road(active_player, row, col)
+      ? {
+        ...t,
+        active_player:
+          active_player
+          |> Player.draw_road_on_grid_cell(road, row, col)
+          |> Player.advance_turn(turn)
+          |> Player.recount_points(avenue.farms),
+        log: log |> Status.add_action(DrawRoad(row, col)),
+      }
+      : t
+  | {avenue: {current_card: None}} as t => t;
 
 let score_zero_penalty =
   fun
   | {
-      avenue:
-        {
-          active_player:
-            {current_round_points: Some((farm, _))} as active_player,
-        } as avenue,
+      active_player: {current_round_points: Some((farm, _))} as active_player,
       log,
     } as t =>
-    avenue->Rules.has_scored_zero
+    active_player->Rules.has_scored_zero
       ? {
         ...t,
-        avenue: {
-          ...avenue,
-          active_player: {
-            ...active_player,
-            current_round_points: Some((farm, (-5))),
-          },
+        active_player: {
+          ...active_player,
+          current_round_points: Some((farm, (-5))),
         },
         log: log |> Status.add_event(ScoredZero(farm->Farm.string_of_farm)),
       }
       : t
-  | {avenue: {active_player: {current_round_points: None}}} as t => t;
+  | {active_player: {current_round_points: None}} as t => t;
 
 let score_less_penalty =
   fun
   | {
-      avenue:
-        {
-          active_player:
-            {
-              current_round_points: Some((farm, points)),
-              previous_round_points,
-            } as active_player,
-        } as avenue,
+      active_player:
+        {current_round_points: Some((farm, points)), previous_round_points} as active_player,
       log,
     } as t =>
-    avenue->Rules.has_scored_less
+    active_player->Rules.has_scored_less
       ? {
         ...t,
-        avenue: {
-          ...avenue,
-          active_player: {
-            ...active_player,
-            current_round_points: Some((farm, (-5))),
-          },
+        active_player: {
+          ...active_player,
+          current_round_points: Some((farm, (-5))),
         },
         log:
           log
@@ -253,12 +251,12 @@ let score_less_penalty =
              ),
       }
       : t
-  | {avenue: {active_player: {current_round_points: None}}} as t => t;
+  | {active_player: {current_round_points: None}} as t => t;
 
 let end_round =
   fun
-  | {avenue: {stage: Round(farm, _)} as avenue, log} as t =>
-    avenue->Rules.can_end_round
+  | {active_player, avenue: {stage: Round(farm, _)} as avenue, log} as t =>
+    avenue |> Rules.can_end_round(active_player)
       ? {
           ...t,
           avenue: avenue |> Avenue.advance_stage,
@@ -282,8 +280,6 @@ let end_game = ({avenue, log} as t) => {
 let create_game = (player_name, base_grid, road_deck, farm_deck) => {
   let avenue: Avenue.t = {
     turn: 0,
-    active_player: create_player(player_name, base_grid),
-    other_players: [],
     road_deck,
     farm_deck,
     stage: Flow(Begin),
@@ -301,12 +297,22 @@ let create_game = (player_name, base_grid, road_deck, farm_deck) => {
       find_content(Farm(F), base_grid),
     ],
   };
-  {avenue, log: [], guide: avenue |> Status.guide};
+  let active_player = create_player(player_name, base_grid);
+  {
+    avenue,
+    log: [],
+    guide: avenue |> Status.guide(active_player),
+    active_player,
+    other_players: [],
+  };
 };
 
-let guide = ({avenue} as t) => {...t, guide: avenue |> Status.guide};
+let guide = ({active_player, avenue} as t) => {
+  ...t,
+  guide: avenue |> Status.guide(active_player),
+};
 
-// TODO create reducers for parts of game state (namely log, but also anywhere else creating dependency cycles)
+// TODO: create reducers for parts of game state (namely log, but also anywhere else creating dependency cycles)
 // actions can potentially replace existing game update functions in Avenue module
 // this should decentralize state from game type
 // root reducer should look like
@@ -352,7 +358,7 @@ let make = () => {
   <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
     Theme.filters
     <g>
-      {game.avenue.active_player.grid
+      {game.active_player.grid
        |> Array.to_list
        |> Array.concat
        |> Array.mapi((i, cell) =>
@@ -370,14 +376,23 @@ let make = () => {
       dispatch
     />
     <FarmDeck
-      active_player={game.avenue.active_player}
+      active_player={game.active_player}
       farm_deck={game.avenue.farm_deck}
       stage={game.avenue.stage}
       dispatch
     />
     <Points
       stage={game.avenue.stage}
-      player={game.avenue.active_player}
+      grid={game.active_player.grid}
+      round_points={
+        switch (game.active_player.current_round_points) {
+        | Some(points) => [
+            points,
+            ...game.active_player.previous_round_points,
+          ]
+        | None => game.active_player.previous_round_points
+        }
+      }
       castles={game.avenue.castles}
       farm_deck={game.avenue.farm_deck}
     />

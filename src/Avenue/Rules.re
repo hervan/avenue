@@ -1,4 +1,4 @@
-// TODO merge with Avenue
+// TODO: merge with Avenue
 
 let can_flip_farm = ({stage, farm_deck}: Avenue.t) =>
   switch (stage) {
@@ -13,23 +13,23 @@ let can_flip_farm = ({stage, farm_deck}: Avenue.t) =>
   | Flow(End) => false
   };
 
-let can_peek_farm = ({stage, farm_deck, active_player, turn}: Avenue.t) =>
+let can_peek_farm = (player: Player.t, {stage, farm_deck, turn}: Avenue.t) =>
   switch (stage) {
   | Round(_, Four) => false
   | Round(_, _) =>
     switch (farm_deck) {
     | []
     | [_] => false
-    | [_, ..._] => !active_player.lookahead && active_player.turn < turn
+    | [_, ..._] => !player.lookahead && player.turn < turn
     }
   | Flow(_) => false
   };
 
-let can_flip_road = ({stage, road_deck, active_player, turn}: Avenue.t) =>
+let can_flip_road = (player: Player.t, {stage, road_deck, turn}: Avenue.t) =>
   switch (stage) {
   | Round(_, _) =>
     switch (road_deck) {
-    | [_, ..._] => active_player.turn == turn
+    | [_, ..._] => player.turn == turn
     | [] => false
     }
   | Flow(_) => false
@@ -37,52 +37,49 @@ let can_flip_road = ({stage, road_deck, active_player, turn}: Avenue.t) =>
 
 let can_draw_road =
     (
+      {grid} as player: Player.t,
       row,
       col,
-      {current_card, stage, active_player: {grid} as active_player, turn}: Avenue.t,
+      {current_card, stage, turn}: Avenue.t,
     ) =>
   switch (current_card) {
   | Some((_, _)) =>
     switch (stage) {
-    | Round(_, _) => active_player.turn < turn && grid[row][col].road == None
+    | Round(_, _) => player.turn < turn && grid[row][col].road == None
     | Flow(_) => false
     }
   | None => false
   };
 
-let can_draw_road_somewhere = ({active_player} as avenue: Avenue.t) =>
-  active_player.grid
+let can_draw_road_somewhere = (player: Player.t, avenue: Avenue.t) =>
+  player.grid
   |> Array.to_list
   |> List.exists(grid_row =>
        grid_row
        |> Array.to_list
        |> List.exists(({Cell.row, Cell.col}) =>
-            can_draw_road(row, col, avenue)
+            can_draw_road(player, row, col, avenue)
           )
      );
 
 let has_scored_zero =
   fun
-  | {Avenue.active_player: {current_round_points: Some((_, points))}} =>
-    points == 0
-  | {Avenue.active_player: {current_round_points: None}} => false;
+  | {Player.current_round_points: Some((_, points))} => points == 0
+  | {current_round_points: None} => false;
 
 let has_scored_less =
   fun
   | {
-      Avenue.active_player: {
-        current_round_points: Some((_, points)),
-        previous_round_points: [(_, previous_points), ..._],
-      },
+      Player.current_round_points: Some((_, points)),
+      previous_round_points: [(_, previous_points), ..._],
     } =>
     points <= previous_points
-  | {Avenue.active_player: {previous_round_points: []}}
-  | {Avenue.active_player: {current_round_points: None}} => false;
+  | {previous_round_points: []}
+  | {current_round_points: None} => false;
 
-let can_end_round =
+let can_end_round = (player: Player.t) =>
   fun
-  | ({active_player, stage: Round(_, Four), turn}: Avenue.t) =>
-    active_player.turn == turn
+  | {Avenue.stage: Round(_, Four), turn} => player.turn == turn
   | {stage: Round(_, Zero | One | Two | Three) | Flow(_)} => false;
 
 let can_end_game = ({stage, farm_deck}: Avenue.t) =>
