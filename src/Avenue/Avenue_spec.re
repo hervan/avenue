@@ -1,47 +1,116 @@
 open Jest;
 open Expect;
-open Types;
 
-let map_A_grid = Avenue.create_base_grid(Avenue.map_A_grid_contents);
+let minimal_grid_contents = [|
+  [|Cell.Content.Castle(Purple), Farm(A), Empty, Farm(B)|],
+  [|Farm(C), Empty, Grapes([Green, Green, Green, Purple]), Empty|],
+  [|Empty, Grapes([Green, Purple, Purple, Purple]), Empty, Farm(D)|],
+  [|Farm(E), Empty, Farm(F), Castle(Green)|],
+|];
 
-describe("Avenue.find_content", () => {
-  test("should find the green castle in map A at (0, 5)", () => {
-    expect(Avenue.find_content(Castle(Green), map_A_grid))
-    |> toEqual({row: 0, col: 5, content: Castle(Green), road: None})
+let minimal_grid = Grid.setup(minimal_grid_contents);
+
+let road_deck = [];
+
+let farm_deck = Farm.[A, B, C, D, E, F];
+
+describe("Avenue.advance_stage", () => {
+  let base_game = Game.setup("me", minimal_grid, road_deck, farm_deck);
+  let game_yellow = {
+    ...base_game.avenue,
+    current_card: Some((Road.of_int(0), Yellow)),
+  };
+  let game_a_0 =
+    game_yellow |> Avenue.advance_stage |> Avenue.discard_top_farm;
+  let game_a_1 = game_a_0 |> Avenue.advance_stage;
+  let game_a_1_grey = {
+    ...game_a_1,
+    current_card: Some((Road.of_int(0), Grey)),
+  };
+  let game_a_1_yet = game_a_1_grey |> Avenue.advance_stage;
+  let game_a_4 =
+    game_a_1
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage;
+  let game_round_end_a = game_a_4 |> Avenue.advance_stage;
+  let game_b_0 =
+    game_round_end_a |> Avenue.advance_stage |> Avenue.discard_top_farm;
+  let game_e_0 =
+    game_round_end_a
+    |> Avenue.discard_top_farm
+    |> Avenue.discard_top_farm
+    |> Avenue.discard_top_farm
+    |> Avenue.advance_stage
+    |> Avenue.discard_top_farm;
+  let game_e_4 =
+    game_e_0
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage
+    |> Avenue.advance_stage;
+  let game_round_end_e = game_e_4 |> Avenue.advance_stage;
+  let game_end_e = game_round_end_e |> Avenue.advance_stage;
+  let game_end = game_end_e |> Avenue.advance_stage;
+
+  test("should begin game with Begin stage", () => {
+    expect(game_yellow.stage) |> toEqual(Stage.Flow(Begin))
   });
 
-  test("should find the purple castle in map A at (6, 0)", () => {
-    expect(Avenue.find_content(Castle(Purple), map_A_grid))
-    |> toEqual({row: 6, col: 0, content: Castle(Purple), road: None})
+  test("should advance game to farm A, 0 yellow cards stage", () => {
+    expect(game_a_0.stage) |> toEqual(Stage.Round(A, Zero))
   });
 
-  test("should find farm A in map A at (0, 2)", () => {
-    expect(Avenue.find_content(Farm(A), map_A_grid))
-    |> toEqual({row: 0, col: 2, content: Farm(A), road: None})
+  test("should remove top farm card from deck", () => {
+    expect(game_a_0.farm_deck |> List.hd) |> toEqual(Farm.B)
   });
 
-  test("should find farm B in map A at (2, 3)", () => {
-    expect(Avenue.find_content(Farm(B), map_A_grid))
-    |> toEqual({row: 2, col: 3, content: Farm(B), road: None})
+  test("should advance game to farm A, 1 yellow card stage", () => {
+    expect(game_a_1.stage) |> toEqual(Stage.Round(A, One))
   });
 
-  test("should find farm C in map A at (3, 0)", () => {
-    expect(Avenue.find_content(Farm(C), map_A_grid))
-    |> toEqual({row: 3, col: 0, content: Farm(C), road: None})
+  test("should game be in farm A, 1 yellow card stage", () => {
+    expect(game_a_1_grey.stage) |> toEqual(Stage.Round(A, One))
   });
 
-  test("should find farm D in map A at (3, 5)", () => {
-    expect(Avenue.find_content(Farm(D), map_A_grid))
-    |> toEqual({row: 3, col: 5, content: Farm(D), road: None})
+  test("should current card be grey", () => {
+    expect(game_a_1_grey.current_card)
+    |> toEqual(Some((Road.of_int(0), Road.Card.Grey)))
   });
 
-  test("should find farm E in map A at (4, 2)", () => {
-    expect(Avenue.find_content(Farm(E), map_A_grid))
-    |> toEqual({row: 4, col: 2, content: Farm(E), road: None})
+  test("should keep the game in farm A, 1 yellow card stage", () => {
+    expect(game_a_1_yet.stage) |> toEqual(Stage.Round(A, One))
   });
 
-  test("should find farm F in map A at (6, 3)", () => {
-    expect(Avenue.find_content(Farm(F), map_A_grid))
-    |> toEqual({row: 6, col: 3, content: Farm(F), road: None})
+  test("should advance game to farm A, 4 yellow card stage", () => {
+    expect(game_a_4.stage) |> toEqual(Stage.Round(A, Four))
+  });
+
+  test("should advance game to round end A stage", () => {
+    expect(game_round_end_a.stage) |> toEqual(Stage.Flow(RoundEnd))
+  });
+
+  test("should advance game to round B, 0 yellow cards stage", () => {
+    expect(game_b_0.stage) |> toEqual(Stage.Round(B, Zero))
+  });
+
+  test("should advance game to round E, 0 yellow cards stage", () => {
+    expect(game_e_0.stage) |> toEqual(Stage.Round(E, Zero))
+  });
+
+  test("should advance game to round E, 4 yellow cards stage", () => {
+    expect(game_e_4.stage) |> toEqual(Stage.Round(E, Four))
+  });
+
+  test("should advance game to round end E stage", () => {
+    expect(game_round_end_e.stage) |> toEqual(Stage.Flow(RoundEnd))
+  });
+
+  test("should advance game to end E stage", () => {
+    expect(game_end_e.stage) |> toEqual(Stage.Flow(End))
+  });
+
+  test("should keep the game in end E stage", () => {
+    expect(game_end.stage) |> toEqual(Stage.Flow(End))
   });
 });

@@ -1,4 +1,33 @@
-open Converters;
+open Common;
+
+type t =
+  | A
+  | B
+  | C
+  | D
+  | E
+  | F;
+
+let to_string =
+  fun
+  | A => "A"
+  | B => "B"
+  | C => "C"
+  | D => "D"
+  | E => "E"
+  | F => "F";
+
+let of_int =
+  fun
+  | 0 => A
+  | 1 => B
+  | 2 => C
+  | 3 => D
+  | 4 => E
+  | 5 => F
+  | _ => raise(Impossible("farms only exist from A to F"));
+
+let random_farm = () => of_int(Random.int(6));
 
 [@react.component]
 let make = (~farm) => {
@@ -26,7 +55,7 @@ let make = (~farm) => {
       strokeWidth="0"
       fillOpacity="0.5"
       style={Theme.text("2.3px")}>
-      {farm->string_of_farm->str}
+      {farm->to_string->str}
     </text>
   </>;
 };

@@ -1,24 +1,43 @@
-open Types;
-open Converters;
+open Common;
 
 module Content = {
+  type t =
+    | Empty
+    | Grapes(list(Grape.t))
+    | Castle(Grape.t)
+    | Farm(Farm.t);
+
   [@react.component]
   let make = (~content) =>
     switch (content) {
     | Empty => React.null
-    | Grapes(colors) =>
-      colors
-      |> List.mapi((i, color) => <Grape key={i |> string_of_int} color i />)
+    | Grapes(grapes) =>
+      grapes
+      |> List.mapi((i, grape) => <Grape key={i |> string_of_int} grape i />)
       |> arr
-    | Castle(color) => <g transform="translate(2 8)"> <Castle color /> </g>
+    | Castle(grape) => <g transform="translate(2 8)"> <Castle grape /> </g>
     | Farm(farm) => <g transform="translate(5 9)"> <Farm farm /> </g>
     };
 };
 
+type t = {
+  row: int,
+  col: int,
+  content: Content.t,
+  road: option(Road.t),
+};
+
+type castles = {
+  purple: t,
+  green: t,
+};
+
+let to_pos = (cell: t) => (cell.row, cell.col);
+
 [@react.component]
 let make = (~cell, ~dispatch) =>
   <g
-    onClick={_evt => dispatch(DrawRoad(cell.row, cell.col))}
+    onClick={_evt => dispatch(cell.row, cell.col)}
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int

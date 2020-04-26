@@ -1,193 +1,153 @@
-open Types;
-open Converters;
-
-let grid_columns = 6;
-let grid_rows = 7;
-
-let map_A_grid_contents = [|
-  [|
-    Grapes([Green, Green, Green, Purple]),
-    Grapes([Purple]),
-    Farm(A),
-    Grapes([Green, Green]),
-    Empty,
-    Castle(Green),
-  |],
-  [|
-    Grapes([Purple]),
-    Grapes([Green, Green]),
-    Grapes([Green]),
-    Grapes([Purple]),
-    Grapes([Green, Green, Purple]),
-    Empty,
-  |],
-  [|
-    Grapes([Green]),
-    Empty,
-    Grapes([Purple, Purple, Green]),
-    Farm(B),
-    Grapes([Green]),
-    Grapes([Green, Green]),
-  |],
-  [|
-    Farm(C),
-    Grapes([Purple, Purple]),
-    Grapes([Green, Green]),
-    Empty,
-    Grapes([Purple, Purple]),
-    Farm(D),
-  |],
-  [|
-    Grapes([Purple, Purple]),
-    Empty,
-    Farm(E),
-    Grapes([Purple]),
-    Grapes([Green, Green, Purple]),
-    Grapes([Purple]),
-  |],
-  [|
-    Empty,
-    Grapes([Purple, Purple, Green]),
-    Grapes([Green]),
-    Grapes([Purple, Purple]),
-    Grapes([Green]),
-    Empty,
-  |],
-  [|
-    Castle(Purple),
-    Grapes([Green]),
-    Grapes([Purple]),
-    Farm(F),
-    Empty,
-    Grapes([Purple, Purple, Purple, Green]),
-  |],
-|];
-
-let create_player = (player_name, base_grid) => {
-  farmer: player_name,
-  grid: base_grid,
-  lookahead: false,
-  turn: 0,
-  farm_points: [],
+type t = {
+  turn: int,
+  road_deck: list(Road.Card.t),
+  farm_deck: list(Farm.t),
+  stage: Stage.t,
+  current_card: option(Road.Card.t),
+  castles: Cell.castles,
+  farms: list(Cell.t),
 };
 
-let random_farm = () => farm_of_int(Random.int(6));
+type action =
+  | PeekFarm
+  | FlipFarm
+  | FlipRoad
+  | DrawRoad(int, int);
 
-let create_farm_deck = () => {
-  let rec aux = deck =>
-    fun
-    | 0 => deck
-    | n => {
-        let farm_card = random_farm();
-        List.for_all(card => card != farm_card, deck)
-          ? aux([farm_card, ...deck], n - 1) : aux(deck, n);
-      };
-  Random.self_init();
-  aux([], 6);
-};
-
-let create_road_deck = () => {
-  let rec aux = (deck, available_cards) => {
-    let (road, color) = (Random.int(6), Random.int(2));
-    List.length(deck) == grid_columns * grid_rows
-      ? deck
-      : available_cards[road][color] == 0
-          ? aux(deck, available_cards)
-          : {
-            available_cards[road][color] = available_cards[road][color] - 1;
-            aux([road_card_of_ints(road, color), ...deck], available_cards);
-          };
+let next_stage = ({stage, farm_deck, current_card}: t) => {
+  switch (stage, current_card) {
+  | (Flow(Begin | RoundEnd), _) =>
+    switch (farm_deck) {
+    | [_] => Stage.Flow(End)
+    | [next_farm, ..._] => Round(next_farm, Zero)
+    | [] => stage
+    }
+  | (Round(_, Four), _) => Flow(RoundEnd)
+  | (Round(farm, yc), Some((_, Yellow))) =>
+    Round(farm, yc->Stage.YellowCards.add)
+  | (Round(_, _), Some((_, Grey)))
+  | (Round(_, _), None)
+  | (Flow(End), _) => stage
   };
-  Random.self_init();
-  aux(
-    [],
-    [|[|4, 3|], [|4, 3|], [|4, 3|], [|4, 3|], [|3, 4|], [|3, 4|]|],
-  );
 };
 
-let create_base_grid = grid_contents =>
-  Array.init(grid_contents |> Array.length, row =>
-    Array.init(grid_contents[0] |> Array.length, col =>
-      {row, col, content: grid_contents[row][col], road: None}
-    )
-  );
+let advance_stage = t => {...t, stage: next_stage(t)};
 
-let find_content = (cell_content, grid) =>
-  grid
-  |> Array.to_list
-  |> List.map(row =>
-       row
-       |> Array.to_list
-       |> List.filter(cell => cell.content == cell_content)
-     )
-  |> List.concat
-  |> List.hd;
+let discard_top_farm = ({farm_deck} as t) => {
+  ...t,
+  farm_deck: farm_deck |> List.tl,
+};
 
-let create_game = (player_name, base_grid, road_deck, farm_deck) =>
-  {
-    players: [create_player(player_name, base_grid)],
-    deck: road_deck,
-    turn: 0,
-    round_deck: farm_deck,
-    stage: Flow(Created),
-    current_card: None,
-    castles: {
-      purple: find_content(Castle(Purple), base_grid),
-      green: find_content(Castle(Green), base_grid),
-    },
-    farms: [
-      find_content(Farm(A), base_grid),
-      find_content(Farm(B), base_grid),
-      find_content(Farm(C), base_grid),
-      find_content(Farm(D), base_grid),
-      find_content(Farm(E), base_grid),
-      find_content(Farm(F), base_grid),
-    ],
-    log: [],
-    guide: [],
-  }
-  |> Actions.start_game
-  |> Rules.guide;
+let set_current_road = ({road_deck} as t) => {
+  ...t,
+  current_card: Some(road_deck |> List.hd),
+};
 
-let reducer = game =>
-  fun
-  | PeekFarm => game |> Actions.peek_farm |> Rules.guide
-  | FlipFarm => game |> Actions.flip_farm |> Rules.guide
-  | FlipRoad => game |> Actions.flip_road |> Rules.guide
-  | DrawRoad(row, col) =>
-    game
-    |> Actions.draw_road(row, col)
-    |> Actions.end_round
-    |> Actions.end_game
-    |> Rules.guide;
+let discard_top_road = ({road_deck} as t) => {
+  ...t,
+  road_deck: road_deck |> List.tl,
+};
 
-[@react.component]
-let make = () => {
-  let (game, dispatch) =
-    React.useReducer(
-      reducer,
-      create_game(
-        "me",
-        create_base_grid(map_A_grid_contents),
-        create_road_deck(),
-        create_farm_deck(),
-      ),
-    );
+let advance_turn = ({turn} as t) => {...t, turn: turn + 1};
 
-  <svg width="98vmin" height="98vmin" viewBox="-2 -2 102 102">
-    Theme.filters
-    <g>
-      {(game.players |> List.hd).grid
-       |> Array.to_list
-       |> Array.concat
-       |> Array.mapi((i, cell) =>
-            <Cell key={i |> string_of_int} cell dispatch />
-          )
-       |> ReasonReact.array}
-    </g>
-    <Deck game dispatch />
-    <RoundDeck game dispatch />
-    <Points game />
-    <Status game />
-  </svg>;
+let set_stage = (stage, t) => {...t, stage};
+
+module Rules = {
+  let can_flip_farm = ({stage, farm_deck}: t) =>
+    switch (stage) {
+    | Flow(Begin)
+    | Flow(RoundEnd) =>
+      switch (farm_deck) {
+      | [_, _, ..._] => true
+      | [_]
+      | [] => false
+      }
+    | Round(_, _)
+    | Flow(End) => false
+    };
+
+  let can_peek_farm = (player: Player.t, {stage, farm_deck, turn}: t) =>
+    switch (stage) {
+    | Round(_, Four) => false
+    | Round(_, _) =>
+      switch (farm_deck) {
+      | []
+      | [_] => false
+      | [_, ..._] => !player.lookahead && player.turn < turn
+      }
+    | Flow(_) => false
+    };
+
+  let can_flip_road = (player: Player.t, {stage, road_deck, turn}: t) =>
+    switch (stage) {
+    | Round(_, _) =>
+      switch (road_deck) {
+      | [_, ..._] => player.turn == turn
+      | [] => false
+      }
+    | Flow(_) => false
+    };
+
+  let can_draw_road =
+      ({grid} as player: Player.t, row, col, {current_card, stage, turn}: t) =>
+    switch (current_card) {
+    | Some((_, _)) =>
+      switch (stage) {
+      | Round(_, _) => player.turn < turn && grid[row][col].road == None
+      | Flow(_) => false
+      }
+    | None => false
+    };
+
+  let can_draw_road_somewhere = (player: Player.t, avenue: t) =>
+    player.grid
+    |> Array.to_list
+    |> List.exists(grid_row =>
+         grid_row
+         |> Array.to_list
+         |> List.exists(({Cell.row, Cell.col}) =>
+              can_draw_road(player, row, col, avenue)
+            )
+       );
+
+  let has_scored_zero =
+    fun
+    | {Player.current_round_points: Some((_, points))} => points == 0
+    | {current_round_points: None} => false;
+
+  let has_scored_less =
+    fun
+    | {
+        Player.current_round_points: Some((_, points)),
+        previous_round_points: [(_, previous_points), ..._],
+      } =>
+      points <= previous_points
+    | {previous_round_points: []}
+    | {current_round_points: None} => false;
+
+  let can_end_round = (player: Player.t) =>
+    fun
+    | {stage: Round(_, Four), turn} => player.turn == turn
+    | {stage: Round(_, Zero | One | Two | Three) | Flow(_)} => false;
+
+  let can_end_game = ({stage, farm_deck}: t) =>
+    switch (stage) {
+    | Flow(control_stage) =>
+      control_stage == RoundEnd && farm_deck->List.length == 1
+    | Round(_, _) => false
+    };
+
+  let suggest_play =
+    fun
+    | PeekFarm => "or click the bottom deck to peek at the upcoming farm"
+    | FlipFarm => "click the bottom deck to begin the next round"
+    | FlipRoad => "click the top deck to flip a road card"
+    | DrawRoad(_, _) => "click an empty cell to draw the face-up road";
+
+  let describe_play =
+    fun
+    | PeekFarm => "you peeked at the upcoming farm"
+    | FlipFarm => "you flipped a farm card to begin the next round"
+    | FlipRoad => "you flipped a road card"
+    | DrawRoad(row, col) => {j|you drew a road in cell ($row, $col)|j};
 };

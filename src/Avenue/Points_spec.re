@@ -1,10 +1,10 @@
 open Jest;
 open Expect;
-open Types;
 
 describe("Points.count_grapes_cell", () => {
-  let two_green_one_purple_grapes = Grapes([Green, Green, Purple]);
-  let empty_cell: cell = {row: 0, col: 0, content: Empty, road: None};
+  let two_green_one_purple_grapes =
+    Cell.Content.Grapes([Green, Green, Purple]);
+  let empty_cell = {Cell.row: 0, col: 0, content: Empty, road: None};
 
   test("should count purple grapes from purple castle", () => {
     expect(
@@ -54,13 +54,13 @@ describe("Points.count_grapes_cell", () => {
 
 describe("Points.count_points", () => {
   let full_grid =
-    Avenue.create_base_grid(Avenue.map_A_grid_contents)
+    Grid.setup(Grid.map_A)
     |> Array.mapi((i, row) =>
          row
          |> Array.mapi((j, cell) =>
               {
                 ...cell,
-                road:
+                Cell.road:
                   Some((
                     j != 0 ? Left : i mod 2 == 0 ? Top : Bottom,
                     j != 5 ? Right : i mod 2 == 0 ? Bottom : Top,

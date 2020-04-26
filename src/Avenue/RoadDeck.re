@@ -1,8 +1,32 @@
-open Types;
-open Converters;
+open Common;
+
+let grid_columns = 6;
+let grid_rows = 7;
+
+let setup = () => {
+  let rec aux = (road_deck, available_cards) => {
+    let (road, color) = (Random.int(6), Random.int(2));
+    List.length(road_deck) == grid_columns * grid_rows
+      ? road_deck
+      : available_cards[road][color] == 0
+          ? aux(road_deck, available_cards)
+          : {
+            available_cards[road][color] = available_cards[road][color] - 1;
+            aux(
+              [Road.Card.card_of_ints(road, color), ...road_deck],
+              available_cards,
+            );
+          };
+  };
+  Random.self_init();
+  aux(
+    [],
+    [|[|4, 3|], [|4, 3|], [|4, 3|], [|4, 3|], [|3, 4|], [|3, 4|]|],
+  );
+};
 
 [@react.component]
-let make = (~game as {deck, current_card}, ~dispatch) => {
+let make = (~road_deck, ~current_card, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);
   React.useEffect1(
     _ => {
@@ -21,14 +45,14 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
       let _ =
         Js.Global.setTimeout(
           _ => {
-            dispatch(FlipRoad);
+            dispatch(Avenue.FlipRoad);
             setRotation(_ => 0);
           },
           500,
         );
       ();
     }}>
-    {deck
+    {road_deck
      |> List.mapi((i, _) =>
           <rect
             key={i |> string_of_int}
@@ -58,12 +82,12 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
          <rect
            x={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            width="15"
@@ -80,18 +104,18 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
          <rect
            x={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            y={
              Theme.road_card_thickness
-             *. (List.length(deck) |> float_of_int)
+             *. (List.length(road_deck) |> float_of_int)
              |> Js.Float.toString
            }
            width="15"
            height="20"
            rx="2"
-           fill={color->string_of_card_color}
+           fill={color->Road.Card.string_of_color}
            stroke="white"
            strokeWidth="1"
            style=Theme.road_shadow
@@ -102,14 +126,14 @@ let make = (~game as {deck, current_card}, ~dispatch) => {
              ++ (
                2.5
                +. Theme.road_card_thickness
-               *. (List.length(deck) |> float_of_int)
+               *. (List.length(road_deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ " "
              ++ (
                5.0
                +. Theme.road_card_thickness
-               *. (List.length(deck) |> float_of_int)
+               *. (List.length(road_deck) |> float_of_int)
                |> Js.Float.toString
              )
              ++ ")"

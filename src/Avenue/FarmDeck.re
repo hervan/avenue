@@ -1,19 +1,27 @@
-open Types;
-open Converters;
+open Common;
+
+let setup = () => {
+  let rec aux = farm_deck =>
+    fun
+    | 0 => farm_deck
+    | n => {
+        let farm_card = Farm.random_farm();
+        List.for_all(card => card != farm_card, farm_deck)
+          ? aux([farm_card, ...farm_deck], n - 1) : aux(farm_deck, n);
+      };
+  Random.self_init();
+  aux([], 6);
+};
 
 [@react.component]
-let make = (~game as {players, round_deck, stage}, ~dispatch) => {
+let make =
+    (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 0);
   let can_peek =
     switch (stage) {
-    | Round(_, _) =>
-      switch (players) {
-      | [{lookahead}, ..._] => lookahead
-      | [] => false
-      }
+    | Round(_, _) => lookahead
     | Flow(RoundEnd)
     | Flow(Begin) => true
-    | Flow(Created)
     | Flow(End) => false
     };
   React.useEffect1(
@@ -31,7 +39,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
     onClick={_evt =>
       switch (stage) {
       | Round(_, _) =>
-        dispatch(PeekFarm);
+        dispatch(Avenue.PeekFarm);
         setRotation(_ => 90);
         let _ = Js.Global.setTimeout(() => setRotation(_ => 0), 500);
         ();
@@ -51,7 +59,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
       }
     }
     transform="translate(63 25)">
-    {round_deck
+    {farm_deck
      |> List.rev
      |> List.mapi((i, farm) =>
           <g
@@ -90,7 +98,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
                      fillOpacity="1"
                      fill="cornflowerblue"
                      style=Theme.big_text>
-                     {farm->string_of_farm->str}
+                     {farm->Farm.to_string->str}
                    </text>
                  </g>
                : React.null}
@@ -98,25 +106,25 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
         )
      |> arr}
     <g
-      key={round_deck |> List.length |> string_of_int}
+      key={farm_deck |> List.length |> string_of_int}
       transform={
         "translate("
         ++ (
           Theme.farm_card_thickness
-          *. (round_deck |> List.length)->float_of_int
+          *. (farm_deck |> List.length)->float_of_int
           |> Js.Float.toString
         )
         ++ " "
         ++ (
           Theme.farm_card_thickness
-          *. (round_deck |> List.length)->float_of_int
+          *. (farm_deck |> List.length)->float_of_int
           |> Js.Float.toString
         )
         ++ ")"
       }>
       <g style={Theme.rotate_card(rotation)}>
         <rect
-          key={round_deck |> List.length |> string_of_int}
+          key={farm_deck |> List.length |> string_of_int}
           width="15"
           height="20"
           rx="2"
@@ -140,7 +148,7 @@ let make = (~game as {players, round_deck, stage}, ~dispatch) => {
                fillOpacity="1"
                fill="cornflowerblue"
                style=Theme.big_text>
-               {farm->string_of_farm->str}
+               {farm->Farm.to_string->str}
              </text>
            </g>
          | Flow(_) => React.null
