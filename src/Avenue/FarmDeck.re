@@ -1,5 +1,18 @@
 open Common;
 
+let setup = () => {
+  let rec aux = farm_deck =>
+    fun
+    | 0 => farm_deck
+    | n => {
+        let farm_card = Farm.random_farm();
+        List.for_all(card => card != farm_card, farm_deck)
+          ? aux([farm_card, ...farm_deck], n - 1) : aux(farm_deck, n);
+      };
+  Random.self_init();
+  aux([], 6);
+};
+
 [@react.component]
 let make =
     (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {

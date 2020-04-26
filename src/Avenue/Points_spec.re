@@ -54,7 +54,7 @@ describe("Points.count_grapes_cell", () => {
 
 describe("Points.count_points", () => {
   let full_grid =
-    Game.create_base_grid(Game.map_A_grid_contents)
+    Grid.setup(Grid.map_A)
     |> Array.mapi((i, row) =>
          row
          |> Array.mapi((j, cell) =>

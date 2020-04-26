@@ -2,18 +2,16 @@ open Jest;
 open Expect;
 
 let game =
-  Game.(
-    create_game(
-      "",
-      create_base_grid(map_A_grid_contents),
-      [
-        (Road.road_of_int(0), Yellow),
-        (Road.road_of_int(1), Yellow),
-        (Road.road_of_int(2), Yellow),
-        (Road.road_of_int(3), Yellow),
-      ],
-      [A, B],
-    )
+  Game.setup(
+    "",
+    Grid.setup(Grid.map_A),
+    [
+      (Road.road_of_int(0), Yellow),
+      (Road.road_of_int(1), Yellow),
+      (Road.road_of_int(2), Yellow),
+      (Road.road_of_int(3), Yellow),
+    ],
+    [A, B],
   );
 
 let flip_farm_game = game |> Game.flip_farm;

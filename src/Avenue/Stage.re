@@ -24,8 +24,7 @@ let describe_event =
     ]
   | RoundIsOver(farm) => [
       {j|round $farm is over|j},
-      {j|this was triggered because 4 yellow|j},
-      {j|road cards were played this round|j},
+      {j|the round ends after 4 yellow road cards are played in a round|j},
     ]
   | ScoredZero(farm) => [
       "you take a -5 points penalty this round",

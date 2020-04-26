@@ -8,7 +8,7 @@ let minimal_grid_contents_without_empty = [|
 |];
 
 let minimal_grid_without_empty =
-  Game.create_base_grid(minimal_grid_contents_without_empty);
+  Grid.setup(minimal_grid_contents_without_empty);
 
 let road_deck = [];
 
@@ -49,8 +49,7 @@ describe("Player.recount_points", () => {
     road: Some(Road.road_of_int(0)),
   };
 
-  let base_game =
-    Game.create_game("me", connected_grid, road_deck, farm_deck);
+  let base_game = Game.setup("me", connected_grid, road_deck, farm_deck);
 
   let farms = base_game.avenue.farms;
 

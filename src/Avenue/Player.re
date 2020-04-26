@@ -1,10 +1,29 @@
+// TODO: why is can_draw_road so complex?
+// use action point allowance to simplify it: flipping a road allows all players to play one action,
+// either drawing that card in an empty cell, or peeking at the next farm.
+// which other rules can be simplified with a similar approach?
+// in this case, state can be added to make a rule clearer;
+// is there another way to represent tacit rules and knowledge?
+// what about other common game abstractions, how would the design improve with them?
+// table, hand, game box (where components are taken from),
+// player screen (for things that can be revealed later), usw
+
 type t = {
   farmer: string,
   turn: int,
   lookahead: bool,
-  grid: Cell.grid,
+  grid: Grid.t,
   previous_round_points: list((Farm.t, int)),
   current_round_points: option((Farm.t, int)),
+};
+
+let setup = (player_name, base_grid) => {
+  farmer: player_name,
+  turn: 0,
+  grid: base_grid,
+  lookahead: false,
+  current_round_points: None,
+  previous_round_points: [],
 };
 
 let add_round_points = (farm, t) => {

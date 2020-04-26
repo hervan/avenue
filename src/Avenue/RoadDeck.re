@@ -1,5 +1,30 @@
 open Common;
 
+let grid_columns = 6;
+let grid_rows = 7;
+
+let setup = () => {
+  let rec aux = (road_deck, available_cards) => {
+    let (road, color) = (Random.int(6), Random.int(2));
+    List.length(road_deck) == grid_columns * grid_rows
+      ? road_deck
+      : available_cards[road][color] == 0
+          ? aux(road_deck, available_cards)
+          : {
+            available_cards[road][color] = available_cards[road][color] - 1;
+            aux(
+              [Road.Card.card_of_ints(road, color), ...road_deck],
+              available_cards,
+            );
+          };
+  };
+  Random.self_init();
+  aux(
+    [],
+    [|[|4, 3|], [|4, 3|], [|4, 3|], [|4, 3|], [|3, 4|], [|3, 4|]|],
+  );
+};
+
 [@react.component]
 let make = (~road_deck, ~current_card, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 90);

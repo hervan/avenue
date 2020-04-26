@@ -15,131 +15,29 @@ type action =
   | Restart
   | Undo;
 
-let grid_columns = 6;
-let grid_rows = 7;
-
-let map_A_grid_contents = [|
-  [|
-    Cell.Content.Grapes([Green, Green, Green, Purple]),
-    Grapes([Purple]),
-    Farm(A),
-    Grapes([Green, Green]),
-    Empty,
-    Castle(Green),
-  |],
-  [|
-    Grapes([Purple]),
-    Grapes([Green, Green]),
-    Grapes([Green]),
-    Grapes([Purple]),
-    Grapes([Green, Green, Purple]),
-    Empty,
-  |],
-  [|
-    Grapes([Green]),
-    Empty,
-    Grapes([Purple, Purple, Green]),
-    Farm(B),
-    Grapes([Green]),
-    Grapes([Green, Green]),
-  |],
-  [|
-    Farm(C),
-    Grapes([Purple, Purple]),
-    Grapes([Green, Green]),
-    Empty,
-    Grapes([Purple, Purple]),
-    Farm(D),
-  |],
-  [|
-    Grapes([Purple, Purple]),
-    Empty,
-    Farm(E),
-    Grapes([Purple]),
-    Grapes([Green, Green, Purple]),
-    Grapes([Purple]),
-  |],
-  [|
-    Empty,
-    Grapes([Purple, Purple, Green]),
-    Grapes([Green]),
-    Grapes([Purple, Purple]),
-    Grapes([Green]),
-    Empty,
-  |],
-  [|
-    Castle(Purple),
-    Grapes([Green]),
-    Grapes([Purple]),
-    Farm(F),
-    Empty,
-    Grapes([Purple, Purple, Purple, Green]),
-  |],
-|];
-
-let create_player = (player_name, base_grid) => {
-  Player.farmer: player_name,
-  turn: 0,
-  grid: base_grid,
-  lookahead: false,
-  current_round_points: None,
-  previous_round_points: [],
-};
-
-let random_farm = () => Farm.farm_of_int(Random.int(6));
-
-let create_farm_deck = () => {
-  let rec aux = farm_deck =>
-    fun
-    | 0 => farm_deck
-    | n => {
-        let farm_card = random_farm();
-        List.for_all(card => card != farm_card, farm_deck)
-          ? aux([farm_card, ...farm_deck], n - 1) : aux(farm_deck, n);
-      };
-  Random.self_init();
-  aux([], 6);
-};
-
-let create_road_deck = () => {
-  let rec aux = (road_deck, available_cards) => {
-    let (road, color) = (Random.int(6), Random.int(2));
-    List.length(road_deck) == grid_columns * grid_rows
-      ? road_deck
-      : available_cards[road][color] == 0
-          ? aux(road_deck, available_cards)
-          : {
-            available_cards[road][color] = available_cards[road][color] - 1;
-            aux(
-              [Road.Card.card_of_ints(road, color), ...road_deck],
-              available_cards,
-            );
-          };
+let setup = (player_name, base_grid, road_deck, farm_deck) => {
+  let avenue: Avenue.t = {
+    turn: 0,
+    road_deck,
+    farm_deck,
+    stage: Flow(Begin),
+    current_card: None,
+    castles: {
+      purple: Grid.find(Castle(Purple), base_grid),
+      green: Grid.find(Castle(Green), base_grid),
+    },
+    farms: [
+      Grid.find(Farm(A), base_grid),
+      Grid.find(Farm(B), base_grid),
+      Grid.find(Farm(C), base_grid),
+      Grid.find(Farm(D), base_grid),
+      Grid.find(Farm(E), base_grid),
+      Grid.find(Farm(F), base_grid),
+    ],
   };
-  Random.self_init();
-  aux(
-    [],
-    [|[|4, 3|], [|4, 3|], [|4, 3|], [|4, 3|], [|3, 4|], [|3, 4|]|],
-  );
+  let me = Player.setup(player_name, base_grid);
+  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
 };
-
-let create_base_grid = grid_contents =>
-  Array.init(grid_contents |> Array.length, row =>
-    Array.init(grid_contents[0] |> Array.length, col =>
-      {Cell.row, col, content: grid_contents[row][col], road: None}
-    )
-  );
-
-let find_content = (cell_content, grid) =>
-  grid
-  |> Array.to_list
-  |> List.map(row =>
-       row
-       |> Array.to_list
-       |> List.filter(({Cell.content}) => content == cell_content)
-     )
-  |> List.concat
-  |> List.hd;
 
 let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
   avenue->Rules.can_flip_farm
@@ -267,30 +165,6 @@ let end_game = ({avenue, log} as t) => {
     : t;
 };
 
-let create_game = (player_name, base_grid, road_deck, farm_deck) => {
-  let avenue: Avenue.t = {
-    turn: 0,
-    road_deck,
-    farm_deck,
-    stage: Flow(Begin),
-    current_card: None,
-    castles: {
-      purple: find_content(Castle(Purple), base_grid),
-      green: find_content(Castle(Green), base_grid),
-    },
-    farms: [
-      find_content(Farm(A), base_grid),
-      find_content(Farm(B), base_grid),
-      find_content(Farm(C), base_grid),
-      find_content(Farm(D), base_grid),
-      find_content(Farm(E), base_grid),
-      find_content(Farm(F), base_grid),
-    ],
-  };
-  let me = create_player(player_name, base_grid);
-  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
-};
-
 let guide = ({me, avenue} as t) => {
   ...t,
   guide: avenue |> Status.guide(me),
@@ -331,11 +205,11 @@ let make = () => {
   let (game, dispatch) =
     React.useReducer(
       reducer,
-      create_game(
+      setup(
         "me",
-        create_base_grid(map_A_grid_contents),
-        create_road_deck(),
-        create_farm_deck(),
+        Grid.setup(Grid.map_A),
+        RoadDeck.setup(),
+        FarmDeck.setup(),
       ),
     );
 

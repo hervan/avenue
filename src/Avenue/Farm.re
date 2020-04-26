@@ -27,6 +27,8 @@ let farm_of_int =
   | 5 => F
   | _ => raise(Impossible("farms only exist from A to F"));
 
+let random_farm = () => farm_of_int(Random.int(6));
+
 [@react.component]
 let make = (~farm) => {
   let x0 = 0.;

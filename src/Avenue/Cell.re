@@ -34,8 +34,6 @@ type castles = {
 
 let to_pos = (cell: t) => (cell.row, cell.col);
 
-type grid = array(array(t));
-
 [@react.component]
 let make = (~cell, ~dispatch) =>
   <g

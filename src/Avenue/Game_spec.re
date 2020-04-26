@@ -44,14 +44,14 @@ let minimal_grid_contents = [|
   [|Farm(E), Empty, Farm(F), Castle(Green)|],
 |];
 
-let minimal_grid = Game.create_base_grid(minimal_grid_contents);
+let minimal_grid = Grid.setup(minimal_grid_contents);
 
 let road_deck = [];
 
 let farm_deck = Farm.[A, B, C, D, E, F];
 
 describe("Avenue.advance_stage", () => {
-  let base_game = Game.create_game("me", minimal_grid, road_deck, farm_deck);
+  let base_game = Game.setup("me", minimal_grid, road_deck, farm_deck);
   let game_yellow = {
     ...base_game.avenue,
     current_card: Some((Road.road_of_int(0), Yellow)),
