@@ -12,7 +12,7 @@ type orientation =
   | Forward
   | Backward;
 
-let road_of_int =
+let of_int =
   fun
   | 0 => (Top, Left)
   | 1 => (Top, Right)
@@ -67,10 +67,7 @@ module Card = {
     | 1 => Grey
     | _ => raise(Impossible("there are only two colors of road cards"));
 
-  let card_of_ints = (road, color) => (
-    road_of_int(road),
-    color_of_int(color),
-  );
+  let card_of_ints = (road, color) => (of_int(road), color_of_int(color));
 
   let string_of_color =
     fun

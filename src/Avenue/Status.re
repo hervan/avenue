@@ -23,10 +23,10 @@ let add_event = (event: Stage.event) =>
 let add_suggestion = (entry, guide) => [entry, ...guide];
 
 let add_round_start_event = farm =>
-  add_event(Stage.RoundStarted(farm->Farm.string_of_farm));
+  add_event(Stage.RoundStarted(farm->Farm.to_string));
 
 let add_round_over_event = farm =>
-  add_event(Stage.RoundIsOver(farm->Farm.string_of_farm));
+  add_event(Stage.RoundIsOver(farm->Farm.to_string));
 
 let list_of_log_entry =
   fun

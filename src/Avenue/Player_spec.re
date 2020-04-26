@@ -18,35 +18,35 @@ describe("Player.recount_points", () => {
   let connected_grid = minimal_grid_without_empty;
   connected_grid[0][1] = {
     ...connected_grid[0][1],
-    road: Some(Road.road_of_int(2)),
+    road: Some(Road.of_int(2)),
   };
   connected_grid[0][2] = {
     ...connected_grid[0][2],
-    road: Some(Road.road_of_int(3)),
+    road: Some(Road.of_int(3)),
   };
   connected_grid[1][0] = {
     ...connected_grid[1][0],
-    road: Some(Road.road_of_int(2)),
+    road: Some(Road.of_int(2)),
   };
   connected_grid[1][1] = {
     ...connected_grid[1][1],
-    road: Some(Road.road_of_int(0)),
+    road: Some(Road.of_int(0)),
   };
   connected_grid[1][2] = {
     ...connected_grid[1][2],
-    road: Some(Road.road_of_int(5)),
+    road: Some(Road.of_int(5)),
   };
   connected_grid[2][0] = {
     ...connected_grid[2][0],
-    road: Some(Road.road_of_int(1)),
+    road: Some(Road.of_int(1)),
   };
   connected_grid[2][1] = {
     ...connected_grid[2][1],
-    road: Some(Road.road_of_int(4)),
+    road: Some(Road.of_int(4)),
   };
   connected_grid[2][2] = {
     ...connected_grid[2][2],
-    road: Some(Road.road_of_int(0)),
+    road: Some(Road.of_int(0)),
   };
 
   let base_game = Game.setup("me", connected_grid, road_deck, farm_deck);

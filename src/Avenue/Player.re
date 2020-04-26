@@ -37,22 +37,6 @@ let enable_lookahead = t => {...t, lookahead: true};
 
 let advance_turn = (turn, t) => {...t, turn};
 
-let draw_road_on_grid_cell = (road, row, col) =>
-  fun
-  | t => {
-      ...t,
-      grid:
-        t.grid
-        |> Array.mapi((i, grid_row) =>
-             i == row
-               ? grid_row
-                 |> Array.mapi((j, cell) =>
-                      j == col ? {...cell, Cell.road: Some(road)} : cell
-                    )
-               : grid_row
-           ),
-    };
-
 let keep_round_points =
   fun
   | {current_round_points: Some(points)} as t => {

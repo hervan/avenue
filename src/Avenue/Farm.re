@@ -8,7 +8,7 @@ type t =
   | E
   | F;
 
-let string_of_farm =
+let to_string =
   fun
   | A => "A"
   | B => "B"
@@ -17,7 +17,7 @@ let string_of_farm =
   | E => "E"
   | F => "F";
 
-let farm_of_int =
+let of_int =
   fun
   | 0 => A
   | 1 => B
@@ -27,7 +27,7 @@ let farm_of_int =
   | 5 => F
   | _ => raise(Impossible("farms only exist from A to F"));
 
-let random_farm = () => farm_of_int(Random.int(6));
+let random_farm = () => of_int(Random.int(6));
 
 [@react.component]
 let make = (~farm) => {
@@ -55,7 +55,7 @@ let make = (~farm) => {
       strokeWidth="0"
       fillOpacity="0.5"
       style={Theme.text("2.3px")}>
-      {farm->string_of_farm->str}
+      {farm->to_string->str}
     </text>
   </>;
 };

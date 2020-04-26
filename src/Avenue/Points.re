@@ -209,22 +209,22 @@ let make =
         d={
           " M 0 0"
           ++ (
-            Stage.int_of_yc(yc) >= 1
+            Stage.YellowCards.to_int(yc) >= 1
               ? " M 0 -5 A 5 5, 0, 0, 1, 5 0 L 0 0"
               : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
           )
           ++ (
-            Stage.int_of_yc(yc) >= 2
+            Stage.YellowCards.to_int(yc) >= 2
               ? " M 5 0 A 5 5, 0, 0, 1, 0 5 L 0 0"
               : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
           )
           ++ (
-            Stage.int_of_yc(yc) >= 3
+            Stage.YellowCards.to_int(yc) >= 3
               ? " M 0 5 A 5 5, 0, 0, 1, -5 0 L 0 0"
               : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
           )
           ++ (
-            Stage.int_of_yc(yc) == 4
+            Stage.YellowCards.to_int(yc) == 4
               ? " M -5 0 A 5 5, 0, 0, 1, 0 -5 L 0 0"
               : " M 0 -5 A 5 5, 0, 0, 1, 0 -5 L 0 0"
           )
@@ -232,7 +232,7 @@ let make =
         }
         fill="yellow"
         stroke="lightgray"
-        strokeWidth={Stage.int_of_yc(yc) > 0 ? "0.1" : "0"}
+        strokeWidth={Stage.YellowCards.to_int(yc) > 0 ? "0.1" : "0"}
         style={Theme.quick_transition("d")}
       />
     </g>

@@ -1,3 +1,8 @@
+type flow =
+  | Begin
+  | RoundEnd
+  | End;
+
 type event =
   | GameStarted
   | RoundStarted(string)
@@ -43,34 +48,31 @@ let describe_event =
       "after five rounds are played, the game comes to an end",
     ];
 
-type yellow_cards =
-  | Zero
-  | One
-  | Two
-  | Three
-  | Four;
+module YellowCards = {
+  type t =
+    | Zero
+    | One
+    | Two
+    | Three
+    | Four;
 
-let int_of_yc =
-  fun
-  | Zero => 0
-  | One => 1
-  | Two => 2
-  | Three => 3
-  | Four => 4;
+  let to_int =
+    fun
+    | Zero => 0
+    | One => 1
+    | Two => 2
+    | Three => 3
+    | Four => 4;
 
-let add_yc =
-  fun
-  | Zero => One
-  | One => Two
-  | Two => Three
-  | Three => Four
-  | Four => Four;
-
-type flow =
-  | Begin
-  | RoundEnd
-  | End;
+  let add =
+    fun
+    | Zero => One
+    | One => Two
+    | Two => Three
+    | Three => Four
+    | Four => Four;
+};
 
 type t =
-  | Round(Farm.t, yellow_cards)
+  | Round(Farm.t, YellowCards.t)
   | Flow(flow);

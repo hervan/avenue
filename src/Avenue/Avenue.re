@@ -23,7 +23,8 @@ let next_stage = ({stage, farm_deck, current_card}: t) => {
     | [] => stage
     }
   | (Round(_, Four), _) => Flow(RoundEnd)
-  | (Round(farm, yc), Some((_, Yellow))) => Round(farm, yc->Stage.add_yc)
+  | (Round(farm, yc), Some((_, Yellow))) =>
+    Round(farm, yc->Stage.YellowCards.add)
   | (Round(_, _), Some((_, Grey)))
   | (Round(_, _), None)
   | (Flow(End), _) => stage
@@ -37,19 +38,19 @@ let discard_top_farm = ({farm_deck} as t) => {
   farm_deck: farm_deck |> List.tl,
 };
 
-let set_current_road = ({road_deck} as game) => {
-  ...game,
+let set_current_road = ({road_deck} as t) => {
+  ...t,
   current_card: Some(road_deck |> List.hd),
 };
 
-let discard_top_road = ({road_deck} as game) => {
-  ...game,
+let discard_top_road = ({road_deck} as t) => {
+  ...t,
   road_deck: road_deck |> List.tl,
 };
 
-let advance_game_turn = ({turn} as game) => {...game, turn: turn + 1};
+let advance_turn = ({turn} as t) => {...t, turn: turn + 1};
 
-let set_stage = (stage, game) => {...game, stage};
+let set_stage = (stage, t) => {...t, stage};
 
 module Rules = {
   let can_flip_farm = ({stage, farm_deck}: t) =>

@@ -7,6 +7,19 @@ let setup = contents =>
     )
   );
 
+let draw_road = (road, row, col) =>
+  fun
+  | t =>
+    t
+    |> Array.mapi((i, grid_row) =>
+         i == row
+           ? grid_row
+             |> Array.mapi((j, cell) =>
+                  j == col ? {...cell, Cell.road: Some(road)} : cell
+                )
+           : grid_row
+       );
+
 let find = (cell_content, grid) =>
   grid
   |> Array.to_list

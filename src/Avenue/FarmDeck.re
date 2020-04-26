@@ -98,7 +98,7 @@ let make =
                      fillOpacity="1"
                      fill="cornflowerblue"
                      style=Theme.big_text>
-                     {farm->Farm.string_of_farm->str}
+                     {farm->Farm.to_string->str}
                    </text>
                  </g>
                : React.null}
@@ -148,7 +148,7 @@ let make =
                fillOpacity="1"
                fill="cornflowerblue"
                style=Theme.big_text>
-               {farm->Farm.string_of_farm->str}
+               {farm->Farm.to_string->str}
              </text>
            </g>
          | Flow(_) => React.null
