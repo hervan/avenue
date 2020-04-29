@@ -51,7 +51,7 @@ describe("Player.recount_points", () => {
 
   let base_game = Game.setup("me", connected_grid, road_deck, farm_deck);
 
-  let farms = base_game.avenue.farms;
+  let farms = base_game.me.farms;
 
   let player_round_a =
     {
