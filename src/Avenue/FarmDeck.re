@@ -14,14 +14,19 @@ let setup = () => {
 
 [@react.component]
 let make =
-    (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {
+    (
+      ~me as {lookahead}: Player.t,
+      ~farm_deck,
+      ~stage: Stage.t,
+      ~dispatch_peek_farm,
+      ~dispatch_flip_farm,
+    ) => {
   let (rotation, setRotation) = React.useState(_ => 0);
   let can_peek =
     switch (stage) {
     | Round(_, _) => lookahead
-    | Flow(RoundEnd)
-    | Flow(Begin) => true
-    | Flow(End) => false
+    | Flow(RoundEnd | Begin) => true
+    | Flow(Created | End) => false
     };
   React.useEffect1(
     () => {
@@ -38,7 +43,7 @@ let make =
     onClick={_evt =>
       switch (stage) {
       | Round(_, _) =>
-        dispatch(Avenue.PeekFarm);
+        dispatch_peek_farm();
         setRotation(_ => 90);
         let _ = Js.Global.setTimeout(() => setRotation(_ => 0), 500);
         ();
@@ -48,7 +53,7 @@ let make =
         let _ =
           Js.Global.setTimeout(
             () => {
-              dispatch(FlipFarm);
+              dispatch_flip_farm();
               setRotation(_ => 0);
             },
             500,

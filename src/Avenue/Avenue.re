@@ -5,28 +5,37 @@ type t = {
   stage: Stage.t,
   current_card: option(Road.Card.t),
   castles: Cell.castles,
-  farms: list(Cell.t),
 };
 
 type action =
-  | PeekFarm
   | FlipFarm
-  | FlipRoad
-  | DrawRoad(int, int);
+  | FlipRoad;
+
+let setup = (base_grid, road_deck, farm_deck) => {
+  turn: 0,
+  road_deck,
+  farm_deck,
+  stage: Flow(Begin),
+  current_card: None,
+  castles: {
+    purple: Grid.find(Castle(Purple), base_grid),
+    green: Grid.find(Castle(Green), base_grid),
+  },
+};
 
 let next_stage = ({stage, farm_deck, current_card}: t) => {
   switch (stage, current_card) {
+  | (Flow(Created), _) => Stage.Flow(Begin)
   | (Flow(Begin | RoundEnd), _) =>
     switch (farm_deck) {
-    | [_] => Stage.Flow(End)
+    | [_] => Flow(End)
     | [next_farm, ..._] => Round(next_farm, Zero)
     | [] => stage
     }
   | (Round(_, Four), _) => Flow(RoundEnd)
   | (Round(farm, yc), Some((_, Yellow))) =>
     Round(farm, yc->Stage.YellowCards.add)
-  | (Round(_, _), Some((_, Grey)))
-  | (Round(_, _), None)
+  | (Round(_, _), Some((_, Grey)) | None)
   | (Flow(End), _) => stage
   };
 };
@@ -52,18 +61,27 @@ let advance_turn = ({turn} as t) => {...t, turn: turn + 1};
 
 let set_stage = (stage, t) => {...t, stage};
 
+let flip_farm = t => t |> advance_stage |> discard_top_farm;
+
+let flip_road = t =>
+  t |> set_current_road |> discard_top_road |> advance_stage |> advance_turn;
+
+let reducer = t =>
+  fun
+  | FlipFarm => t |> flip_farm
+  | FlipRoad => t |> flip_road;
+
 module Rules = {
   let can_flip_farm = ({stage, farm_deck}: t) =>
     switch (stage) {
-    | Flow(Begin)
-    | Flow(RoundEnd) =>
+    | Flow(Begin | RoundEnd) =>
       switch (farm_deck) {
       | [_, _, ..._] => true
       | [_]
       | [] => false
       }
     | Round(_, _)
-    | Flow(End) => false
+    | Flow(Created | End) => false
     };
 
   let can_peek_farm = (player: Player.t, {stage, farm_deck, turn}: t) =>
@@ -136,18 +154,4 @@ module Rules = {
       control_stage == RoundEnd && farm_deck->List.length == 1
     | Round(_, _) => false
     };
-
-  let suggest_play =
-    fun
-    | PeekFarm => "or click the bottom deck to peek at the upcoming farm"
-    | FlipFarm => "click the bottom deck to begin the next round"
-    | FlipRoad => "click the top deck to flip a road card"
-    | DrawRoad(_, _) => "click an empty cell to draw the face-up road";
-
-  let describe_play =
-    fun
-    | PeekFarm => "you peeked at the upcoming farm"
-    | FlipFarm => "you flipped a farm card to begin the next round"
-    | FlipRoad => "you flipped a road card"
-    | DrawRoad(row, col) => {j|you drew a road in cell ($row, $col)|j};
 };

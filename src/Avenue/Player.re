@@ -13,14 +13,35 @@ type t = {
   turn: int,
   lookahead: bool,
   grid: Grid.t,
+  farms: list(Cell.t),
   previous_round_points: list((Farm.t, int)),
   current_round_points: option((Farm.t, int)),
 };
+
+type action =
+  | PeekFarm
+  | DrawRoad(Road.t, int, int, int);
+
+type event =
+  | FlipFarm(Farm.t);
+
+// TODO get rid of this
+type reducer_action =
+  | Action(action)
+  | Event(event);
 
 let setup = (player_name, base_grid) => {
   farmer: player_name,
   turn: 0,
   grid: base_grid,
+  farms: [
+    Grid.find(Farm(A), base_grid),
+    Grid.find(Farm(B), base_grid),
+    Grid.find(Farm(C), base_grid),
+    Grid.find(Farm(D), base_grid),
+    Grid.find(Farm(E), base_grid),
+    Grid.find(Farm(F), base_grid),
+  ],
   lookahead: false,
   current_round_points: None,
   previous_round_points: [],
@@ -61,3 +82,23 @@ let recount_points = farms =>
         )),
     }
   | {current_round_points: None} as t => t;
+
+let draw_road = (road, row, col, turn) =>
+  fun
+  | {grid} as me => {
+      ...me,
+      grid: grid |> Grid.draw_road(road, row, col),
+      turn,
+    };
+
+let reducer = t =>
+  fun
+  | Event(FlipFarm(farm)) =>
+    t
+    |> keep_round_points
+    |> add_round_points(farm)
+    |> reset_lookahead
+    |> recount_points(t.farms)
+  | Action(PeekFarm) => t
+  | Action(DrawRoad(road, row, col, turn)) =>
+    t |> draw_road(road, row, col, turn);

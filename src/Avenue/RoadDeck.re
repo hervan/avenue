@@ -25,7 +25,7 @@ let setup = () => {
 };
 
 [@react.component]
-let make = (~road_deck, ~current_card, ~dispatch) => {
+let make = (~road_deck, ~current_card, ~dispatch_flip_road) => {
   let (rotation, setRotation) = React.useState(_ => 90);
   React.useEffect1(
     _ => {
@@ -44,7 +44,7 @@ let make = (~road_deck, ~current_card, ~dispatch) => {
       let _ =
         Js.Global.setTimeout(
           _ => {
-            dispatch(Avenue.FlipRoad);
+            dispatch_flip_road();
             setRotation(_ => 0);
           },
           500,

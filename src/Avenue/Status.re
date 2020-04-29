@@ -1,11 +1,12 @@
+open Global;
 open Common;
 
-type t = (Avenue.action, list(Stage.event));
+type details =
+  | Undoable(string)
+  | Revealing(string)
+  | Event(string);
 
-let add_action = (action: Avenue.action, log: list(t)) => [
-  (action, []),
-  ...log,
-];
+let add_action = (action, log) => [(action, []), ...log];
 
 let add_event = (event: Stage.event) =>
   fun
@@ -28,32 +29,55 @@ let add_round_start_event = farm =>
 let add_round_over_event = farm =>
   add_event(Stage.RoundIsOver(farm->Farm.to_string));
 
+let suggest_play =
+  fun
+  | FlipFarm => "click the bottom deck to begin the next round"
+  | FlipRoad => "click the top deck to flip a road card"
+  | PeekFarm => "or click the bottom deck to peek at the upcoming farm"
+  | DrawRoad(_, _) => "click an empty cell to draw the face-up road";
+
+let describe_play =
+  fun
+  | FlipFarm => "you flipped a farm card to begin the next round"
+  | FlipRoad => "you flipped a road card"
+  | PeekFarm => "you peeked at the upcoming farm"
+  | DrawRoad(row, col) => {j|you drew a road in cell ($row, $col)|j};
+
 let list_of_log_entry =
   fun
   | (action, events) => [
-      action->Avenue.Rules.describe_play,
-      ...events |> List.rev |> List.map(Stage.describe_event) |> List.concat,
+      switch (action) {
+      | DrawRoad(_, _) => Undoable(action->describe_play)
+      | PeekFarm
+      | FlipFarm
+      | FlipRoad => Revealing(action->describe_play)
+      },
+      ...events
+         |> List.rev
+         |> List.map(Stage.describe_event)
+         |> List.concat
+         |> List.map(description => Event(description)),
     ];
 
 let short_list_of_log_entry =
   fun
-  | (play, _) => [play->Avenue.Rules.describe_play];
+  | (play, _) => [play->describe_play];
 
 let guide_flip_farm = (avenue, guide) =>
   Avenue.Rules.can_flip_farm(avenue)
-    ? guide |> add_suggestion(Avenue.FlipFarm) : guide;
+    ? guide |> add_suggestion(FlipFarm) : guide;
 
 let guide_peek_farm = (player, avenue, guide) =>
   Avenue.Rules.can_peek_farm(player, avenue)
-    ? guide |> add_suggestion(Avenue.PeekFarm) : guide;
+    ? guide |> add_suggestion(PeekFarm) : guide;
 
 let guide_flip_road = (player, avenue, guide) =>
   Avenue.Rules.can_flip_road(player, avenue)
-    ? guide |> add_suggestion(Avenue.FlipRoad) : guide;
+    ? guide |> add_suggestion(FlipRoad) : guide;
 
 let guide_draw_road = (player, avenue, guide) =>
   Avenue.Rules.can_draw_road_somewhere(player, avenue)
-    ? guide |> add_suggestion(Avenue.DrawRoad(0, 0)) : guide;
+    ? guide |> add_suggestion(DrawRoad(0, 0)) : guide;
 
 let guide = (player, avenue) =>
   []
@@ -63,19 +87,30 @@ let guide = (player, avenue) =>
   |> guide_draw_road(player, avenue);
 
 [@react.component]
-let make = (~guide, ~log) => {
+let make = (~guide, ~log, ~dispatch_undo) => {
   let last_log_entry =
     switch (log) {
     | [] => []
     | [last_log, ..._] => last_log |> list_of_log_entry
     };
-  let guide_entries = guide |> List.map(Avenue.Rules.suggest_play);
+  let guide_entries = guide |> List.map(suggest_play);
   let previous_log_entries =
     switch (log) {
     | [] => []
     | [_, ...previous_log] =>
       previous_log |> List.map(short_list_of_log_entry) |> List.concat
     };
+  let entry_text = (key, style, translateY, fill, fillOpacity, text) =>
+    <text
+      key
+      style
+      x="0"
+      y="5"
+      transform={"translate(0 " ++ (translateY |> string_of_int) ++ ")"}
+      fill
+      fillOpacity={Js.Float.toString(fillOpacity)}>
+      text->str
+    </text>;
 
   <g>
     <clipPath id="status-panel-clip">
@@ -87,72 +122,69 @@ let make = (~guide, ~log) => {
       clipPath="url(#status-panel-clip)">
       {guide_entries
        |> List.mapi((i, guide_entry) =>
-            <text
-              key={"d" ++ (guide_entries->List.length - i |> string_of_int)}
-              style=Theme.guide_text
-              x="0"
-              y="5"
-              transform={"translate(0 " ++ (i * 3 |> string_of_int) ++ ")"}
-              fill="white"
-              fillOpacity="1">
-              guide_entry->str
-            </text>
+            entry_text(
+              "d" ++ (guide_entries->List.length - i |> string_of_int),
+              Theme.guide_text,
+              i * 3,
+              "white",
+              1.,
+              guide_entry,
+            )
           )
        |> arr}
       {last_log_entry
-       |> List.mapi((i, log_line) =>
-            <text
-              key={
-                i == 0
-                  ? log->List.length |> string_of_int
-                  : "hl" ++ (last_log_entry->List.length - i |> string_of_int)
-              }
-              style=Theme.log_text
-              x="0"
-              y="5"
-              transform={
-                "translate(0 "
-                ++ (3 * (i + guide_entries->List.length) |> string_of_int)
-                ++ ")"
-              }
-              fill={i == 0 ? "blue" : "orange"}
-              fillOpacity="1">
-              {i == 0 ? (log->List.length |> string_of_int) ++ ". " : ""}->str
-              log_line->str
-            </text>
+       |> List.mapi(i =>
+            fun
+            | Undoable(detail_line) =>
+              <g
+                key={log->List.length |> string_of_int}
+                onClick={_evt => dispatch_undo()}>
+                {entry_text(
+                   log->List.length |> string_of_int,
+                   Theme.log_text,
+                   3 * guide_entries->List.length,
+                   "blue",
+                   1.,
+                   (log->List.length |> string_of_int)
+                   ++ ". "
+                   ++ detail_line
+                   ++ " [click here to undo]",
+                 )}
+              </g>
+            | Revealing(detail_line) =>
+              entry_text(
+                log->List.length |> string_of_int,
+                Theme.log_text,
+                3 * guide_entries->List.length,
+                "blue",
+                1.,
+                (log->List.length |> string_of_int) ++ ". " ++ detail_line,
+              )
+            | Event(detail_line) =>
+              entry_text(
+                "hl" ++ (last_log_entry->List.length - i |> string_of_int),
+                Theme.log_text,
+                3 * (i + guide_entries->List.length),
+                "orange",
+                1.,
+                detail_line,
+              )
           )
        |> arr}
       {previous_log_entries
        |> List.mapi((i, entry_line) =>
-            <text
-              key={previous_log_entries->List.length - i |> string_of_int}
-              style=Theme.log_text
-              x="0"
-              y="5"
-              transform={
-                "translate(0 "
-                ++ (
-                  3
-                  * (
-                    i
-                    + last_log_entry->List.length
-                    + guide_entries->List.length
-                  )
-                  |> string_of_int
-                )
-                ++ ")"
-              }
-              fill="blue"
-              fillOpacity={
-                max(0., 1. /. (i + 2 |> float_of_int)) |> Js.Float.toString
-              }>
-              {(
-                 (previous_log_entries->List.length - i |> string_of_int)
-                 ++ ". "
-               )
-               ->str}
-              entry_line->str
-            </text>
+            entry_text(
+              previous_log_entries->List.length - i |> string_of_int,
+              Theme.log_text,
+              3
+              * (i + last_log_entry->List.length + guide_entries->List.length),
+              "blue",
+              max(0., 1. /. (i + 2 |> float_of_int)),
+              (
+                (previous_log_entries->List.length - i |> string_of_int) ++ ". "
+              )
+              ++ entry_line,
+            )
           )
        |> arr}
     </g>
