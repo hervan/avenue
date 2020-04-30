@@ -1,4 +1,5 @@
 type t = {
+  seed: int,
   avenue: Avenue.t,
   me: Player.t,
   players: list(Player.t),
@@ -6,14 +7,26 @@ type t = {
   guide: list(Global.play_action),
 };
 
-let setup = (player_name, base_grid, road_deck, farm_deck) => {
+let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
   let avenue = Avenue.setup(base_grid, road_deck, farm_deck);
   let me = Player.setup(player_name, base_grid);
-  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
+  {
+    seed,
+    avenue,
+    log: [],
+    guide: avenue |> Status.guide(me),
+    me,
+    players: [],
+  };
 };
 
-let base_game =
-  setup("me", Grid.setup(Grid.map_A), RoadDeck.setup(), FarmDeck.setup());
+let setup = (seed, player_name) => {
+  Random.init(seed);
+  let base_grid = Grid.setup(Grid.map_A);
+  let road_deck = RoadDeck.setup();
+  let farm_deck = FarmDeck.setup();
+  load_setup(seed, player_name, base_grid, road_deck, farm_deck);
+};
 
 let start = t => {...t, avenue: t.avenue |> Avenue.advance_stage};
 
@@ -137,16 +150,16 @@ let guide = ({me, avenue} as t) => {
   guide: avenue |> Status.guide(me),
 };
 
-let rec reducer = game =>
+let rec reducer = t =>
   fun
-  | Global.Play(PeekFarm) => game |> peek_farm |> guide
-  | Play(FlipFarm) => game |> flip_farm |> guide
-  | Play(FlipRoad) => game |> flip_road |> guide
+  | Global.Play(PeekFarm) => t |> peek_farm |> guide
+  | Play(FlipFarm) => t |> flip_farm |> guide
+  | Play(FlipRoad) => t |> flip_road |> guide
   | Play(DrawRoad(row, col)) =>
-    game |> draw_road(row, col) |> end_round |> end_game |> guide
-  | Control(Start) => game |> start |> guide
-  | Control(Restart) => base_game |> guide
-  | Control(Undo) => game |> undo |> guide
+    t |> draw_road(row, col) |> end_round |> end_game |> guide
+  | Control(Start) => t |> start |> guide
+  | Control(Restart) => setup(t.seed, t.me.farmer) |> guide
+  | Control(Undo) => t |> undo |> guide
 and undo = t => {
   let previous_actions = t.log |> List.tl |> List.rev;
   {
@@ -154,7 +167,7 @@ and undo = t => {
       previous_actions
       |> List.fold_left(
            (acc, (action, _)) => reducer(acc, Play(action)),
-           base_game,
+           setup(t.seed, t.me.farmer),
          ),
     log: t.log |> List.tl,
   };
@@ -177,9 +190,9 @@ let make = () => {
       ReasonReactRouter.replace({j|/$seed|j});
       seed;
     };
-  Random.init(seed);
+  let me = "me";
 
-  let (game, dispatch) = React.useReducer(reducer, base_game);
+  let (game, dispatch) = React.useReducer(reducer, setup(seed, me));
 
   let dispatch_undo = () => dispatch(Control(Undo));
   let dispatch_flip_farm = () => dispatch(Play(FlipFarm));

@@ -2,7 +2,8 @@ open Jest;
 open Expect;
 
 let game =
-  Game.setup(
+  Game.load_setup(
+    0,
     "",
     Grid.setup(Grid.map_A),
     [

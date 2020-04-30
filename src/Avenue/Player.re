@@ -101,4 +101,4 @@ let reducer = t =>
     |> recount_points(t.farms)
   | Action(PeekFarm) => t
   | Action(DrawRoad(road, row, col, turn)) =>
-    t |> draw_road(road, row, col, turn);
+    t |> draw_road(road, row, col, turn) |> recount_points(t.farms);

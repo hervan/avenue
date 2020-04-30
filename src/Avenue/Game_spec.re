@@ -1,41 +1,7 @@
 open Jest;
 open Expect;
 
-let bare_minimum_game = {
-  me: {
-    farmer: "",
-    turn: 0,
-    lookahead: false,
-    grid: [||],
-    farms: [],
-    current_round_points: None,
-    previous_round_points: [],
-  },
-  players: [],
-  Game.avenue: {
-    turn: 0,
-    road_deck: [],
-    farm_deck: [],
-    stage: Flow(Begin),
-    current_card: None,
-    castles: {
-      purple: {
-        row: 0,
-        col: 0,
-        content: Empty,
-        road: None,
-      },
-      green: {
-        row: 0,
-        col: 0,
-        content: Empty,
-        road: None,
-      },
-    },
-  },
-  log: [],
-  guide: [],
-};
+let bare_minimum_game = Game.setup(0, "");
 
 describe("Game.round_penalty", () => {
   test("should penalize if round points is zero", () => {
