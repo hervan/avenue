@@ -1,10 +1,12 @@
+open Common;
+
 type t = {
   seed: int,
   avenue: Avenue.t,
   me: Player.t,
   players: list(Player.t),
-  log: list((Global.play_action, list(Stage.event))),
-  guide: list(Global.play_action),
+  log: list((play_action, list(Stage.event))),
+  guide: list(play_action),
 };
 
 let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
@@ -35,10 +37,10 @@ let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
     ? {
       ...t,
       avenue: avenue->Avenue.reducer(Avenue.FlipFarm),
-      me: me->Player.reducer(Event(FlipFarm(farm_deck->List.nth(0)))),
+      me: me->Player.reducer(FlipFarm(farm_deck->List.nth(0))),
       log:
         log
-        |> Status.add_action(Global.FlipFarm)
+        |> Status.add_action(FlipFarm)
         |> Status.add_round_start_event(farm_deck |> List.hd),
     }
     : t;
@@ -49,9 +51,7 @@ let peek_farm = ({me, avenue, log} as t) =>
       ...t,
       me: me |> Player.enable_lookahead |> Player.advance_turn(avenue.turn),
       log:
-        log
-        |> Status.add_action(Global.PeekFarm)
-        |> Status.add_event(TurnSkipped),
+        log |> Status.add_action(PeekFarm) |> Status.add_event(TurnSkipped),
     }
     : t;
 
@@ -60,7 +60,7 @@ let flip_road = ({me, avenue, log} as t) =>
     ? {
       ...t,
       avenue: avenue->Avenue.reducer(FlipRoad),
-      log: log |> Status.add_action(Global.FlipRoad),
+      log: log |> Status.add_action(FlipRoad),
     }
     : t;
 
@@ -70,8 +70,8 @@ let draw_road = (row, col) =>
     avenue |> Avenue.Rules.can_draw_road(me, row, col)
       ? {
         ...t,
-        me: me->Player.reducer(Action(DrawRoad(road, row, col, turn))),
-        log: log |> Status.add_action(Global.DrawRoad(row, col)),
+        me: me->Player.reducer(DrawRoad(road, row, col, turn)),
+        log: log |> Status.add_action(DrawRoad(row, col)),
       }
       : t
   | {avenue: {current_card: None}} as t => t;

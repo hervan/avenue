@@ -1,4 +1,3 @@
-open Global;
 open Common;
 
 type details =

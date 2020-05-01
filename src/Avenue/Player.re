@@ -20,15 +20,8 @@ type t = {
 
 type action =
   | PeekFarm
-  | DrawRoad(Road.t, int, int, int);
-
-type event =
+  | DrawRoad(Road.t, int, int, int)
   | FlipFarm(Farm.t);
-
-// TODO get rid of this
-type reducer_action =
-  | Action(action)
-  | Event(event);
 
 let setup = (player_name, base_grid) => {
   farmer: player_name,
@@ -93,12 +86,12 @@ let draw_road = (road, row, col, turn) =>
 
 let reducer = t =>
   fun
-  | Event(FlipFarm(farm)) =>
+  | FlipFarm(farm) =>
     t
     |> keep_round_points
     |> add_round_points(farm)
     |> reset_lookahead
     |> recount_points(t.farms)
-  | Action(PeekFarm) => t
-  | Action(DrawRoad(road, row, col, turn)) =>
+  | PeekFarm => t
+  | DrawRoad(road, row, col, turn) =>
     t |> draw_road(road, row, col, turn) |> recount_points(t.farms);
