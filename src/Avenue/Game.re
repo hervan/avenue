@@ -150,28 +150,37 @@ let guide = ({me, avenue} as t) => {
   guide: avenue |> Status.guide(me),
 };
 
-let rec reducer = t =>
+let play_reducer = t =>
   fun
-  | Global.Play(PeekFarm) => t |> peek_farm |> guide
-  | Play(FlipFarm) => t |> flip_farm |> guide
-  | Play(FlipRoad) => t |> flip_road |> guide
-  | Play(DrawRoad(row, col)) =>
-    t |> draw_road(row, col) |> end_round |> end_game |> guide
-  | Control(Start) => t |> start |> guide
-  | Control(Restart) => setup(t.seed, t.me.farmer) |> guide
-  | Control(Undo) => t |> undo |> guide
-and undo = t => {
+  | PeekFarm => t |> peek_farm |> guide
+  | FlipFarm => t |> flip_farm |> guide
+  | FlipRoad => t |> flip_road |> guide
+  | DrawRoad(row, col) =>
+    t |> draw_road(row, col) |> end_round |> end_game |> guide;
+
+let undo = t => {
   let previous_actions = t.log |> List.tl |> List.rev;
   {
     ...
       previous_actions
       |> List.fold_left(
-           (acc, (action, _)) => reducer(acc, Play(action)),
+           (acc, (action, _)) => play_reducer(acc, action),
            setup(t.seed, t.me.farmer),
          ),
     log: t.log |> List.tl,
   };
 };
+
+let control_reducer = t =>
+  fun
+  | Start => t |> start |> guide
+  | Restart => setup(t.seed, t.me.farmer) |> guide
+  | Undo => t |> undo |> guide;
+
+let reducer = t =>
+  fun
+  | Play(play_action) => t->play_reducer(play_action)
+  | Control(control_action) => t->control_reducer(control_action);
 
 [@react.component]
 let make = () => {
