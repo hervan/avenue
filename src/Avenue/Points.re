@@ -103,7 +103,7 @@ let make =
     | Round(_, yc) => yc
     | Flow(_) => Zero
     };
-  <g transform="translate(62 50)">
+  <g transform="translate(88 2)">
     {round_points->List.rev
      |> List.mapi((i, (farm, points)) =>
           <g

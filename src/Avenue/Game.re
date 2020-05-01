@@ -207,10 +207,19 @@ let make = () => {
   let dispatch_flip_farm = () => dispatch(Play(FlipFarm));
   let dispatch_peek_farm = () => dispatch(Play(PeekFarm));
   let dispatch_flip_road = () => dispatch(Play(FlipRoad));
+  let gridScale =
+    10.
+    /. float_of_int(
+         max(game.me.grid->Array.length, game.me.grid[0]->Array.length),
+       );
 
-  <svg width="99vmin" height="99vmin" viewBox="-1 -1 101 101">
+  <svg
+    width="100vw"
+    height="100vh"
+    viewBox="0 0 360 100"
+    preserveAspectRatio="xMinYMin slice">
     Theme.filters
-    <g>
+    <g transform={j|scale($gridScale)|j}>
       {game.me.grid
        |> Array.to_list
        |> Array.concat

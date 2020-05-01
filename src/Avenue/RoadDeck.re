@@ -38,7 +38,7 @@ let make = (~road_deck, ~current_card, ~dispatch_flip_road) => {
     [|current_card|],
   );
   <g
-    transform="translate(63 0)"
+    transform="translate(131 2)"
     onClick={_evt => {
       setRotation(_ => 90);
       let _ =

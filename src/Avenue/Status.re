@@ -40,7 +40,11 @@ let describe_play =
   | FlipFarm => "you flipped a farm card to begin the next round"
   | FlipRoad => "you flipped a road card"
   | PeekFarm => "you peeked at the upcoming farm"
-  | DrawRoad(row, col) => {j|you drew a road in cell ($row, $col)|j};
+  | DrawRoad(row, col) => {
+      let r = row + 1;
+      let c = col + 1;
+      {j|you drew a road in cell ($r, $c)|j};
+    };
 
 let list_of_log_entry =
   fun
@@ -112,13 +116,7 @@ let make = (~guide, ~log, ~dispatch_undo) => {
     </text>;
 
   <g>
-    <clipPath id="status-panel-clip">
-      <rect width="80" height="30" />
-    </clipPath>
-    <g
-      transform="translate(0 70)"
-      fillOpacity="1"
-      clipPath="url(#status-panel-clip)">
+    <g transform="translate(88 25)" fillOpacity="1">
       {guide_entries
        |> List.mapi((i, guide_entry) =>
             entry_text(
@@ -137,7 +135,8 @@ let make = (~guide, ~log, ~dispatch_undo) => {
             | Undoable(detail_line) =>
               <g
                 key={log->List.length |> string_of_int}
-                onClick={_evt => dispatch_undo()}>
+                onClick={_evt => dispatch_undo()}
+                style=Theme.link>
                 {entry_text(
                    log->List.length |> string_of_int,
                    Theme.log_text,
@@ -147,7 +146,7 @@ let make = (~guide, ~log, ~dispatch_undo) => {
                    (log->List.length |> string_of_int)
                    ++ ". "
                    ++ detail_line
-                   ++ " [click here to undo]",
+                   ++ {j| [⎌ click here to undo]|j},
                  )}
               </g>
             | Revealing(detail_line) =>

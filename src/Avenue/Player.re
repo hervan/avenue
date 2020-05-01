@@ -1,5 +1,5 @@
-// TODO: why is can_draw_road so complex?
-// use action point allowance to simplify it: flipping a road allows all players to play one action,
+// TODO
+// use action point allowance to simplify rules: flipping a road allows all players to play one action,
 // either drawing that card in an empty cell, or peeking at the next farm.
 // which other rules can be simplified with a similar approach?
 // in this case, state can be added to make a rule clearer;

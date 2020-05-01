@@ -1,6 +1,9 @@
 let app_style = {j|
   body {
     position: fixed;
+    border: 0;
+    padding: 0;
+    margin: 0;
   }
 
   @viewport {

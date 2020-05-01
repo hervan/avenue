@@ -62,7 +62,7 @@ let make =
       | Flow(_) => ()
       }
     }
-    transform="translate(63 25)">
+    transform="translate(110 2)">
     {farm_deck
      |> List.rev
      |> List.mapi((i, farm) =>

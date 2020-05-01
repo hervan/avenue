@@ -21,7 +21,9 @@ module.exports = {
       short_name: "avenue",
       description: "SVG implementation of flip and write game Avenue",
       background_color: "lightgreen",
-      crossorigin: "use-credentials", //can be null, use-credentials or anonymous
+      orientation: "landscape",
+      display: "fullscreen",
+      ios: "startup",
     }),
     new FaviconsWebpackPlugin("./src/assets/icon.svg"),
   ],
