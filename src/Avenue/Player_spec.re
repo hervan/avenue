@@ -50,7 +50,7 @@ describe("Player.recount_points", () => {
   };
 
   let base_game =
-    Game.load_setup(0, "me", connected_grid, road_deck, farm_deck);
+    Game.load_setup(None, "me", connected_grid, road_deck, farm_deck);
 
   let farms = base_game.me.farms;
 

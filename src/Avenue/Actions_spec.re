@@ -3,7 +3,7 @@ open Expect;
 
 let game =
   Game.load_setup(
-    0,
+    None,
     "",
     Grid.setup(Grid.map_A),
     [

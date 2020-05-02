@@ -16,7 +16,7 @@ let farm_deck = Farm.[A, B, C, D, E, F];
 
 describe("Avenue.advance_stage", () => {
   let base_game =
-    Game.load_setup(0, "me", minimal_grid, road_deck, farm_deck);
+    Game.load_setup(None, "me", minimal_grid, road_deck, farm_deck);
   let game_yellow = {
     ...base_game.avenue,
     current_card: Some((Road.of_int(0), Yellow)),

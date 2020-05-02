@@ -1,7 +1,7 @@
 open Jest;
 open Expect;
 
-let bare_minimum_game = Game.setup(0, "");
+let bare_minimum_game = Game.setup(None, "");
 
 describe("Game.round_penalty", () => {
   test("should penalize if round points is zero", () => {
