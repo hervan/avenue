@@ -4,14 +4,14 @@ type t = {
   avenue: Avenue.t,
   me: Player.t,
   players: list(Player.t),
-  log: list((play_action, list(Status.event))),
+  log: list((option(play_action), list(Status.event))),
   guide: list(action),
 };
 
 let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
   let avenue = Avenue.setup(seed, base_grid, road_deck, farm_deck);
   let me = Player.setup(player_name, base_grid);
-  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
+  {avenue, log: [(None, [GameStarted])], guide: [], me, players: []};
 };
 
 let init_seed =
@@ -186,7 +186,11 @@ let undo = t => {
     ...
       previous_actions
       |> List.fold_left(
-           (acc, (action, _)) => play_reducer(acc, action),
+           (acc, (action, _)) =>
+             switch (action) {
+             | Some(action) => acc->play_reducer(action)
+             | None => acc
+             },
            t |> restart_game,
          ),
     log: t.log |> List.tl,

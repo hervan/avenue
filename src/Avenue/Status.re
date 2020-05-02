@@ -14,7 +14,7 @@ type event =
   | ScoredNotEnough(int, string, int)
   | GameIsOver;
 
-let add_action = (action, log) => [(action, []), ...log];
+let add_action = (action, log) => [(Some(action), []), ...log];
 
 let add_event = (event: event) =>
   fun
@@ -114,21 +114,17 @@ let list_of_log_entry =
       ...events
          |> List.rev_map(describe_event)
          |> List.concat
-         |> List.map(description => Event(description)),
-    ];
+    |> List.map(description => Event(description));
+  switch (action) {
+  | Some(action) => [Action(action->describe_play), ...event_entries]
+  | None => event_entries
+  };
+};
 
 let short_list_of_log_entry =
   fun
-  | (play, _) => [play->describe_play];
-
-let can_create =
-  fun
-  | {Avenue.stage: Flow(Created | Ready)} => true
-  | {stage: Flow(RoundEnd | End)}
-  | {stage: Round(_, _)} => false;
-
-let guide_create = (game, guide) =>
-  can_create(game) ? guide |> add_suggestion(Control(Create)) : guide;
+  | (Some(play), _) => [play->describe_play]
+  | (None, _) => [];
 
 let guide_flip_farm = (avenue, guide) =>
   Avenue.Rules.can_flip_farm(avenue)
@@ -166,7 +162,14 @@ let make = (~guide, ~log, ~dispatch) => {
     switch (log) {
     | [] => []
     | [_, ...previous_log] =>
-      previous_log |> List.map(short_list_of_log_entry) |> List.concat
+      previous_log
+      |> List.filter(
+           fun
+           | (Some(_), _) => true
+           | (None, _) => false,
+         )
+      |> List.map(short_list_of_log_entry)
+      |> List.concat
     };
   let entry_text = (key, style, translateY, fill, fillOpacity, text) =>
     <text
@@ -174,7 +177,7 @@ let make = (~guide, ~log, ~dispatch) => {
       style
       x="0"
       y="5"
-      transform={"translate(0 " ++ (translateY |> string_of_int) ++ ")"}
+      transform={"translate(0 " ++ (translateY |> Js.Float.toString) ++ ")"}
       fill
       fillOpacity={Js.Float.toString(fillOpacity)}>
       text->str
