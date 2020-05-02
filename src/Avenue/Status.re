@@ -68,9 +68,24 @@ let suggest_action =
 let describe_event =
   fun
   | GameStarted => [
-      "the goal of the game is to draw roads connecting",
-      "farms to grapes, which will score you points.",
-      {js|these tips in green ⤵ should help you through your first game|js},
+      "Welcome to Avenue!",
+      "The goal of the game is to draw roads connecting farms to grapes.",
+      "Here is a rules summary to help you understand the game:",
+      {js|• You play the game for 5 rounds, each one scoring a single, different farm.|js},
+      {js|• The round begins when you reveal a farm card, and it's over when 4 yellow|js},
+      {js|road cards are played (no matter how many grey cards were also played).|js},
+      {js|• At the end of the turn, you'll score for each grape in the sites where|js},
+      {js|a road going through it can reach (also going through) the round's farm.|js},
+      {js|• But pay attention, each round you must score more than the previous round|js},
+      {js|AND more than 0, otherwise your round score will be a -5 point penalty.|js},
+      {js|• After playing 5 farms, you'll also score for the grapes connected to|js},
+      {js|the castles, but each castle only scores for grapes of its own color.|js},
+      {js|You can learn more details by playing a couple of games (it's pretty quick!),|js},
+      {js|make sure to pay attention to the green messages, which tell you possible|js},
+      {js|actions (some of them can be activated by clicking the message itself), and|js},
+      {js|to the orange messages that explain in more details the last action taken and|js},
+      {js|its consequences.|js},
+      {js|So now, reveal a round farm to start playing a game, and have fun!|js},
     ]
   | RoundStarted(farm) => [
       {j|round $farm started|j},
@@ -88,7 +103,7 @@ let describe_event =
       "you take a -5 points penalty this round",
       {j|because you don't have any grapes connected to farm $farm|j},
     ]
-  | ScoredNotEnough(previous, farm, points) => {
+  | ScoredNotEnough(points, farm, previous) => {
       let s = points == 1 ? "" : "s";
       [
         "you take a -5 points penalty this round",
