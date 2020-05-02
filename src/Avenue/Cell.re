@@ -37,7 +37,7 @@ let to_pos = (cell: t) => (cell.row, cell.col);
 [@react.component]
 let make = (~cell, ~dispatch) =>
   <g
-    onClick={_evt => dispatch(cell.row, cell.col)}
+    onClick={_evt => dispatch(Play(DrawRoad(cell.row, cell.col)))}
     transform={
       "translate("
       ++ (cell.col * 10)->string_of_int

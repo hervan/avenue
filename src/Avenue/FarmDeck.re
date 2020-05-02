@@ -14,13 +14,7 @@ let setup = () => {
 
 [@react.component]
 let make =
-    (
-      ~me as {lookahead}: Player.t,
-      ~farm_deck,
-      ~stage: Stage.t,
-      ~dispatch_peek_farm,
-      ~dispatch_flip_farm,
-    ) => {
+    (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 0);
   let can_peek =
     switch (stage) {
@@ -43,23 +37,24 @@ let make =
     onClick={_evt =>
       switch (stage) {
       | Round(_, _) =>
-        dispatch_peek_farm();
+        dispatch(Play(PeekFarm));
         setRotation(_ => 90);
         let _ = Js.Global.setTimeout(() => setRotation(_ => 0), 500);
         ();
+      | Flow(Created)
       | Flow(Begin)
-      | Flow(RoundEnd) =>
+      | Flow(RoundEnd)
+      | Flow(End) =>
         setRotation(_ => 90);
         let _ =
           Js.Global.setTimeout(
             () => {
-              dispatch_flip_farm();
+              dispatch(Play(FlipFarm));
               setRotation(_ => 0);
             },
             500,
           );
         ();
-      | Flow(_) => ()
       }
     }
     transform="translate(110 2)">
