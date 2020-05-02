@@ -3,7 +3,7 @@ open Expect;
 
 let game =
   Game.load_setup(
-    None,
+    Some(0),
     "",
     Grid.setup(Grid.map_A),
     [
@@ -13,7 +13,8 @@ let game =
       (Road.of_int(3), Yellow),
     ],
     [A, B],
-  );
+  )
+  |> Game.begin_game;
 
 let flip_farm_game = game |> Game.flip_farm;
 
