@@ -16,10 +16,10 @@ let setup = () => {
 let make =
     (~me as {lookahead}: Player.t, ~farm_deck, ~stage: Stage.t, ~dispatch) => {
   let (rotation, setRotation) = React.useState(_ => 0);
-  let can_peek =
+  let will_peek =
     switch (stage) {
     | Round(_, _) => lookahead
-    | Flow(RoundEnd | Begin) => true
+    | Flow(Ready | RoundEnd) => true
     | Flow(Created | End) => false
     };
   React.useEffect1(
@@ -42,7 +42,7 @@ let make =
         let _ = Js.Global.setTimeout(() => setRotation(_ => 0), 500);
         ();
       | Flow(Created)
-      | Flow(Begin)
+      | Flow(Ready)
       | Flow(RoundEnd)
       | Flow(End) =>
         setRotation(_ => 90);
@@ -83,12 +83,12 @@ let make =
               width="15"
               height="20"
               rx="2"
-              fill={can_peek ? "yellow" : "cornflowerblue"}
+              fill={will_peek ? "yellow" : "cornflowerblue"}
               stroke="white"
               strokeWidth="1"
               style=Theme.shadow
             />
-            {can_peek
+            {will_peek
                ? <g transform="translate(4.5 12.5)" strokeWidth="0.1">
                    <text
                      strokeWidth={

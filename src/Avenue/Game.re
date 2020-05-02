@@ -28,7 +28,7 @@ let begin_game =
   | {
       avenue: {
         seed: Some(_),
-        stage: Flow(Begin | RoundEnd | End) | Round(_, _),
+        stage: Flow(Ready | RoundEnd | End) | Round(_, _),
       },
     } as t
   | {avenue: {seed: None}} as t => t;
@@ -52,12 +52,7 @@ let create_game = () => {
   setup(seed, "me");
 };
 
-let start_game = t =>
-  setup(t.avenue.seed, t.me.farmer)
-  |> (
-    fun
-    | t => {...t, avenue: t.avenue |> Avenue.advance_stage}
-  );
+let restart_game = t => setup(t.avenue.seed, t.me.farmer);
 
 let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
   avenue->Avenue.Rules.can_flip_farm
@@ -192,7 +187,7 @@ let undo = t => {
       previous_actions
       |> List.fold_left(
            (acc, (action, _)) => play_reducer(acc, action),
-           t |> start_game,
+           t |> restart_game,
          ),
     log: t.log |> List.tl,
   };
@@ -201,8 +196,7 @@ let undo = t => {
 let control_reducer = t =>
   fun
   | Create => create_game() |> guide
-  | Start => t |> start_game |> guide
-  | Restart => setup(t.avenue.seed, t.me.farmer) |> guide
+  | Restart => t |> restart_game |> guide
   | Undo => t |> undo |> guide;
 
 let reducer = t =>

@@ -55,8 +55,8 @@ describe("Avenue.advance_stage", () => {
   let game_end_e = game_round_end_e |> Avenue.advance_stage;
   let game_end = game_end_e |> Avenue.advance_stage;
 
-  test("should begin game with Begin stage", () => {
-    expect(game_yellow.stage) |> toEqual(Stage.Flow(Begin))
+  test("should begin game with Ready stage", () => {
+    expect(game_yellow.stage) |> toEqual(Stage.Flow(Ready))
   });
 
   test("should advance game to farm A, 0 yellow cards stage", () => {

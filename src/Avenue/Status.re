@@ -58,7 +58,6 @@ let describe_play =
 let suggest_control =
   fun
   | Create => "click here to create a new game"
-  | Start => "click here to begin the game"
   | Restart => "click here to restart this game"
   | Undo => "click here to revert the last action";
 
@@ -122,14 +121,14 @@ let short_list_of_log_entry =
   fun
   | (play, _) => [play->describe_play];
 
-let can_start =
+let can_create =
   fun
-  | {Avenue.stage: Flow(Created)} => true
-  | {stage: Flow(Begin | RoundEnd | End)}
+  | {Avenue.stage: Flow(Created | Ready)} => true
+  | {stage: Flow(RoundEnd | End)}
   | {stage: Round(_, _)} => false;
 
-let guide_start = (game, guide) =>
-  can_start(game) ? guide |> add_suggestion(Control(Start)) : guide;
+let guide_create = (game, guide) =>
+  can_create(game) ? guide |> add_suggestion(Control(Create)) : guide;
 
 let guide_flip_farm = (avenue, guide) =>
   Avenue.Rules.can_flip_farm(avenue)
@@ -149,7 +148,7 @@ let guide_draw_road = (player, avenue, guide) =>
 
 let guide = (player, avenue) =>
   []
-  |> guide_start(avenue)
+  |> guide_create(avenue)
   |> guide_peek_farm(player, avenue)
   |> guide_flip_farm(avenue)
   |> guide_flip_road(player, avenue)

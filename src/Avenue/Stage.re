@@ -1,6 +1,6 @@
 type flow =
   | Created
-  | Begin
+  | Ready
   | RoundEnd
   | End;
 

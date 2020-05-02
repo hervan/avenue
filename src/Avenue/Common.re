@@ -8,7 +8,6 @@ type play_action =
 
 type control_action =
   | Create
-  | Start
   | Restart
   | Undo;
 

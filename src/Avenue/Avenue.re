@@ -27,8 +27,8 @@ let setup = (seed, base_grid, road_deck, farm_deck) => {
 
 let next_stage = ({seed, stage, farm_deck, current_card}: t) => {
   switch (stage, current_card, seed) {
-  | (Flow(Created), _, Some(_)) => Stage.Flow(Begin)
-  | (Flow(Begin | RoundEnd), _, Some(_)) =>
+  | (Flow(Created), _, Some(_)) => Stage.Flow(Ready)
+  | (Flow(Ready | RoundEnd), _, Some(_)) =>
     switch (farm_deck) {
     | [_] => Flow(End)
     | [next_farm, ..._] => Round(next_farm, Zero)
@@ -77,7 +77,7 @@ let reducer = t =>
 module Rules = {
   let can_flip_farm = ({stage, farm_deck}: t) =>
     switch (stage) {
-    | Flow(Begin | RoundEnd) =>
+    | Flow(Ready | RoundEnd) =>
       switch (farm_deck) {
       | [_, _, ..._] => true
       | [_]
