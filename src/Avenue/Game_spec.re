@@ -15,10 +15,10 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((game |> Game.end_round).me.current_round_points)
-    |> toEqual(Some((Farm.A, (-5))));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, (-5))]);
   });
   test(
     "should penalize if round points is zero even if previous is negative", () => {
@@ -33,13 +33,10 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((
-      (game |> Game.end_round).me.current_round_points,
-      (game |> Game.end_round).me.previous_round_points,
-    ))
-    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, (-5))]));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, (-5)), (Farm.B, (-5))]);
   });
   test("should penalize if round points is lower than previous", () => {
     let game = {
@@ -53,13 +50,10 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((
-      (game |> Game.end_round).me.current_round_points,
-      (game |> Game.end_round).me.previous_round_points,
-    ))
-    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, 40)]));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, (-5)), (Farm.B, 40)]);
   });
   test("should not penalize first round more than zero", () => {
     let game = {
@@ -72,10 +66,10 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((game |> Game.end_round).me.current_round_points)
-    |> toEqual(Some((Farm.A, 1)));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, 1)]);
   });
   test("should not penalize round score more than previous", () => {
     let game = {
@@ -89,13 +83,10 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((
-      (game |> Game.end_round).me.current_round_points,
-      (game |> Game.end_round).me.previous_round_points,
-    ))
-    |> toEqual((Some((Farm.A, 2)), [(Farm.B, 1)]));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, 2), (Farm.B, 1)]);
   });
   test("should penalize round score equal previous", () => {
     let game = {
@@ -109,12 +100,9 @@ describe("Game.round_penalty", () => {
         ...bare_minimum_game.avenue,
         stage: Round(A, Four),
       },
-      log: [(PeekFarm, [])],
+      log: [(Some(PeekFarm), [])],
     };
-    expect((
-      (game |> Game.end_round).me.current_round_points,
-      (game |> Game.end_round).me.previous_round_points,
-    ))
-    |> toEqual((Some((Farm.A, (-5))), [(Farm.B, 1)]));
+    expect((game |> Game.end_round).me.previous_round_points)
+    |> toEqual([(Farm.A, (-5)), (Farm.B, 1)]);
   });
 });

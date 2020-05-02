@@ -83,6 +83,13 @@ let count_points = ((row, col), grid) =>
   connected_path(grid, [], grid[row][col])
   ->count_grapes_path(grid[row][col]);
 
+let castle_points = (castle, grid) =>
+  count_points(castle |> Cell.to_pos, grid);
+let total_points = (round_points, castles: Cell.castles, grid) =>
+  (round_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
+  + castle_points(castles.green, grid)
+  + castle_points(castles.purple, grid);
+
 [@react.component]
 let make =
     (
@@ -92,12 +99,6 @@ let make =
       ~castles: Cell.castles,
       ~farm_deck,
     ) => {
-  let purple_points = count_points(castles.purple |> Cell.to_pos, grid);
-  let green_points = count_points(castles.green |> Cell.to_pos, grid);
-  let total_points =
-    (round_points |> List.fold_left((acc, (_, points)) => acc + points, 0))
-    + purple_points
-    + green_points;
   let yc =
     switch (stage) {
     | Round(_, yc) => yc
@@ -169,7 +170,7 @@ let make =
           textAnchor="end"
           fill="white"
           style={Theme.text("2.8px")}>
-          {green_points->string_of_int->str}
+          {castle_points(castles.green, grid)->string_of_int->str}
         </text>
       </g>
     </g>
@@ -183,7 +184,7 @@ let make =
           textAnchor="end"
           fill="white"
           style={Theme.text("2.8px")}>
-          {purple_points->string_of_int->str}
+          {castle_points(castles.purple, grid)->string_of_int->str}
         </text>
       </g>
     </g>
@@ -247,7 +248,7 @@ let make =
         textAnchor="middle"
         fill="white"
         style={Theme.text("4px")}>
-        {total_points->string_of_int->str}
+        {total_points(round_points, castles, grid)->string_of_int->str}
       </text>
     </g>
   </g>;

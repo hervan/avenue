@@ -55,6 +55,7 @@ let keep_round_points =
   fun
   | {current_round_points: Some(points)} as t => {
       ...t,
+      current_round_points: None,
       previous_round_points: [points, ...t.previous_round_points],
     }
   | {current_round_points: None} as t => t;
@@ -87,11 +88,7 @@ let draw_road = (road, row, col, turn) =>
 let reducer = t =>
   fun
   | FlipFarm(farm) =>
-    t
-    |> keep_round_points
-    |> add_round_points(farm)
-    |> reset_lookahead
-    |> recount_points(t.farms)
+    t |> add_round_points(farm) |> reset_lookahead |> recount_points(t.farms)
   | PeekFarm => t
   | DrawRoad(road, row, col, turn) =>
     t |> draw_road(road, row, col, turn) |> recount_points(t.farms);

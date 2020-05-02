@@ -193,6 +193,10 @@ let end_round =
           log: log |> Status.add_round_over_event(farm),
         }
         |> round_penalty
+        |> (
+          fun
+          | t => {...t, me: t.me |> Player.keep_round_points}
+        )
       : t
   | {avenue: {stage: Flow(_)}} as t => t;
 
@@ -201,7 +205,21 @@ let end_game = ({avenue, log} as t) => {
     ? {
       ...t,
       avenue: avenue |> Avenue.advance_stage,
-      log: log |> Status.add_event(GameIsOver),
+      log:
+        log
+        |> Status.add_event(
+             GameIsOver(
+               Points.total_points(
+                 t.me.previous_round_points,
+                 t.avenue.castles,
+                 t.me.grid,
+               ),
+               switch (t.avenue.seed) {
+               | Some(seed) => seed
+               | None => raise(Impossible("every game must have a seed"))
+               },
+             ),
+           ),
     }
     : t;
 };

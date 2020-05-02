@@ -11,7 +11,7 @@ type event =
   | RoundIsOver(string)
   | ScoredZero(string)
   | ScoredNotEnough(int, string, int)
-  | GameIsOver;
+  | GameIsOver(int, int);
 
 let add_action = (action, log) => [(Some(action), []), ...log];
 
@@ -111,16 +111,20 @@ let describe_event =
         {j|but last round you connected more grapes ($previous)|j},
       ];
     }
-  | GameIsOver => [
+  | GameIsOver(points, seed) => [
       "the game is over!",
       "after five rounds are played, the game comes to an end",
+      {j|you scored $points points|j}
+      ++ (points > 0 ? {j|, congratulations!|j} : {js| 🤷🏻‍♂️|js}),
+      {j|you can copy the game url (with the game identifier $seed in the end)|j},
+      "and send it to friends to challenge them and see who scores better!",
     ];
 
 let list_of_log_entry = ((action, events)) => {
   let event_entries =
     events
-         |> List.rev_map(describe_event)
-         |> List.concat
+    |> List.rev_map(describe_event)
+    |> List.concat
     |> List.map(description => Event(description));
   switch (action) {
   | Some(action) => [Action(action->describe_play), ...event_entries]
@@ -199,7 +203,7 @@ let make = (~guide, ~log, ~dispatch) => {
        |> List.mapi((i, (suggested_action, guide_entry)) =>
             switch (suggested_action) {
             | Play(DrawRoad(_, _) | PeekFarm) =>
-            entry_text(
+              entry_text(
                 {
                   "g" ++ (guide_entries->List.length - i |> string_of_int);
                 },
@@ -224,11 +228,11 @@ let make = (~guide, ~log, ~dispatch) => {
                 }>
                 {entry_text(
                    "",
-              Theme.guide_text,
+                   Theme.guide_text,
                    0.,
-              "white",
-              1.,
-              guide_entry,
+                   "white",
+                   1.,
+                   guide_entry,
                  )}
               </g>
             }
