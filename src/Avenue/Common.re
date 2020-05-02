@@ -7,6 +7,7 @@ type play_action =
   | DrawRoad(int, int);
 
 type control_action =
+  | Create
   | Start
   | Restart
   | Undo;

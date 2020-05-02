@@ -1,36 +1,63 @@
 open Common;
 
 type t = {
-  seed: int,
   avenue: Avenue.t,
   me: Player.t,
   players: list(Player.t),
-  log: list((play_action, list(Stage.event))),
-  guide: list(play_action),
+  log: list((play_action, list(Status.event))),
+  guide: list(action),
 };
 
 let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
-  let avenue = Avenue.setup(base_grid, road_deck, farm_deck);
+  let avenue = Avenue.setup(seed, base_grid, road_deck, farm_deck);
   let me = Player.setup(player_name, base_grid);
-  {
-    seed,
-    avenue,
-    log: [],
-    guide: avenue |> Status.guide(me),
-    me,
-    players: [],
-  };
+  {avenue, log: [], guide: avenue |> Status.guide(me), me, players: []};
 };
 
+let init_seed =
+  fun
+  | None => Random.init(0)
+  | Some(seed) => Random.init(seed);
+
+let begin_game =
+  fun
+  | {avenue: {seed: Some(_), stage: Flow(Created)}} as t => {
+      ...t,
+      avenue: t.avenue |> Avenue.advance_stage,
+    }
+  | {
+      avenue: {
+        seed: Some(_),
+        stage: Flow(Begin | RoundEnd | End) | Round(_, _),
+      },
+    } as t
+  | {avenue: {seed: None}} as t => t;
+
 let setup = (seed, player_name) => {
-  Random.init(seed);
+  init_seed(seed);
   let base_grid = Grid.setup(Grid.map_A);
   let road_deck = RoadDeck.setup();
   let farm_deck = FarmDeck.setup();
-  load_setup(seed, player_name, base_grid, road_deck, farm_deck);
+  load_setup(seed, player_name, base_grid, road_deck, farm_deck) |> begin_game;
 };
 
-let start = t => {...t, avenue: t.avenue |> Avenue.advance_stage};
+let create_game = () => {
+  let seed = {
+    Random.self_init();
+    let seed = Random.bits();
+    ReasonReactRouter.replace({j|/$seed|j});
+    Some(seed);
+  };
+
+  setup(seed, "me");
+};
+
+let start_game = t =>
+  setup(t.avenue.seed, t.me.farmer)
+  |> (
+    fun
+    | t => {...t, avenue: t.avenue |> Avenue.advance_stage}
+  );
 
 let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
   avenue->Avenue.Rules.can_flip_farm
@@ -165,7 +192,7 @@ let undo = t => {
       previous_actions
       |> List.fold_left(
            (acc, (action, _)) => play_reducer(acc, action),
-           setup(t.seed, t.me.farmer),
+           t |> start_game,
          ),
     log: t.log |> List.tl,
   };
@@ -173,8 +200,9 @@ let undo = t => {
 
 let control_reducer = t =>
   fun
-  | Start => t |> start |> guide
-  | Restart => setup(t.seed, t.me.farmer) |> guide
+  | Create => create_game() |> guide
+  | Start => t |> start_game |> guide
+  | Restart => setup(t.avenue.seed, t.me.farmer) |> guide
   | Undo => t |> undo |> guide;
 
 let reducer = t =>
@@ -185,28 +213,14 @@ let reducer = t =>
 [@react.component]
 let make = () => {
   let url = ReasonReactRouter.useUrl();
-  let seed_from_url =
+  let seed =
     switch (url.path->List.nth_opt(0)) {
     | Some(seed) => seed->int_of_string_opt
     | None => None
     };
-  let seed =
-    switch (seed_from_url) {
-    | Some(seed) => seed
-    | None =>
-      Random.self_init();
-      let seed = Random.bits();
-      ReasonReactRouter.replace({j|/$seed|j});
-      seed;
-    };
-  let me = "me";
 
-  let (game, dispatch) = React.useReducer(reducer, setup(seed, me));
+  let (game, dispatch) = React.useReducer(reducer, setup(seed, "me"));
 
-  let dispatch_undo = () => dispatch(Control(Undo));
-  let dispatch_flip_farm = () => dispatch(Play(FlipFarm));
-  let dispatch_peek_farm = () => dispatch(Play(PeekFarm));
-  let dispatch_flip_road = () => dispatch(Play(FlipRoad));
   let gridScale =
     10.
     /. float_of_int(
@@ -224,25 +238,20 @@ let make = () => {
        |> Array.to_list
        |> Array.concat
        |> Array.mapi((i, cell) =>
-            <Cell
-              key={i |> string_of_int}
-              cell
-              dispatch={(row, col) => dispatch(Play(DrawRoad(row, col)))}
-            />
+            <Cell key={i |> string_of_int} cell dispatch />
           )
        |> ReasonReact.array}
     </g>
     <RoadDeck
       road_deck={game.avenue.road_deck}
       current_card={game.avenue.current_card}
-      dispatch_flip_road
+      dispatch
     />
     <FarmDeck
       me={game.me}
       farm_deck={game.avenue.farm_deck}
       stage={game.avenue.stage}
-      dispatch_peek_farm
-      dispatch_flip_farm
+      dispatch
     />
     <Points
       stage={game.avenue.stage}
@@ -256,6 +265,6 @@ let make = () => {
       castles={game.avenue.castles}
       farm_deck={game.avenue.farm_deck}
     />
-    <Status guide={game.guide} log={game.log} dispatch_undo />
+    <Status guide={game.guide} log={game.log} dispatch />
   </svg>;
 };
