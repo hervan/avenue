@@ -23,7 +23,7 @@ let road_card_thickness = 0.075;
 
 let farm_card_thickness = 0.5;
 
-let link = ReactDOMRe.Style.make(~cursor="pointer", ());
+let line_height = 3.2;
 
 let text = fontSize =>
   ReactDOMRe.Style.make(
@@ -54,6 +54,12 @@ let no_transition = ReactDOMRe.Style.make();
 
 let shadow = ReactDOMRe.Style.make(~filter="url(#shadow)", ());
 
+let button_shadow = ReactDOMRe.Style.make(~filter="url(#button-shadow)", ());
+
+let link =
+  button_shadow
+  |> ReactDOMRe.Style.combine(ReactDOMRe.Style.make(~cursor="pointer", ()));
+
 let road_shadow = ReactDOMRe.Style.make(~filter="url(#road-shadow)", ());
 
 let rotate_card = rotation =>
@@ -75,6 +81,15 @@ let filters =
         stdDeviation="0.25"
         floodColor="black"
         floodOpacity="0.5"
+      />
+    </filter>
+    <filter id="button-shadow">
+      <feDropShadow
+        dx="0.05"
+        dy="0.05"
+        stdDeviation="0.075"
+        floodColor="black"
+        floodOpacity="1"
       />
     </filter>
     <filter id="text-shadow">

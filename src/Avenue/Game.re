@@ -8,6 +8,43 @@ type t = {
   guide: list(action),
 };
 
+let can_create =
+  fun
+  | {avenue: {stage: Flow(Created | Ready | End)}} => true
+  | {avenue: {stage: Flow(RoundEnd)}}
+  | {avenue: {stage: Round(_, _)}} => false;
+
+let can_undo = ({log}) =>
+  switch (log) {
+  | [(Some(DrawRoad(_, _)), _), ..._] => true
+  | _ => false
+  };
+
+let can_restart =
+  fun
+  | {avenue: {stage: Flow(RoundEnd | End)}}
+  | {avenue: {stage: Round(_, _)}} => true
+  | {avenue: {stage: Flow(Created | Ready)}} => false;
+
+let guide_create = (t, guide) =>
+  can_create(t) ? guide |> Status.add_suggestion(Control(Create)) : guide;
+
+let guide_undo = (t, guide) =>
+  can_undo(t) ? guide |> Status.add_suggestion(Control(Undo)) : guide;
+
+let guide_restart = (t, guide) =>
+  can_restart(t) ? guide |> Status.add_suggestion(Control(Restart)) : guide;
+
+let guide = ({me, avenue} as t) => {
+  ...t,
+  guide:
+    avenue
+    |> Status.guide(me)
+    |> guide_create(t)
+    |> guide_undo(t)
+    |> guide_restart(t),
+};
+
 let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
   let avenue = Avenue.setup(seed, base_grid, road_deck, farm_deck);
   let me = Player.setup(player_name, base_grid);
@@ -38,7 +75,9 @@ let setup = (seed, player_name) => {
   let base_grid = Grid.setup(Grid.map_A);
   let road_deck = RoadDeck.setup();
   let farm_deck = FarmDeck.setup();
-  load_setup(seed, player_name, base_grid, road_deck, farm_deck) |> begin_game;
+  load_setup(seed, player_name, base_grid, road_deck, farm_deck)
+  |> begin_game
+  |> guide;
 };
 
 let create_game = () => {
@@ -165,11 +204,6 @@ let end_game = ({avenue, log} as t) => {
       log: log |> Status.add_event(GameIsOver),
     }
     : t;
-};
-
-let guide = ({me, avenue} as t) => {
-  ...t,
-  guide: avenue |> Status.guide(me),
 };
 
 let play_reducer = t =>

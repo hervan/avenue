@@ -1,8 +1,7 @@
 open Common;
 
-type details =
-  | Undoable(string)
-  | Revealing(string)
+type log_entry =
+  | Action(string)
   | Event(string);
 
 type event =
@@ -57,9 +56,9 @@ let describe_play =
 
 let suggest_control =
   fun
-  | Create => "click here to create a new game"
-  | Restart => "click here to restart this game"
-  | Undo => "click here to revert the last action";
+  | Create => "(click here to create a new game)"
+  | Restart => "(click here to restart the game)"
+  | Undo => "(click here to undo the last action)";
 
 let suggest_action =
   fun
@@ -102,16 +101,9 @@ let describe_event =
       "after five rounds are played, the game comes to an end",
     ];
 
-let list_of_log_entry =
-  fun
-  | (action, events) => [
-      switch (action) {
-      | DrawRoad(_, _) => Undoable(action->describe_play)
-      | PeekFarm
-      | FlipFarm
-      | FlipRoad => Revealing(action->describe_play)
-      },
-      ...events
+let list_of_log_entry = ((action, events)) => {
+  let event_entries =
+    events
          |> List.rev_map(describe_event)
          |> List.concat
     |> List.map(description => Event(description));
@@ -144,11 +136,10 @@ let guide_draw_road = (player, avenue, guide) =>
 
 let guide = (player, avenue) =>
   []
-  |> guide_create(avenue)
-  |> guide_peek_farm(player, avenue)
   |> guide_flip_farm(avenue)
   |> guide_flip_road(player, avenue)
-  |> guide_draw_road(player, avenue);
+  |> guide_draw_road(player, avenue)
+  |> guide_peek_farm(player, avenue);
 
 [@react.component]
 let make = (~guide, ~log, ~dispatch) => {
@@ -157,7 +148,11 @@ let make = (~guide, ~log, ~dispatch) => {
     | [] => []
     | [last_log, ..._] => last_log |> list_of_log_entry
     };
-  let guide_entries = guide |> List.map(suggest_action);
+  let guide_entries =
+    guide
+    |> List.rev_map(guide_entry =>
+         (guide_entry, suggest_action(guide_entry))
+       );
   let previous_log_entries =
     switch (log) {
     | [] => []
@@ -186,51 +181,62 @@ let make = (~guide, ~log, ~dispatch) => {
   <g>
     <g transform="translate(88 25)" fillOpacity="1">
       {guide_entries
-       |> List.mapi((i, guide_entry) =>
+       |> List.mapi((i, (suggested_action, guide_entry)) =>
+            switch (suggested_action) {
+            | Play(DrawRoad(_, _) | PeekFarm) =>
             entry_text(
-              "d" ++ (guide_entries->List.length - i |> string_of_int),
+                {
+                  "g" ++ (guide_entries->List.length - i |> string_of_int);
+                },
+                Theme.guide_text,
+                Theme.line_height *. float_of_int(i),
+                "white",
+                0.5,
+                guide_entry,
+              )
+            | Control(Create | Restart | Undo)
+            | Play(FlipRoad | FlipFarm) =>
+              <g
+                key={i |> string_of_int}
+                onClick={_evt => dispatch(suggested_action)}
+                style=Theme.link
+                transform={
+                  "translate(0 "
+                  ++ (
+                    float_of_int(i) *. Theme.line_height |> Js.Float.toString
+                  )
+                  ++ ")"
+                }>
+                {entry_text(
+                   "",
               Theme.guide_text,
-              i * 3,
+                   0.,
               "white",
               1.,
               guide_entry,
-            )
+                 )}
+              </g>
+            }
           )
        |> arr}
       {last_log_entry
        |> List.mapi(i =>
             fun
-            | Undoable(detail_line) =>
-              <g
-                key={log->List.length |> string_of_int}
-                onClick={_evt => dispatch(Control(Undo))}
-                style=Theme.link>
-                {entry_text(
-                   log->List.length |> string_of_int,
-                   Theme.log_text,
-                   3 * guide_entries->List.length,
-                   "blue",
-                   1.,
-                   (log->List.length |> string_of_int)
-                   ++ ". "
-                   ++ detail_line
-                   ++ {js| [⎌ click here to undo]|js},
-                 )}
-              </g>
-            | Revealing(detail_line) =>
+            | Action(detail_line) =>
               entry_text(
                 log->List.length |> string_of_int,
                 Theme.log_text,
-                3 * guide_entries->List.length,
+                Theme.line_height *. float_of_int(guide_entries->List.length),
                 "blue",
                 1.,
-                (log->List.length |> string_of_int) ++ ". " ++ detail_line,
+                (log->List.length - 1 |> string_of_int) ++ ". " ++ detail_line,
               )
             | Event(detail_line) =>
               entry_text(
-                "hl" ++ (last_log_entry->List.length - i |> string_of_int),
+                "e" ++ (last_log_entry->List.length - i |> string_of_int),
                 Theme.log_text,
-                3 * (i + guide_entries->List.length),
+                Theme.line_height
+                *. float_of_int(i + guide_entries->List.length),
                 "orange",
                 1.,
                 detail_line,
@@ -242,8 +248,10 @@ let make = (~guide, ~log, ~dispatch) => {
             entry_text(
               previous_log_entries->List.length - i |> string_of_int,
               Theme.log_text,
-              3
-              * (i + last_log_entry->List.length + guide_entries->List.length),
+              Theme.line_height
+              *. float_of_int(
+                   i + last_log_entry->List.length + guide_entries->List.length,
+                 ),
               "blue",
               max(0., 1. /. (i + 2 |> float_of_int)),
               (
