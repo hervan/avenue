@@ -1,4 +1,5 @@
 type t = {
+  seed: option(int),
   turn: int,
   road_deck: list(Road.Card.t),
   farm_deck: list(Farm.t),
@@ -11,11 +12,12 @@ type action =
   | FlipFarm
   | FlipRoad;
 
-let setup = (base_grid, road_deck, farm_deck) => {
+let setup = (seed, base_grid, road_deck, farm_deck) => {
+  seed,
   turn: 0,
   road_deck,
   farm_deck,
-  stage: Flow(Begin),
+  stage: Flow(Created),
   current_card: None,
   castles: {
     purple: Grid.find(Castle(Purple), base_grid),
@@ -23,20 +25,21 @@ let setup = (base_grid, road_deck, farm_deck) => {
   },
 };
 
-let next_stage = ({stage, farm_deck, current_card}: t) => {
-  switch (stage, current_card) {
-  | (Flow(Created), _) => Stage.Flow(Begin)
-  | (Flow(Begin | RoundEnd), _) =>
+let next_stage = ({seed, stage, farm_deck, current_card}: t) => {
+  switch (stage, current_card, seed) {
+  | (Flow(Created), _, Some(_)) => Stage.Flow(Begin)
+  | (Flow(Begin | RoundEnd), _, Some(_)) =>
     switch (farm_deck) {
     | [_] => Flow(End)
     | [next_farm, ..._] => Round(next_farm, Zero)
     | [] => stage
     }
-  | (Round(_, Four), _) => Flow(RoundEnd)
-  | (Round(farm, yc), Some((_, Yellow))) =>
+  | (Round(_, Four), _, Some(_)) => Flow(RoundEnd)
+  | (Round(farm, yc), Some((_, Yellow)), Some(_)) =>
     Round(farm, yc->Stage.YellowCards.add)
-  | (Round(_, _), Some((_, Grey)) | None)
-  | (Flow(End), _) => stage
+  | (_, _, None)
+  | (Round(_, _), Some((_, Grey)) | None, Some(_))
+  | (Flow(End), _, Some(_)) => stage
   };
 };
 
@@ -47,7 +50,7 @@ let discard_top_farm = ({farm_deck} as t) => {
   farm_deck: farm_deck |> List.tl,
 };
 
-let set_current_road = ({road_deck} as t) => {
+let reveal_current_road = ({road_deck} as t) => {
   ...t,
   current_card: Some(road_deck |> List.hd),
 };
@@ -64,7 +67,7 @@ let set_stage = (stage, t) => {...t, stage};
 let flip_farm = t => t |> advance_stage |> discard_top_farm;
 
 let flip_road = t =>
-  t |> set_current_road |> discard_top_road |> advance_stage |> advance_turn;
+  t |> reveal_current_road |> discard_top_road |> advance_stage |> advance_turn;
 
 let reducer = t =>
   fun
