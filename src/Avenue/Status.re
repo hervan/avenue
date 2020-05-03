@@ -13,7 +13,7 @@ type event =
   | ScoredNotEnough(int, string, int)
   | GameIsOver(int, int);
 
-let add_action = (action, log) => [(Some(action), []), ...log];
+let add_action = (action, log) => [(action, []), ...log];
 
 let add_event = (event: event) =>
   fun
@@ -187,7 +187,8 @@ let make = (~guide, ~log, ~dispatch) => {
     };
   let entry_text = (key, style, translateY, fill, fillOpacity, text) =>
     <text
-      key
+      key={Js.log2("text", key);
+           key}
       style
       x="0"
       y="5"
@@ -204,9 +205,10 @@ let make = (~guide, ~log, ~dispatch) => {
             switch (suggested_action) {
             | Play(DrawRoad(_, _) | PeekFarm) =>
               entry_text(
-                {
-                  "g" ++ (guide_entries->List.length - i |> string_of_int);
-                },
+                "guide_"
+                ++ (log |> List.length |> string_of_int)
+                ++ "_"
+                ++ i->string_of_int,
                 Theme.guide_text,
                 Theme.line_height *. float_of_int(i),
                 "white",
@@ -216,7 +218,15 @@ let make = (~guide, ~log, ~dispatch) => {
             | Control(Create | Restart | Undo)
             | Play(FlipRoad | FlipFarm) =>
               <g
-                key={i |> string_of_int}
+                key={
+                      let key =
+                        "guide_button_"
+                        ++ (log |> List.length |> string_of_int)
+                        ++ "_"
+                        ++ i->string_of_int;
+                      Js.log2("button", key);
+                      key;
+                    }
                 onClick={_evt => dispatch(suggested_action)}
                 style=Theme.link
                 transform={
@@ -227,7 +237,10 @@ let make = (~guide, ~log, ~dispatch) => {
                   ++ ")"
                 }>
                 {entry_text(
-                   "",
+                   "guide_text_"
+                   ++ (log |> List.length |> string_of_int)
+                   ++ "_"
+                   ++ i->string_of_int,
                    Theme.guide_text,
                    0.,
                    "white",
@@ -252,7 +265,10 @@ let make = (~guide, ~log, ~dispatch) => {
               )
             | Event(detail_line) =>
               entry_text(
-                "e" ++ (last_log_entry->List.length - i |> string_of_int),
+                "detail_"
+                ++ (log->List.length |> string_of_int)
+                ++ "_"
+                ++ (last_log_entry->List.length - i |> string_of_int),
                 Theme.log_text,
                 Theme.line_height
                 *. float_of_int(i + guide_entries->List.length),
@@ -265,7 +281,7 @@ let make = (~guide, ~log, ~dispatch) => {
       {previous_log_entries
        |> List.mapi((i, entry_line) =>
             entry_text(
-              previous_log_entries->List.length - i |> string_of_int,
+              i |> string_of_int,
               Theme.log_text,
               Theme.line_height
               *. float_of_int(

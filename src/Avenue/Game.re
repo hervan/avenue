@@ -48,7 +48,7 @@ let guide = ({me, avenue} as t) => {
 let load_setup = (seed, player_name, base_grid, road_deck, farm_deck) => {
   let avenue = Avenue.setup(seed, base_grid, road_deck, farm_deck);
   let me = Player.setup(player_name, base_grid);
-  {avenue, log: [(None, [GameStarted])], guide: [], me, players: []};
+  {avenue, log: [(None, [])], guide: [], me, players: []};
 };
 
 let init_seed =
@@ -88,7 +88,13 @@ let create_game = () => {
     Some(seed);
   };
 
-  setup(seed, "me");
+  setup(seed, "me")
+  |> (
+    t => {
+      ...t,
+      log: t.log |> Status.add_action(None) |> Status.add_event(GameStarted),
+    }
+  );
 };
 
 let restart_game = t => setup(t.avenue.seed, t.me.farmer);
@@ -101,7 +107,7 @@ let flip_farm = ({me, avenue: {farm_deck} as avenue, log} as t) =>
       me: me->Player.reducer(FlipFarm(farm_deck->List.nth(0))),
       log:
         log
-        |> Status.add_action(FlipFarm)
+        |> Status.add_action(Some(FlipFarm))
         |> Status.add_round_start_event(farm_deck |> List.hd),
     }
     : t;
@@ -112,7 +118,9 @@ let peek_farm = ({me, avenue, log} as t) =>
       ...t,
       me: me |> Player.enable_lookahead |> Player.advance_turn(avenue.turn),
       log:
-        log |> Status.add_action(PeekFarm) |> Status.add_event(TurnSkipped),
+        log
+        |> Status.add_action(Some(PeekFarm))
+        |> Status.add_event(TurnSkipped),
     }
     : t;
 
@@ -121,7 +129,7 @@ let flip_road = ({me, avenue, log} as t) =>
     ? {
       ...t,
       avenue: avenue->Avenue.reducer(FlipRoad),
-      log: log |> Status.add_action(FlipRoad),
+      log: log |> Status.add_action(Some(FlipRoad)),
     }
     : t;
 
@@ -132,7 +140,7 @@ let draw_road = (row, col) =>
       ? {
         ...t,
         me: me->Player.reducer(DrawRoad(road, row, col, turn)),
-        log: log |> Status.add_action(DrawRoad(row, col)),
+        log: log |> Status.add_action(Some(DrawRoad(row, col))),
       }
       : t
   | {avenue: {current_card: None}} as t => t;
