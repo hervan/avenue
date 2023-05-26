@@ -27,7 +27,7 @@
     "@glennsl/bs-jest": "^0.7.0",
     "bs-platform": "^7.2.2",
     "clean-webpack-plugin": "^3.0.0",
-    "favicons-webpack-plugin": "^3.0.1",
+    "favicons-webpack-plugin": "^6.0.0",
     "firebase-tools": "^7.16.2",
     "html-webpack-plugin": "^4.3.0",
     "moduleserve": "^0.9.0",
