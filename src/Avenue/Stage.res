@@ -2,7 +2,7 @@ type flow =
   | Created
   | Ready
   | RoundEnd
-  | End;
+  | End
 
 module YellowCards = {
   type t =
@@ -10,25 +10,27 @@ module YellowCards = {
     | One
     | Two
     | Three
-    | Four;
+    | Four
 
-  let to_int =
-    fun
+  let to_int = x =>
+    switch x {
     | Zero => 0
     | One => 1
     | Two => 2
     | Three => 3
-    | Four => 4;
+    | Four => 4
+    }
 
-  let add =
-    fun
+  let add = x =>
+    switch x {
     | Zero => One
     | One => Two
     | Two => Three
     | Three => Four
-    | Four => Four;
-};
+    | Four => Four
+    }
+}
 
 type t =
   | Round(Farm.t, YellowCards.t)
-  | Flow(flow);
+  | Flow(flow)

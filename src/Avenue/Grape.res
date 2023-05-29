@@ -1,13 +1,14 @@
 type t =
   | Purple
-  | Green;
+  | Green
 
-let color_of_grape =
-  fun
+let color_of_grape = x =>
+  switch x {
   | Purple => "purple"
-  | Green => "green";
+  | Green => "green"
+  }
 
-[@react.component]
+@react.component
 let make = (~grape, ~i) =>
   <circle
     cx={((i + 1) * 2)->string_of_int}
@@ -17,4 +18,4 @@ let make = (~grape, ~i) =>
     stroke={grape->color_of_grape}
     strokeWidth="0.25"
     fillOpacity="0.5"
-  />;
+  />

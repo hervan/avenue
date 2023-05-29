@@ -1,20 +1,20 @@
-exception Impossible(string);
+exception Impossible(string)
 
 type play_action =
   | FlipFarm
   | FlipRoad
   | PeekFarm
-  | DrawRoad(int, int);
+  | DrawRoad(int, int)
 
 type control_action =
   | Create
   | Restart
-  | Undo;
+  | Undo
 
 type action =
   | Play(play_action)
-  | Control(control_action);
+  | Control(control_action)
 
-let str = React.string;
+let str = React.string
 
-let arr = list => list |> Array.of_list |> ReasonReact.array;
+let arr = list => list |> Array.of_list |> ReasonReact.array

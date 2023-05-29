@@ -13,82 +13,82 @@ type t = {
   turn: int,
   lookahead: bool,
   grid: Grid.t,
-  farms: list(Cell.t),
-  previous_round_points: list((Farm.t, int)),
-  current_round_points: option((Farm.t, int)),
-};
+  farms: list<Cell.t>,
+  previous_round_points: list<(Farm.t, int)>,
+  current_round_points: option<(Farm.t, int)>,
+}
 
 type action =
   | PeekFarm
   | DrawRoad(Road.t, int, int, int)
-  | FlipFarm(Farm.t);
+  | FlipFarm(Farm.t)
 
 let setup = (player_name, base_grid) => {
   farmer: player_name,
   turn: 0,
   grid: base_grid,
-  farms: [
+  farms: list{
     Grid.find(Farm(A), base_grid),
     Grid.find(Farm(B), base_grid),
     Grid.find(Farm(C), base_grid),
     Grid.find(Farm(D), base_grid),
     Grid.find(Farm(E), base_grid),
     Grid.find(Farm(F), base_grid),
-  ],
+  },
   lookahead: false,
   current_round_points: None,
-  previous_round_points: [],
-};
+  previous_round_points: list{},
+}
 
 let add_round_points = (farm, t) => {
   ...t,
   current_round_points: Some((farm, 0)),
-};
+}
 
-let reset_lookahead = t => {...t, lookahead: false};
+let reset_lookahead = t => {...t, lookahead: false}
 
-let enable_lookahead = t => {...t, lookahead: true};
+let enable_lookahead = t => {...t, lookahead: true}
 
-let advance_turn = (turn, t) => {...t, turn};
+let advance_turn = (turn, t) => {...t, turn: turn}
 
-let keep_round_points =
-  fun
+let keep_round_points = x =>
+  switch x {
   | {current_round_points: Some(points)} as t => {
       ...t,
       current_round_points: None,
-      previous_round_points: [points, ...t.previous_round_points],
+      previous_round_points: list{points, ...t.previous_round_points},
     }
-  | {current_round_points: None} as t => t;
+  | {current_round_points: None} as t => t
+  }
 
-let recount_points = farms =>
-  fun
+let recount_points = (farms, x) =>
+  switch x {
   | {grid, current_round_points: Some((farm, _))} as t => {
       ...t,
-      current_round_points:
-        Some((
-          farm,
-          Points.count_points(
-            farms
-            |> List.find(({Cell.content}) => content == Farm(farm))
-            |> Cell.to_pos,
-            grid,
-          ),
-        )),
+      current_round_points: Some((
+        farm,
+        Points.count_points(
+          farms |> List.find(({Cell.content: content}) => content == Farm(farm)) |> Cell.to_pos,
+          grid,
+        ),
+      )),
     }
-  | {current_round_points: None} as t => t;
+  | {current_round_points: None} as t => t
+  }
 
-let draw_road = (road, row, col, turn) =>
-  fun
+let draw_road = (road, row, col, turn, x) =>
+  switch x {
   | {grid} as me => {
       ...me,
       grid: grid |> Grid.draw_road(road, row, col),
-      turn,
-    };
+      turn: turn,
+    }
+  }
 
-let reducer = t =>
-  fun
-  | FlipFarm(farm) =>
-    t |> add_round_points(farm) |> reset_lookahead |> recount_points(t.farms)
+let reducer = (t, x) =>
+  switch x {
+  | FlipFarm(farm) => t |> add_round_points(farm) |> reset_lookahead |> recount_points(t.farms)
   | PeekFarm => t
   | DrawRoad(road, row, col, turn) =>
-    t |> draw_road(road, row, col, turn) |> recount_points(t.farms);
+    t |> draw_road(road, row, col, turn) |> recount_points(t.farms)
+  }
